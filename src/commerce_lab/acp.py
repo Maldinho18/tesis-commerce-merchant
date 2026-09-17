@@ -54,7 +54,7 @@ class ACPCapabilities(StrictModel):
 
 class ACPCheckoutCreateRequest(StrictModel):
     line_items: Annotated[list[ACPItemRequest], Field(min_length=1, max_length=1)]
-    currency: Literal["COP"]
+    currency: Literal["usd"]
     capabilities: ACPCapabilities
 
 
@@ -211,7 +211,7 @@ class ACPCheckoutAdapter:
             "id": checkout.id,
             "protocol": {"version": ACP_VERSION},
             "status": acp_status,
-            "currency": "COP",
+            "currency": "usd",
             "capabilities": {"payment": {"handlers": []}},
             "line_items": [
                 {

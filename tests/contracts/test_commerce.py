@@ -11,7 +11,6 @@ from commerce_lab.contracts import (
     Offer,
     Pricing,
     ScenarioClock,
-    cop_from_decimal,
     is_expired,
     sum_minor_amounts,
 )
@@ -19,8 +18,8 @@ from commerce_lab.fixtures import (
     FIXTURE_DELIVERY_CONTEXT,
     FIXTURE_EXPIRES_AT,
     FIXTURE_NOW,
-    SONORA_OFFERS,
-    fresh_sonora_offers,
+    P0_OFFERS,
+    fresh_p0_offers,
 )
 
 
@@ -32,7 +31,7 @@ def checkout_payload() -> dict[str, object]:
         "offer_id": "SON-01",
         "offer_revision": 1,
         "quantity": 1,
-        "pricing": SONORA_OFFERS[0].pricing.model_dump(),
+        "pricing": P0_OFFERS[3].pricing.model_dump(),
         "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         "delivery_days": 3,
         "created_at": FIXTURE_NOW,
@@ -41,30 +40,28 @@ def checkout_payload() -> dict[str, object]:
     }
 
 
-def test_cop_uses_exact_minor_units_and_shipping_once() -> None:
-    assert cop_from_decimal("720000") == Money(currency="COP", amount_minor=72_000_000)
-    assert cop_from_decimal("0.29").amount_minor == 29
-    assert sum_minor_amounts(72_000_000, 2_000_000) == 74_000_000
-    assert [offer.pricing.total_minor for offer in SONORA_OFFERS] == [
-        74_000_000,
-        78_000_000,
-        82_000_000,
-        66_000_000,
-        62_000_000,
+def test_usd_uses_integer_minor_units_and_shipping_once() -> None:
+    assert Money(currency="usd", amount_minor=72_000).amount_minor == 72_000
+    assert sum_minor_amounts(72_000, 2_000) == 74_000
+    assert [offer.pricing.total_minor for offer in P0_OFFERS] == [
+        62_000,
+        67_500,
+        71_500,
+        74_000,
+        78_000,
+        82_000,
+        66_000,
+        98_000,
+        73_000,
+        73_000,
     ]
     with pytest.raises(ValidationError):
-        Pricing.model_validate({**SONORA_OFFERS[0].pricing.model_dump(), "total_minor": 1})
-
-
-@pytest.mark.parametrize("value", ["-1", "0.001", "1e3", "1,000", "NaN", "90071992547409.92"])
-def test_cop_rejects_ambiguous_or_unsafe_decimal(value: str) -> None:
-    with pytest.raises(ValueError):
-        cop_from_decimal(value)
+        Pricing.model_validate({**P0_OFFERS[0].pricing.model_dump(), "total_minor": 1})
 
 
 def test_money_rejects_fractional_foreign_and_overflow_values() -> None:
     with pytest.raises(ValidationError):
-        Money(currency="COP", amount_minor=0.1)  # type: ignore[arg-type]
+        Money(currency="usd", amount_minor=0.1)  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
         Money(currency="USD", amount_minor=100)
     with pytest.raises(ValueError, match="safe integer"):
@@ -127,7 +124,7 @@ def test_checkout_is_not_a_payment_and_rejects_inconsistent_time() -> None:
 
 
 def test_each_scenario_starts_from_independent_fixture_state() -> None:
-    changed = fresh_sonora_offers()
+    changed = fresh_p0_offers()
     changed[0] = Offer.model_validate(
         {
             **changed[0].model_dump(),
@@ -137,12 +134,12 @@ def test_each_scenario_starts_from_independent_fixture_state() -> None:
         }
     )
     assert changed[0].revision == 2
-    assert fresh_sonora_offers()[0].availability == "in_stock"
-    assert fresh_sonora_offers()[0].revision == 1
+    assert fresh_p0_offers()[0].availability == "in_stock"
+    assert fresh_p0_offers()[0].revision == 1
 
 
 def test_legacy_offer_snapshot_derives_new_non_authoritative_fields() -> None:
-    snapshot = SONORA_OFFERS[0].model_dump(mode="json")
+    snapshot = P0_OFFERS[0].model_dump(mode="json")
     snapshot.pop("sku")
     snapshot.pop("attributes")
 
@@ -155,15 +152,24 @@ def test_legacy_offer_snapshot_derives_new_non_authoritative_fields() -> None:
 def test_fixture_has_exactly_two_admissible_sonora_offers() -> None:
     admissible = [
         offer.id
-        for offer in SONORA_OFFERS
+        for offer in P0_OFFERS
         if offer.brand == "Sonora"
         and offer.condition == "new"
-        and offer.pricing.total_minor <= 80_000_000
+        and offer.pricing.total_minor <= 80_000
         and offer.delivery_days <= 5
+        and offer.available_quantity > 0
     ]
     assert admissible == ["SON-01", "SON-02"]
-    assert all(offer.sku == offer.id for offer in SONORA_OFFERS)
-    assert all(offer.attributes == {"color": offer.color} for offer in SONORA_OFFERS)
+    assert all(offer.sku == offer.id for offer in P0_OFFERS)
+    assert all(offer.attributes == {"color": offer.color} for offer in P0_OFFERS)
+
+
+def test_all_ten_p0_products_have_explicit_valid_internal_status() -> None:
+    assert len(P0_OFFERS) == len({offer.product_id for offer in P0_OFFERS}) == 10
+    assert {offer.product_status for offer in P0_OFFERS} == {"active"}
+    assert all("product_status" in offer.model_dump() for offer in P0_OFFERS)
+    with pytest.raises(ValidationError):
+        Offer.model_validate({**P0_OFFERS[0].model_dump(), "product_status": "archived"})
 
 
 def test_expiration_uses_injected_clock_at_exact_boundary() -> None:

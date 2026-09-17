@@ -41,7 +41,7 @@ def test_prepare_is_persistent_idempotent_and_server_authoritative() -> None:
     assert isinstance(first, Success)
     assert isinstance(replay, Success)
     assert replay.data == first.data
-    assert first.data.pricing.total_minor == 74_000_000
+    assert first.data.pricing.total_minor == 74_000
     assert first.data.status == "prepared"
 
     with psycopg.connect(database_url()) as connection:

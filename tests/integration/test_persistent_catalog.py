@@ -37,7 +37,7 @@ def test_session_scopes_persistent_reads_and_records_evidence() -> None:
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
-    assert len(result_a.data.offers) == 5
+    assert len(result_a.data.offers) == 10
     assert result_b.ok is True
 
     with psycopg.connect(database_url()) as connection:
@@ -67,7 +67,7 @@ def test_real_http_routes_create_unique_request_contexts_concurrently() -> None:
             json={"category": "headphones"},
         )
         assert response.status_code == 200
-        assert len(response.json()["data"]["offers"]) == 5
+        assert len(response.json()["data"]["offers"]) == 10
         return response.headers["X-Request-Id"]
 
     with ThreadPoolExecutor(max_workers=4) as pool:

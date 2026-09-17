@@ -22,7 +22,19 @@
       "upstream_path": "LICENSE",
       "sha256": "4458503dd48e88c4e0b945fb252a08b93c40ec757309b8ffa7c594dfa1e35104",
       "modified": false
+    },
+    {
+      "path": "2026-04-17/schema.feed.json",
+      "upstream_path": "spec/2026-04-17/json-schema/schema.feed.json",
+      "sha256": "5ef3eea431f6a860bb810793843018c8ea5b8c17aa60420ad66ebec3575189c4",
+      "modified": false
+    },
+    {
+      "path": "2026-04-17/openapi.feed.yaml",
+      "upstream_path": "spec/2026-04-17/openapi/openapi.feed.yaml",
+      "sha256": "c1462ec8f0a795571b839291bb8f33b1ebf45aadbfee846b04ab443b7410e6c8",
+      "modified": false
     }
   ],
-  "scope": "Unmodified checkout JSON Schema bundle, checkout OpenAPI including HTTP rules, and Apache-2.0 license. Tests target only create/get checkout. No full protocol conformance claim."
+  "scope": "Unmodified 2026-04-17 checkout and Product Feed JSON Schema/OpenAPI snapshots, plus Apache-2.0 license. Merchant implements a bounded checkout and static full-replacement feed; no full protocol conformance claim."
 }

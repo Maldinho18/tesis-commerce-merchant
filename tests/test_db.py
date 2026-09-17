@@ -7,12 +7,17 @@ def test_fixture_manifest_is_deterministic_and_complete() -> None:
     assert first_offers == second_offers
     assert first_hash == second_hash
     assert first_manifest == second_manifest
-    assert first_manifest["offer_count"] == 5
+    assert first_manifest["offer_count"] == 10
     assert len(first_hash) == 64
     assert [offer["id"] for offer in first_offers] == [
         "ALT-01",
+        "ALT-02",
+        "ALT-03",
         "SON-01",
         "SON-02",
         "SON-03",
         "SON-04",
+        "SON-05",
+        "SON-06",
+        "SON-07",
     ]

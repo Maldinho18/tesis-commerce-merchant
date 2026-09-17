@@ -41,7 +41,7 @@ def _client(actor_id: str) -> tuple[TestClient, dict[str, str]]:
 def _body(offer_id: str = "SON-01") -> dict[str, object]:
     return {
         "line_items": [{"id": offer_id}],
-        "currency": "COP",
+        "currency": "usd",
         "capabilities": {"payment": {"handlers": []}},
     }
 

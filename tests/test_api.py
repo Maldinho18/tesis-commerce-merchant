@@ -2,11 +2,17 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from commerce_lab.api import _raise_commerce_failure, app, persistent_catalog, trusted_context
+from commerce_lab.api import (
+    _raise_commerce_failure,
+    acp_checkout,
+    app,
+    persistent_catalog,
+    trusted_context,
+)
 from commerce_lab.catalog import CatalogReader
 from commerce_lab.contracts import CommerceError, ExecutionContext, Failure, ScenarioClock
 from commerce_lab.db import DatabaseNotReady
-from commerce_lab.fixtures import FIXTURE_NOW, fresh_sonora_offers
+from commerce_lab.fixtures import FIXTURE_NOW, fresh_p0_offers
 
 
 def test_live_reports_process_without_claiming_model_check() -> None:
@@ -52,7 +58,7 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
         request_id="00000000-0000-0000-0000-000000000002",
         received_at="2026-09-16T12:00:00Z",
     )
-    reader = CatalogReader(fresh_sonora_offers(), ScenarioClock(FIXTURE_NOW))
+    reader = CatalogReader(fresh_p0_offers(), ScenarioClock(FIXTURE_NOW))
     app.dependency_overrides[trusted_context] = lambda: context
     app.dependency_overrides[persistent_catalog] = lambda: reader
     try:
@@ -65,7 +71,7 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert len(response.json()["data"]["offers"]) == 5
+    assert len(response.json()["data"]["offers"]) == 10
     assert response.headers["X-Request-Id"] == context.request_id
     assert injected.status_code == 422
 
@@ -91,3 +97,94 @@ def test_acp_http_error_status_preserves_typed_commercial_code(code: str, http_s
 
     assert captured.value.status_code == http_status
     assert captured.value.detail == {"code": code, "message": "Test failure"}
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "body", "success_status"),
+    [
+        (
+            "POST",
+            "/checkout_sessions",
+            {
+                "line_items": [{"id": "SON-01"}],
+                "currency": "usd",
+                "capabilities": {"payment": {"handlers": []}},
+            },
+            201,
+        ),
+        ("GET", "/checkout_sessions/chk_test", None, 200),
+        (
+            "POST",
+            "/checkout_sessions/chk_test",
+            {
+                "selected_fulfillment_options": [
+                    {"type": "shipping", "option_id": "ship_test", "item_ids": ["li_test"]}
+                ]
+            },
+            200,
+        ),
+        ("POST", "/checkout_sessions/chk_test/cancel", {}, 200),
+    ],
+)
+def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
+    method: str, path: str, body: dict[str, object] | None, success_status: int
+) -> None:
+    class StubCheckout:
+        calls = 0
+
+        def create(self, payload, idempotency_key):
+            self.calls += 1
+            return {"id": "chk_test"}
+
+        def get(self, checkout_id):
+            self.calls += 1
+            return {"id": checkout_id}
+
+        def update(self, checkout_id, payload, idempotency_key):
+            self.calls += 1
+            return {"id": checkout_id}
+
+        def cancel(self, checkout_id, payload, idempotency_key):
+            self.calls += 1
+            return {"id": checkout_id}
+
+    checkout = StubCheckout()
+    context = ExecutionContext(
+        actor_id="version-test",
+        run_id="00000000-0000-0000-0000-000000000001",
+        request_id="version-request",
+        received_at=FIXTURE_NOW,
+    )
+    app.dependency_overrides[trusted_context] = lambda: context
+    app.dependency_overrides[acp_checkout] = lambda: checkout
+    try:
+        client = TestClient(app)
+        headers = {"Idempotency-Key": "version-key"}
+        missing = client.request(method, path, headers=headers, json=body)
+        unsupported = client.request(
+            method, path, headers={**headers, "API-Version": "2025-09-29"}, json=body
+        )
+        assert checkout.calls == 0
+        accepted = client.request(
+            method, path, headers={**headers, "API-Version": "2026-04-17"}, json=body
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert missing.status_code == unsupported.status_code == 400
+    assert missing.json()["detail"]["code"] == "missing_api_version"
+    assert unsupported.json()["detail"]["code"] == "unsupported_api_version"
+    assert missing.json()["detail"]["supported_versions"] == ["2026-04-17"]
+    assert unsupported.json()["detail"]["supported_versions"] == ["2026-04-17"]
+    assert accepted.status_code == success_status
+    assert checkout.calls == 1
+    anonymous = TestClient(app)
+    missing_without_auth = anonymous.request(method, path, json=body)
+    assert missing_without_auth.status_code == 400
+    assert missing_without_auth.json()["detail"]["code"] == "missing_api_version"
+    assert (
+        anonymous.request(
+            method, path, headers={"API-Version": "2026-04-17"}, json=body
+        ).status_code
+        == 401
+    )

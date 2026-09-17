@@ -1,6 +1,7 @@
 from typing import Annotated, Any, Never
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from commerce_lab import __version__
@@ -22,6 +23,7 @@ from commerce_lab.contracts import (
     Success,
 )
 from commerce_lab.db import DatabaseNotReady, check_database_ready
+from commerce_lab.discovery import discovery_document
 from commerce_lab.persistent_catalog import PersistentCatalogReader
 
 app = FastAPI(
@@ -31,6 +33,14 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None,
 )
+
+
+@app.get("/.well-known/acp.json", include_in_schema=False)
+def discovery() -> JSONResponse:
+    return JSONResponse(
+        content=discovery_document(),
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 class HealthResponse(BaseModel):
@@ -68,9 +78,18 @@ def require_acp_version(
     api_version: Annotated[str | None, Header(alias="API-Version")] = None,
 ) -> None:
     if api_version != ACP_VERSION:
+        missing = api_version is None
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"API-Version must be {ACP_VERSION}.",
+            detail={
+                "code": "missing_api_version" if missing else "unsupported_api_version",
+                "message": (
+                    "API-Version header is required."
+                    if missing
+                    else "API-Version is not supported."
+                ),
+                "supported_versions": [ACP_VERSION],
+            },
         )
 
 
@@ -140,9 +159,9 @@ def offer_get(
 def checkout_session_create(
     payload: ACPCheckoutCreateRequest,
     response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
     checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
-    _: Annotated[None, Depends(require_acp_version)],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> dict[str, object]:
     if not idempotency_key or len(idempotency_key) > 255:
@@ -162,9 +181,9 @@ def checkout_session_create(
 def checkout_session_get(
     checkout_id: Identifier,
     response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
     checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
-    _: Annotated[None, Depends(require_acp_version)],
 ) -> dict[str, object]:
     result = checkout.get(checkout_id)
     if isinstance(result, Failure):
@@ -178,9 +197,9 @@ def checkout_session_update(
     checkout_id: Identifier,
     payload: ACPCheckoutUpdateRequest,
     response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
     checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
-    _: Annotated[None, Depends(require_acp_version)],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> dict[str, object]:
     if not idempotency_key or len(idempotency_key) > 255:
@@ -200,9 +219,9 @@ def checkout_session_update(
 def checkout_session_cancel(
     checkout_id: Identifier,
     response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
     checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
-    _: Annotated[None, Depends(require_acp_version)],
     payload: dict[str, Any] | None = None,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> dict[str, object]:

@@ -31,6 +31,14 @@ def validator(definition: str) -> Draft202012Validator:
 
 
 def test_upstream_acp_sources_match_recorded_hashes() -> None:
+    feed_paths = {
+        source["upstream_path"] for source in PROVENANCE["files"] if "feed" in source["path"]
+    }
+    assert feed_paths == {
+        "spec/2026-04-17/json-schema/schema.feed.json",
+        "spec/2026-04-17/openapi/openapi.feed.yaml",
+    }
+    assert PROVENANCE["commit"] == "7fdd78df677a94dce04c770644b0fbbb1401272b"
     for source in PROVENANCE["files"]:
         path = VENDOR / source["path"]
         assert hashlib.sha256(path.read_bytes()).hexdigest() == source["sha256"]
@@ -77,7 +85,7 @@ def test_acp_checkout_fixture_is_not_a_purchase() -> None:
     assert body["status"] == "not_ready_for_payment"
     assert body["capabilities"]["payment"]["handlers"] == []
     total = next(item for item in body["totals"] if item["type"] == "total")
-    assert total["amount"] == 74_000_000
+    assert total["amount"] == 74_000
     assert body["line_items"][0]["quantity"] == 1
     assert "order" not in body
 

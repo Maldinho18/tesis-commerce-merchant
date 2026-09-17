@@ -6,22 +6,27 @@ from commerce_lab.contracts import Failure, Offer, ScenarioClock, Success
 from commerce_lab.fixtures import (
     FIXTURE_DELIVERY_CONTEXT,
     FIXTURE_NOW,
-    fresh_sonora_offers,
+    fresh_p0_offers,
 )
 
 
 def reader() -> CatalogReader:
-    return CatalogReader(fresh_sonora_offers(), ScenarioClock(FIXTURE_NOW))
+    return CatalogReader(fresh_p0_offers(), ScenarioClock(FIXTURE_NOW))
 
 
-def test_catalog_exposes_all_five_alternatives() -> None:
+def test_catalog_exposes_all_ten_variants() -> None:
     result = reader().search({"category": "headphones"})
     assert [offer.id for offer in result.data.offers] == [
         "ALT-01",
+        "ALT-02",
+        "ALT-03",
         "SON-01",
         "SON-02",
         "SON-03",
         "SON-04",
+        "SON-05",
+        "SON-06",
+        "SON-07",
     ]
 
 
@@ -41,7 +46,7 @@ def test_catalog_rejects_invented_identity_or_approval_fields() -> None:
 
 def test_catalog_returns_expired_offer_error_at_boundary() -> None:
     clock = ScenarioClock(FIXTURE_NOW)
-    catalog = CatalogReader(fresh_sonora_offers(), clock)
+    catalog = CatalogReader(fresh_p0_offers(), clock)
     clock.advance_seconds(15 * 60)
     result = catalog.get(
         {
@@ -65,13 +70,13 @@ def test_catalog_paginates_stably_and_isolates_caller_mutation() -> None:
         }
     )
     assert isinstance(original, Success)
-    assert original.data.pricing.total_minor == 62_000_000
+    assert original.data.pricing.total_minor == 62_000
     second = catalog.search({"category": "headphones", "limit": 2, "offset": 2})
-    assert [offer.id for offer in second.data.offers] == ["SON-02", "SON-03"]
+    assert [offer.id for offer in second.data.offers] == ["ALT-03", "SON-01"]
 
 
 def test_catalog_accepts_and_searches_a_product_from_an_unrelated_category() -> None:
-    payload = fresh_sonora_offers()[0].model_dump(mode="json")
+    payload = fresh_p0_offers()[0].model_dump(mode="json")
     payload.update(
         {
             "id": "KEY-01",

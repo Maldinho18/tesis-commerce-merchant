@@ -9,7 +9,7 @@
       "version": "2026-04-17"
     },
     "status": "not_ready_for_payment",
-    "currency": "COP",
+    "currency": "usd",
     "capabilities": {
       "payment": {
         "handlers": []
@@ -21,19 +21,19 @@
         "item": {
           "id": "SON-01",
           "name": "Audifonos Sonora SON-01",
-          "unit_amount": 72000000
+          "unit_amount": 72000
         },
         "quantity": 1,
         "totals": [
           {
             "type": "subtotal",
             "display_text": "Producto con impuestos incluidos",
-            "amount": 72000000
+            "amount": 72000
           },
           {
             "type": "total",
             "display_text": "Total del producto",
-            "amount": 72000000
+            "amount": 72000
           }
         ]
       }
@@ -42,17 +42,17 @@
       {
         "type": "subtotal",
         "display_text": "Producto con impuestos incluidos",
-        "amount": 72000000
+        "amount": 72000
       },
       {
         "type": "fulfillment",
         "display_text": "Envio simulado",
-        "amount": 2000000
+        "amount": 2000
       },
       {
         "type": "total",
         "display_text": "Total de la compra",
-        "amount": 74000000
+        "amount": 74000
       }
     ],
     "fulfillment_options": [
@@ -66,7 +66,7 @@
           {
             "type": "total",
             "display_text": "Total del envio",
-            "amount": 2000000
+            "amount": 2000
           }
         ]
       }

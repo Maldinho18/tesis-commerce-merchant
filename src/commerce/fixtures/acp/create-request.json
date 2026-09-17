@@ -14,7 +14,7 @@
         "id": "SON-01"
       }
     ],
-    "currency": "COP",
+    "currency": "usd",
     "capabilities": {
       "payment": {
         "handlers": []

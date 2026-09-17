@@ -20,7 +20,7 @@ class DeliveryContext(StrictModel):
 
 
 class Pricing(StrictModel):
-    currency: Literal["COP"]
+    currency: Literal["usd"]
     items_total_minor: MinorAmount
     shipping_total_minor: MinorAmount
     total_minor: MinorAmount
@@ -45,6 +45,7 @@ AttributeValue = Annotated[str, StringConstraints(min_length=1, max_length=200)]
 class Offer(StrictModel):
     id: Identifier
     product_id: Identifier
+    product_status: Literal["active", "inactive"] = "active"
     sku: Identifier = Field(default_factory=lambda data: data["id"])
     merchant_id: Identifier
     revision: Revision

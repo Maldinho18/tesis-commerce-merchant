@@ -1,12 +1,10 @@
 import re
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal, InvalidOperation
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 ACP_VERSION = "2026-04-17"
-COP_MINOR_UNIT_EXPONENT = 2
 MAX_SAFE_INTEGER = 9_007_199_254_740_991
 
 Identifier = Annotated[
@@ -31,20 +29,8 @@ class StrictModel(BaseModel):
 
 
 class Money(StrictModel):
-    currency: str = Field(pattern=r"^COP$")
+    currency: str = Field(pattern=r"^usd$")
     amount_minor: MinorAmount
-
-
-def cop_from_decimal(pesos: str) -> Money:
-    if not re.fullmatch(r"(0|[1-9]\d*)(\.\d{1,2})?", pesos):
-        raise ValueError("COP requires nonnegative decimal text with at most two decimal places")
-    try:
-        minor = int(Decimal(pesos) * 100)
-    except InvalidOperation as error:
-        raise ValueError("Invalid COP amount") from error
-    if minor > MAX_SAFE_INTEGER:
-        raise ValueError("Amount exceeds safe integer range")
-    return Money(currency="COP", amount_minor=minor)
 
 
 def sum_minor_amounts(*amounts: int) -> int:

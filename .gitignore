@@ -31,3 +31,4 @@ dist/
 node_modules/
 
 artifacts/preparation/
+artifacts/feed/

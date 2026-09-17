@@ -11,7 +11,7 @@ from psycopg import sql
 from psycopg.types.json import Jsonb
 
 from commerce_lab.contracts import Offer
-from commerce_lab.fixtures import FIXTURE_NOW, fresh_sonora_offers
+from commerce_lab.fixtures import FIXTURE_NOW, fresh_p0_offers
 from commerce_lab.settings import get_settings
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -22,7 +22,7 @@ MIGRATIONS = (
     "004_checkout_sessions.sql",
     "007_checkout_mutations.sql",
 )
-FIXTURE_VERSION = "sonora-v2"
+FIXTURE_VERSION = "p0-catalog-v1"
 PRODUCER = "preparation.db-seed"
 ARTIFACT_PATH = ROOT / "artifacts" / "preparation" / "database-smoke.json"
 
@@ -46,7 +46,7 @@ def _canonical(value: object) -> str:
 
 
 def fixture_snapshot() -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
-    offers = [offer.model_dump(mode="json") for offer in fresh_sonora_offers()]
+    offers = [offer.model_dump(mode="json") for offer in fresh_p0_offers()]
     offers.sort(key=lambda offer: str(offer["id"]))
     digest = hashlib.sha256(_canonical(offers).encode()).hexdigest()
     manifest = {
