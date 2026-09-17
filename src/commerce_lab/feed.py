@@ -85,6 +85,13 @@ def build_feed(offers: list[Offer]) -> tuple[dict[str, object], list[dict[str, o
             "title": offer.name,
             "description": {"plain": f"Synthetic {offer.brand} headphones, {offer.condition}."},
             "url": url,
+            "media": [
+                {
+                    "type": "image",
+                    "url": f"https://merchant.example.test/assets/products/{offer.product_id}.jpg",
+                    "alt_text": offer.name,
+                }
+            ],
             "variants": [variant],
         }
         _PRODUCT_VALIDATOR.validate(product)

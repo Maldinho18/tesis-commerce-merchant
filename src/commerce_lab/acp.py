@@ -49,7 +49,9 @@ class ACPPaymentCapabilities(StrictModel):
 
 
 class ACPCapabilities(StrictModel):
-    payment: ACPPaymentCapabilities
+    payment: ACPPaymentCapabilities = Field(
+        default_factory=lambda: ACPPaymentCapabilities(handlers=[])
+    )
 
 
 class ACPCheckoutCreateRequest(StrictModel):
