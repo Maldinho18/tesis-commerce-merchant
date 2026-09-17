@@ -1,0 +1,89 @@
+{
+  "status": 200,
+  "headers": {
+    "Request-Id": "request-sonora-001"
+  },
+  "body": {
+    "id": "cs_sonora_001",
+    "protocol": {
+      "version": "2026-04-17"
+    },
+    "status": "not_ready_for_payment",
+    "currency": "COP",
+    "capabilities": {
+      "payment": {
+        "handlers": []
+      }
+    },
+    "line_items": [
+      {
+        "id": "li_sonora_001",
+        "item": {
+          "id": "SON-01",
+          "name": "Audifonos Sonora SON-01",
+          "unit_amount": 72000000
+        },
+        "quantity": 1,
+        "totals": [
+          {
+            "type": "subtotal",
+            "display_text": "Producto con impuestos incluidos",
+            "amount": 72000000
+          },
+          {
+            "type": "total",
+            "display_text": "Total del producto",
+            "amount": 72000000
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "type": "subtotal",
+        "display_text": "Producto con impuestos incluidos",
+        "amount": 72000000
+      },
+      {
+        "type": "fulfillment",
+        "display_text": "Envio simulado",
+        "amount": 2000000
+      },
+      {
+        "type": "total",
+        "display_text": "Total de la compra",
+        "amount": 74000000
+      }
+    ],
+    "fulfillment_options": [
+      {
+        "type": "shipping",
+        "id": "ship_bogota_01",
+        "title": "Envio simulado a Bogota",
+        "earliest_delivery_time": "2026-09-13T14:00:00Z",
+        "latest_delivery_time": "2026-09-13T14:00:00Z",
+        "totals": [
+          {
+            "type": "total",
+            "display_text": "Total del envio",
+            "amount": 2000000
+          }
+        ]
+      }
+    ],
+    "selected_fulfillment_options": [
+      {
+        "type": "shipping",
+        "option_id": "ship_bogota_01",
+        "item_ids": [
+          "li_sonora_001"
+        ]
+      }
+    ],
+    "messages": [],
+    "links": [],
+    "created_at": "2026-09-10T14:00:00Z",
+    "updated_at": "2026-09-10T14:00:00Z",
+    "expires_at": "2026-09-10T14:15:00Z"
+  }
+}

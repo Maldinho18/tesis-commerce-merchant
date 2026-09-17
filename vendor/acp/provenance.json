@@ -1,0 +1,28 @@
+{
+  "protocol": "Agentic Commerce Protocol",
+  "version": "2026-04-17",
+  "repository": "https://github.com/agentic-commerce-protocol/agentic-commerce-protocol",
+  "commit": "7fdd78df677a94dce04c770644b0fbbb1401272b",
+  "retrieved_at": "2026-09-11T02:01:21.957859+00:00",
+  "files": [
+    {
+      "path": "2026-04-17/schema.agentic_checkout.json",
+      "upstream_path": "spec/2026-04-17/json-schema/schema.agentic_checkout.json",
+      "sha256": "d0e4290617d66bf05d002b8ace388732be2b3eb9a92a1003db7a2daa1e0436f2",
+      "modified": false
+    },
+    {
+      "path": "2026-04-17/openapi.agentic_checkout.yaml",
+      "upstream_path": "spec/2026-04-17/openapi/openapi.agentic_checkout.yaml",
+      "sha256": "2a0aa239b4aed50732461d9b7e443ad98d5c2d3431277899433ead07cbd4fc55",
+      "modified": false
+    },
+    {
+      "path": "2026-04-17/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "4458503dd48e88c4e0b945fb252a08b93c40ec757309b8ffa7c594dfa1e35104",
+      "modified": false
+    }
+  ],
+  "scope": "Unmodified checkout JSON Schema bundle, checkout OpenAPI including HTTP rules, and Apache-2.0 license. Tests target only create/get checkout. No full protocol conformance claim."
+}

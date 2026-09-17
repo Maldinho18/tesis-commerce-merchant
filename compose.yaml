@@ -1,0 +1,19 @@
+name: tesis-commerce-merchant
+services:
+  postgres:
+    image: postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+    environment:
+      POSTGRES_USER: tesis_dev
+      POSTGRES_PASSWORD: tesis_local_only
+      POSTGRES_DB: tesis_lab
+    ports:
+      - "127.0.0.1:${MERCHANT_PG_PORT:-55433}:5432"
+    volumes:
+      - merchant_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tesis_dev -d tesis_lab"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+volumes:
+  merchant_pgdata:
