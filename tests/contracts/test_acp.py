@@ -6,7 +6,10 @@ from typing import Any
 
 import pytest
 from jsonschema import Draft202012Validator, ValidationError
+from pydantic import ValidationError as ModelValidationError
 from referencing import Registry, Resource
+
+from commerce_lab.acp import ACPCheckoutCreateRequest
 
 ROOT = Path(__file__).resolve().parents[2]
 VENDOR = ROOT / "vendor" / "acp"
@@ -54,6 +57,27 @@ def test_acp_create_and_get_examples_validate_against_frozen_bundle() -> None:
     assert GET_RESPONSE["status"] == 200
     assert GET_REQUEST["path"] == f"/checkout_sessions/{CREATE_RESPONSE['body']['id']}"
     assert GET_RESPONSE["body"] == CREATE_RESPONSE["body"]
+
+
+def test_acp_create_accepts_empty_capabilities_and_strict_legacy_payment() -> None:
+    minimum = {
+        "currency": "usd",
+        "line_items": [{"id": "SON-01"}],
+        "capabilities": {},
+    }
+    validator("CheckoutSessionCreateRequest").validate(minimum)
+    ACPCheckoutCreateRequest.model_validate(minimum)
+    ACPCheckoutCreateRequest.model_validate(
+        {**minimum, "capabilities": {"payment": {"handlers": []}}}
+    )
+    for capabilities in (
+        {"invented": True},
+        {"payment": {"handlers": [{"type": "unimplemented"}]}},
+        {"payment": {}},
+        {"payment": None},
+    ):
+        with pytest.raises(ModelValidationError):
+            ACPCheckoutCreateRequest.model_validate({**minimum, "capabilities": capabilities})
 
 
 def test_acp_http_fixture_uses_version_authentication_and_idempotency() -> None:

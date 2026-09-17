@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any, cast
+from urllib.parse import urlparse
 
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
@@ -50,6 +51,16 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
     for product in products:
         validate("Product", product)
         assert product["title"] and product["description"]["plain"] and product["url"]
+        assert len(product["media"]) >= 1
+        for media in product["media"]:
+            validate("Media", media)
+            assert media["type"] == "image"
+            parsed_url = urlparse(media["url"])
+            assert parsed_url.scheme == "https" and parsed_url.netloc == "merchant.example.test"
+            assert media["url"] == (
+                f"https://merchant.example.test/assets/products/{product['id']}.jpg"
+            )
+            assert media["alt_text"].strip()
         assert len(product["variants"]) == 1
         variant = product["variants"][0]
         for definition, value in (

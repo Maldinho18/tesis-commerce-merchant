@@ -91,6 +91,28 @@ def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None
     assert get.headers["Request-Id"] != create.headers["Request-Id"]
 
 
+def test_acp_create_http_accepts_empty_and_legacy_capabilities_but_rejects_invented() -> None:
+    migrate()
+    client, headers = _client("acp-create-empty-capabilities")
+    for key, capabilities in (
+        ("empty-capabilities", {}),
+        ("legacy-capabilities", {"payment": {"handlers": []}}),
+    ):
+        response = client.post(
+            "/checkout_sessions",
+            headers={**headers, "Idempotency-Key": key},
+            json={**_body(), "capabilities": capabilities},
+        )
+        assert response.status_code == 201
+        CHECKOUT_VALIDATOR.validate(response.json())
+    rejected = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "invented-capabilities"},
+        json={**_body(), "capabilities": {"invented": True}},
+    )
+    assert rejected.status_code == 422
+
+
 def test_acp_create_replays_same_checkout_and_rejects_conflicting_content() -> None:
     migrate()
     client, headers = _client("acp-idempotency")
