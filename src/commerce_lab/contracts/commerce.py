@@ -109,7 +109,7 @@ class SelectedFulfillmentOptionInfo(StrictModel):
 class Checkout(StrictModel):
     id: Identifier
     revision: Revision
-    status: Literal["prepared", "ready_for_payment", "expired", "canceled"]
+    status: Literal["prepared", "ready_for_payment", "completed", "expired", "canceled"]
     offer_id: Identifier
     offer_revision: Revision
     quantity: Literal[1]
@@ -149,6 +149,9 @@ type CommerceErrorCode = Literal[
     "IDEMPOTENCY_IN_FLIGHT",
     "IDEMPOTENCY_CONFLICT",
     "PROVIDER_UNAVAILABLE",
+    "PAYMENT_DECLINED",
+    "CHECKOUT_TERMS_CHANGED",
+    "CHECKOUT_NOT_COMPLETABLE",
 ]
 
 
@@ -210,3 +213,33 @@ class CheckoutCancelInput(StrictModel):
     checkout_id: Identifier
     idempotency_key: IdempotencyKey
     reason_code: str | None = None
+
+
+class OrderRecord(StrictModel):
+    id: Identifier
+    checkout_session_id: Identifier
+    order_number: Identifier
+    status: Literal["confirmed"]
+    offer_id: Identifier
+    product_id: Identifier
+    title: str
+    quantity: Literal[1]
+    currency: Literal["usd"]
+    unit_price: int
+    subtotal: int
+    shipping_total: int
+    total: int
+    fulfillment_option_id: Identifier
+    created_at: str
+    permalink_url: str
+
+
+class CheckoutCompletionSnapshot(StrictModel):
+    checkout: Checkout
+    order: OrderRecord
+    offer: Offer
+
+
+class CheckoutCompletionResult(StrictModel):
+    snapshot: CheckoutCompletionSnapshot
+    replayed: bool = False

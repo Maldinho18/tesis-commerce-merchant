@@ -1,7 +1,9 @@
+from html import escape
 from typing import Annotated, Any, Never
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
-from fastapi.responses import JSONResponse
+import psycopg
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from commerce_lab import __version__
@@ -21,7 +23,7 @@ from commerce_lab.contracts import (
     OfferGetInput,
     Success,
 )
-from commerce_lab.db import DatabaseNotReady, check_database_ready
+from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
@@ -123,7 +125,7 @@ def acp_checkout(
     return ACPCheckoutAdapter(context)
 
 
-def _raise_commerce_failure(failure: Failure) -> Never:
+def _raise_commerce_failure(failure: Failure, headers: dict[str, str] | None = None) -> Never:
     code = failure.error.code
     if code in {"OFFER_NOT_FOUND", "CHECKOUT_NOT_FOUND"}:
         status_code = status.HTTP_404_NOT_FOUND
@@ -133,13 +135,21 @@ def _raise_commerce_failure(failure: Failure) -> Never:
         status_code = status.HTTP_400_BAD_REQUEST
     elif code == "IDEMPOTENCY_IN_FLIGHT":
         status_code = status.HTTP_409_CONFLICT
-    elif code == "IDEMPOTENCY_CONFLICT":
+    elif code == "IDEMPOTENCY_CONFLICT" or code == "PAYMENT_DECLINED":
         status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
+    elif code in {"CHECKOUT_TERMS_CHANGED", "CHECKOUT_NOT_COMPLETABLE"}:
+        status_code = status.HTTP_409_CONFLICT
+    elif code == "PROVIDER_UNAVAILABLE":
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     elif code == "CHECKOUT_NOT_CANCELABLE":
         status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     else:
         status_code = status.HTTP_409_CONFLICT
-    raise HTTPException(status_code=status_code, detail=failure.error.model_dump(mode="json"))
+    raise HTTPException(
+        status_code=status_code,
+        detail=failure.error.model_dump(mode="json"),
+        headers=headers,
+    )
 
 
 @app.get("/health/live", response_model=HealthResponse)
@@ -214,6 +224,66 @@ def checkout_session_get(
         _raise_commerce_failure(result)
     response.headers["Request-Id"] = context.request_id
     return result
+
+
+@app.post("/checkout_sessions/{checkout_id}/complete")
+def checkout_session_complete(
+    checkout_id: Identifier,
+    payload: Annotated[Any, Body()],
+    response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
+    context: Annotated[ExecutionContext, Depends(trusted_context)],
+    checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+) -> dict[str, object]:
+    if not idempotency_key or len(idempotency_key) > 255:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Idempotency-Key must contain between 1 and 255 characters.",
+        )
+    result = checkout.complete(checkout_id, payload, idempotency_key)
+    if isinstance(result, Failure):
+        error_headers = {
+            "Request-Id": context.request_id,
+            "Idempotency-Key": idempotency_key,
+        }
+        if result.error.code == "IDEMPOTENCY_IN_FLIGHT":
+            error_headers["Retry-After"] = "1"
+        if checkout.last_completion_replayed:
+            error_headers["Idempotent-Replayed"] = "true"
+        _raise_commerce_failure(result, headers=error_headers)
+    response.headers["Request-Id"] = context.request_id
+    response.headers["Idempotency-Key"] = idempotency_key
+    if checkout.last_completion_replayed:
+        response.headers["Idempotent-Replayed"] = "true"
+    return result
+
+
+@app.get("/orders/{order_id}", response_class=HTMLResponse, include_in_schema=False)
+def order_permalink(order_id: str) -> HTMLResponse:
+    with psycopg.connect(database_url()) as connection:
+        row = connection.execute(
+            "SELECT snapshot FROM orders WHERE order_id = %s",
+            (order_id,),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
+    snapshot = row[0]
+    line = snapshot.get("title", "")
+    html = f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>Order {escape(snapshot["order_number"])}</title></head>
+<body>
+<h1>Order {escape(snapshot["order_number"])}</h1>
+<p>Status: {escape(snapshot["status"])}</p>
+<p>Product: {escape(line)}</p>
+<p>Quantity: {snapshot["quantity"]}</p>
+<p>Unit price: {snapshot["unit_price"]}</p>
+<p>Subtotal: {snapshot["subtotal"]}</p>
+<p>Shipping: {snapshot["shipping_total"]}</p>
+<p>Total: {snapshot["total"]}</p>
+<p>Fulfillment: shipping / pending</p>
+</body></html>"""
+    return HTMLResponse(content=html)
 
 
 @app.post("/checkout_sessions/{checkout_id}")

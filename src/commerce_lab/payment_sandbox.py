@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import ValidationError as SchemaValidationError
 from referencing import Registry, Resource
 
 from commerce_lab.settings import get_settings
@@ -100,6 +101,23 @@ def config_schema() -> dict[str, Any]:
 
 def instrument_schema() -> dict[str, Any]:
     return _INSTRUMENT_SCHEMA
+
+
+def validate_instrument(instrument: object) -> None:
+    Draft202012Validator(_INSTRUMENT_SCHEMA, format_checker=FormatChecker()).validate(instrument)
+
+
+def classify_instrument(instrument: object) -> str:
+    """Classify an already validated synthetic instrument without external effects."""
+    validate_instrument(instrument)
+    token = instrument["credential"]["token"]  # type: ignore[index]
+    if token.startswith("spt_test_success_"):
+        return "approved"
+    if token.startswith("spt_test_declined_"):
+        return "declined"
+    if token.startswith("spt_test_error_"):
+        return "temporary_provider_error"
+    raise SchemaValidationError("Unsupported sandbox token.")
 
 
 def checkout_payment_capabilities() -> dict[str, Any]:

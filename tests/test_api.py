@@ -99,6 +99,19 @@ def test_acp_http_error_status_preserves_typed_commercial_code(code: str, http_s
     assert captured.value.detail == {"code": code, "message": "Test failure"}
 
 
+def test_raise_commerce_failure_accepts_http_headers() -> None:
+    failure = Failure(
+        error=CommerceError.model_validate(
+            {"code": "IDEMPOTENCY_IN_FLIGHT", "message": "Test failure"}
+        )
+    )
+
+    with pytest.raises(HTTPException) as captured:
+        _raise_commerce_failure(failure, headers={"Retry-After": "1"})
+
+    assert captured.value.headers == {"Retry-After": "1"}
+
+
 @pytest.mark.parametrize(
     ("method", "path", "body", "success_status"),
     [

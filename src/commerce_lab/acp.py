@@ -26,7 +26,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
-from commerce_lab.payment_sandbox import checkout_payment_capabilities
+from commerce_lab.payment_sandbox import checkout_payment_capabilities, validate_instrument
 
 _BUNDLE = json.loads(
     (
@@ -47,6 +47,16 @@ _CANCEL_VALIDATOR = Draft202012Validator(
 )
 _CHECKOUT_VALIDATOR = Draft202012Validator(
     {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSession"},
+    registry=_REGISTRY,
+    format_checker=_CHECKER,
+)
+_COMPLETE_VALIDATOR = Draft202012Validator(
+    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSessionCompleteRequest"},
+    registry=_REGISTRY,
+    format_checker=_CHECKER,
+)
+_ORDER_RESPONSE_VALIDATOR = Draft202012Validator(
+    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSessionWithOrder"},
     registry=_REGISTRY,
     format_checker=_CHECKER,
 )
@@ -85,6 +95,10 @@ class ACPCheckoutAdapter:
         self._context = context
         self._run_id = UUID(context.run_id)
         self._checkout = CheckoutService(context)
+
+    @property
+    def last_completion_replayed(self) -> bool:
+        return self._checkout.last_completion_replayed
 
     def create(
         self, request: ACPCheckoutCreateRequest, idempotency_key: str
@@ -270,6 +284,63 @@ class ACPCheckoutAdapter:
             )
         return self._response(result.data, offer)
 
+    def complete(
+        self, checkout_id: str, request: Any, idempotency_key: str
+    ) -> dict[str, Any] | Failure:
+        try:
+            _COMPLETE_VALIDATOR.validate(request)
+        except SchemaValidationError:
+            return Failure.model_validate(
+                {"error": {"code": "INVALID_INPUT", "message": "Invalid completion request."}}
+            )
+        if set(request) != {"payment_data"}:
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "INVALID_INPUT",
+                        "message": "Only payment_data is supported for sandbox completion.",
+                    }
+                }
+            )
+        payment_data = request["payment_data"]
+        if not isinstance(payment_data, dict) or set(payment_data) != {
+            "handler_id",
+            "instrument",
+        }:
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "INVALID_INPUT",
+                        "message": "Unsupported sandbox payment fields.",
+                    }
+                }
+            )
+        if payment_data.get("handler_id") != "tesis_sandbox":
+            return Failure.model_validate(
+                {"error": {"code": "INVALID_INPUT", "message": "Unsupported payment handler."}}
+            )
+        try:
+            validate_instrument(payment_data["instrument"])
+        except SchemaValidationError:
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "INVALID_INPUT",
+                        "message": "Invalid sandbox payment instrument.",
+                    }
+                }
+            )
+
+        result = self._checkout.complete(checkout_id, payment_data, idempotency_key)
+        if isinstance(result, Failure):
+            return result
+        return self._response(
+            result.data.snapshot.checkout,
+            result.data.snapshot.offer,
+            order=self._order_response(result.data.snapshot.order),
+            validator=_ORDER_RESPONSE_VALIDATOR,
+        )
+
     def _offer(self, offer_id: str) -> Offer | None:
         with psycopg.connect(database_url()) as connection, connection.transaction():
             row = connection.execute(
@@ -283,7 +354,14 @@ class ACPCheckoutAdapter:
             ).fetchone()
         return None if row is None else Offer.model_validate(row[0])
 
-    def _response(self, checkout: Checkout, offer: Offer) -> dict[str, Any]:
+    def _response(
+        self,
+        checkout: Checkout,
+        offer: Offer,
+        *,
+        order: dict[str, Any] | None = None,
+        validator: Draft202012Validator | None = None,
+    ) -> dict[str, Any]:
         line_item_id = f"li_{checkout.id}"
         fulfillment_id = f"ship_{checkout.id}"
         delivery_at = parse_timestamp(checkout.created_at) + timedelta(days=checkout.delivery_days)
@@ -421,5 +499,53 @@ class ACPCheckoutAdapter:
                 mode="json", exclude_none=True
             )
 
-        _CHECKOUT_VALIDATOR.validate(response)
+        if order is not None:
+            response["order"] = order
+        (validator or _CHECKOUT_VALIDATOR).validate(response)
         return response
+
+    @staticmethod
+    def _order_response(order: Any) -> dict[str, Any]:
+        return {
+            "id": order.id,
+            "checkout_session_id": order.checkout_session_id,
+            "order_number": order.order_number,
+            "permalink_url": order.permalink_url,
+            "status": order.status,
+            "line_items": [
+                {
+                    "id": f"oli_{order.id}",
+                    "title": order.title,
+                    "product_id": order.product_id,
+                    "quantity": {"ordered": 1, "current": 1, "fulfilled": 0},
+                    "unit_price": order.unit_price,
+                    "subtotal": order.subtotal,
+                    "status": "processing",
+                }
+            ],
+            "fulfillments": [
+                {
+                    "id": f"ful_{order.id}",
+                    "type": "shipping",
+                    "status": "pending",
+                    "line_items": [{"id": f"oli_{order.id}", "quantity": 1}],
+                }
+            ],
+            "totals": [
+                {
+                    "type": "subtotal",
+                    "display_text": "Producto con impuestos incluidos",
+                    "amount": order.subtotal,
+                },
+                {
+                    "type": "fulfillment",
+                    "display_text": "Envio simulado",
+                    "amount": order.shipping_total,
+                },
+                {
+                    "type": "total",
+                    "display_text": "Total de la compra",
+                    "amount": order.total,
+                },
+            ],
+        }

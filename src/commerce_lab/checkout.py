@@ -4,11 +4,14 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import psycopg
+from jsonschema import ValidationError as SchemaValidationError
 from psycopg.types.json import Jsonb
 
 from commerce_lab.contracts import (
     Checkout,
     CheckoutCancelInput,
+    CheckoutCompletionResult,
+    CheckoutCompletionSnapshot,
     CheckoutGetInput,
     CheckoutPrepareInput,
     CheckoutUpdateInput,
@@ -17,12 +20,14 @@ from commerce_lab.contracts import (
     ExecutionContext,
     Failure,
     Offer,
+    OrderRecord,
     Success,
     parse_timestamp,
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
-from commerce_lab.payment_sandbox import payment_capability_available
+from commerce_lab.payment_sandbox import classify_instrument, payment_capability_available
+from commerce_lab.settings import get_settings
 
 
 class ReadinessState(StrictModel):
@@ -89,11 +94,12 @@ def _failure(code: CommerceErrorCode, message: str) -> Failure:
 
 
 class CheckoutService:
-    """Persistent, episode-scoped checkout lifecycle without order or payment effects."""
+    """Persistent, episode-scoped checkout lifecycle and synthetic completion."""
 
     def __init__(self, context: ExecutionContext) -> None:
         self._context = context
         self._run_id = UUID(context.run_id)
+        self.last_completion_replayed = False
 
     @property
     def run_id(self) -> str:
@@ -240,6 +246,390 @@ class CheckoutService:
             operation="cancel",
             idempotency_key=payload.idempotency_key,
             content={} if payload.reason_code is None else {"reason_code": payload.reason_code},
+        )
+
+    def complete(
+        self, checkout_id: str, payment_data: dict[str, Any], idempotency_key: str
+    ) -> Success[CheckoutCompletionResult] | Failure:
+        self.last_completion_replayed = False
+        fingerprint = _sha256(_canonical({"payment_data": payment_data}))
+        key_hash = _sha256(idempotency_key)
+        try:
+            with psycopg.connect(database_url()) as connection, connection.transaction():
+                run = self._load_run(connection)
+                if run is None:
+                    return _failure("FORBIDDEN", "Execution context does not own the episode.")
+                scenario_at = _as_timestamp(run[0])
+                row = connection.execute(
+                    """
+                    SELECT snapshot FROM checkout_sessions
+                    WHERE run_id = %s AND actor_id = %s AND checkout_id = %s
+                    FOR UPDATE NOWAIT
+                    """,
+                    (self._run_id, self._context.actor_id, checkout_id),
+                ).fetchone()
+                if row is None:
+                    return _failure(
+                        "CHECKOUT_NOT_FOUND", "The checkout does not exist in this episode."
+                    )
+                replay = connection.execute(
+                    """
+                    SELECT request_fingerprint, result_snapshot
+                    FROM checkout_completion_attempts
+                    WHERE run_id = %s AND actor_id = %s AND checkout_id = %s
+                      AND idempotency_sha256 = %s
+                    """,
+                    (self._run_id, self._context.actor_id, checkout_id, key_hash),
+                ).fetchone()
+                if replay is not None:
+                    if replay[0] != fingerprint:
+                        return _failure(
+                            "IDEMPOTENCY_CONFLICT",
+                            "The idempotency key was used with different content.",
+                        )
+                    return self._completion_replay(replay[1], Checkout.model_validate(row[0]))
+
+                checkout = self._expire_if_needed(
+                    connection, Checkout.model_validate(row[0]), scenario_at
+                )
+                if checkout.status == "expired":
+                    failure = _failure("CHECKOUT_EXPIRED", "Checkout has expired.")
+                elif checkout.status != "ready_for_payment":
+                    failure = _failure(
+                        "CHECKOUT_NOT_COMPLETABLE",
+                        "Checkout is not ready for payment.",
+                    )
+                else:
+                    failure = None
+                if failure is not None:
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    return failure
+                if (
+                    checkout.buyer is None
+                    or checkout.fulfillment_details is None
+                    or checkout.selected_fulfillment_option is None
+                ):
+                    failure = _failure(
+                        "CHECKOUT_NOT_COMPLETABLE",
+                        "Checkout is missing required completion details.",
+                    )
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    return failure
+
+                offer_row = connection.execute(
+                    """
+                    SELECT revision, snapshot
+                    FROM catalog_offers
+                    WHERE run_id = %s AND offer_id = %s
+                    FOR UPDATE
+                    """,
+                    (self._run_id, checkout.offer_id),
+                ).fetchone()
+                if offer_row is None:
+                    failure = _failure("OFFER_NOT_FOUND", "Checkout offer is unavailable.")
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    return failure
+                offer = Offer.model_validate(offer_row[1])
+                if (
+                    offer.pricing != checkout.pricing
+                    or offer.delivery_context != checkout.delivery_context
+                    or offer.delivery_days != checkout.delivery_days
+                    or offer.expires_at != checkout.expires_at
+                ):
+                    failure = _failure(
+                        "CHECKOUT_TERMS_CHANGED",
+                        "Checkout terms changed before completion.",
+                    )
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    return failure
+                if (
+                    offer.product_status != "active"
+                    or offer.availability != "in_stock"
+                    or offer.available_quantity < checkout.quantity
+                ):
+                    failure = _failure(
+                        "OUT_OF_STOCK",
+                        "The requested quantity is not available.",
+                    )
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    return failure
+                if not payment_capability_available():
+                    return _failure(
+                        "PROVIDER_UNAVAILABLE",
+                        "The sandbox payment capability is unavailable.",
+                    )
+                try:
+                    outcome = classify_instrument(payment_data["instrument"])
+                except (KeyError, TypeError, SchemaValidationError):
+                    return _failure("INVALID_INPUT", "Invalid sandbox payment instrument.")
+                if payment_data.get("handler_id") != "tesis_sandbox":
+                    return _failure("INVALID_INPUT", "Unsupported payment handler.")
+                if outcome == "temporary_provider_error":
+                    return _failure(
+                        "PROVIDER_UNAVAILABLE",
+                        "The sandbox payment provider is temporarily unavailable.",
+                    )
+                if outcome == "declined":
+                    failure = _failure("PAYMENT_DECLINED", "The sandbox payment was declined.")
+                    self._store_completion_failure(
+                        connection,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        failure,
+                        scenario_at,
+                    )
+                    self._record_sanitized(
+                        connection,
+                        "payment.declined",
+                        scenario_at,
+                        checkout_id,
+                        {
+                            "checkout_id": checkout_id,
+                            "offer_id": offer.id,
+                            "payment_handler_id": "tesis_sandbox",
+                            "payment_outcome": "declined",
+                        },
+                    )
+                    return failure
+
+                order_id = f"ord_{uuid4().hex}"
+                order = OrderRecord(
+                    id=order_id,
+                    checkout_session_id=checkout.id,
+                    order_number=f"TST-{order_id[4:12].upper()}",
+                    status="confirmed",
+                    offer_id=offer.id,
+                    product_id=offer.product_id,
+                    title=offer.name,
+                    quantity=checkout.quantity,
+                    currency=checkout.pricing.currency,
+                    unit_price=checkout.pricing.items_total_minor,
+                    subtotal=checkout.pricing.items_total_minor,
+                    shipping_total=checkout.pricing.shipping_total_minor,
+                    total=checkout.pricing.total_minor,
+                    fulfillment_option_id=checkout.selected_fulfillment_option.option_id,
+                    created_at=scenario_at,
+                    permalink_url=f"{get_settings().acp_api_base_url}/orders/{order_id}",
+                )
+                completed = Checkout.model_validate(
+                    {
+                        **checkout.model_dump(mode="json"),
+                        "revision": checkout.revision + 1,
+                        "status": "completed",
+                        "updated_at": scenario_at,
+                    }
+                )
+                updated_offer = Offer.model_validate(
+                    {
+                        **offer.model_dump(mode="json"),
+                        "revision": offer.revision + 1,
+                        "available_quantity": offer.available_quantity - checkout.quantity,
+                        "availability": (
+                            "in_stock"
+                            if offer.available_quantity - checkout.quantity > 0
+                            else "out_of_stock"
+                        ),
+                    }
+                )
+                snapshot = CheckoutCompletionSnapshot(
+                    checkout=completed,
+                    order=order,
+                    offer=offer,
+                )
+                connection.execute(
+                    """
+                    UPDATE catalog_offers
+                    SET revision = %s, snapshot = %s
+                    WHERE run_id = %s AND offer_id = %s
+                    """,
+                    (
+                        updated_offer.revision,
+                        Jsonb(updated_offer.model_dump(mode="json")),
+                        self._run_id,
+                        offer.id,
+                    ),
+                )
+                connection.execute(
+                    """
+                    UPDATE checkout_sessions
+                    SET revision = %s, status = %s, snapshot = %s, updated_at = %s
+                    WHERE run_id = %s AND actor_id = %s AND checkout_id = %s
+                    """,
+                    (
+                        completed.revision,
+                        completed.status,
+                        Jsonb(completed.model_dump(mode="json")),
+                        completed.updated_at,
+                        self._run_id,
+                        self._context.actor_id,
+                        checkout_id,
+                    ),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO orders
+                      (order_id, run_id, actor_id, checkout_id, snapshot, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        order.id,
+                        self._run_id,
+                        self._context.actor_id,
+                        checkout_id,
+                        Jsonb(order.model_dump(mode="json")),
+                        order.created_at,
+                    ),
+                )
+                self._record_sanitized(
+                    connection,
+                    "payment.approved",
+                    scenario_at,
+                    checkout_id,
+                    {
+                        "checkout_id": checkout_id,
+                        "order_id": order.id,
+                        "offer_id": offer.id,
+                        "quantity": checkout.quantity,
+                        "currency": checkout.pricing.currency,
+                        "total_minor": checkout.pricing.total_minor,
+                        "payment_handler_id": "tesis_sandbox",
+                        "payment_outcome": "approved",
+                    },
+                )
+                self._record_sanitized(
+                    connection,
+                    "order_create",
+                    scenario_at,
+                    checkout_id,
+                    {
+                        "checkout_id": checkout_id,
+                        "order_id": order.id,
+                        "offer_id": offer.id,
+                        "quantity": checkout.quantity,
+                        "currency": checkout.pricing.currency,
+                        "total_minor": checkout.pricing.total_minor,
+                    },
+                )
+                connection.execute(
+                    """
+                    INSERT INTO checkout_completion_attempts
+                      (run_id, actor_id, checkout_id, idempotency_sha256,
+                       request_fingerprint, result_snapshot, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        self._run_id,
+                        self._context.actor_id,
+                        checkout_id,
+                        key_hash,
+                        fingerprint,
+                        Jsonb(
+                            {
+                                "kind": "success",
+                                "order": order.model_dump(mode="json"),
+                                "offer": offer.model_dump(mode="json"),
+                            }
+                        ),
+                        scenario_at,
+                    ),
+                )
+                return Success[CheckoutCompletionResult](
+                    data=CheckoutCompletionResult(snapshot=snapshot)
+                )
+        except psycopg.errors.LockNotAvailable:
+            return _failure("IDEMPOTENCY_IN_FLIGHT", "Checkout completion is in flight.")
+
+    def _completion_replay(
+        self, snapshot: Any, checkout: Checkout
+    ) -> Success[CheckoutCompletionResult] | Failure:
+        self.last_completion_replayed = True
+        if snapshot.get("kind") == "failure":
+            return _failure(snapshot["code"], snapshot["message"])
+        if checkout.status != "completed":
+            return _failure(
+                "CHECKOUT_NOT_COMPLETABLE",
+                "Completed checkout snapshot is unavailable.",
+            )
+        return Success[CheckoutCompletionResult](
+            data=CheckoutCompletionResult(
+                snapshot=CheckoutCompletionSnapshot.model_validate(
+                    {
+                        "checkout": checkout,
+                        "order": snapshot["order"],
+                        "offer": snapshot["offer"],
+                    }
+                ),
+                replayed=True,
+            )
+        )
+
+    def _store_completion_failure(
+        self,
+        connection: psycopg.Connection[Any],
+        checkout_id: str,
+        key_hash: str,
+        fingerprint: str,
+        failure: Failure,
+        scenario_at: str,
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO checkout_completion_attempts
+              (run_id, actor_id, checkout_id, idempotency_sha256,
+               request_fingerprint, result_snapshot, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                self._run_id,
+                self._context.actor_id,
+                checkout_id,
+                key_hash,
+                fingerprint,
+                Jsonb(
+                    {
+                        "kind": "failure",
+                        "code": failure.error.code,
+                        "message": failure.error.message,
+                    }
+                ),
+                scenario_at,
+            ),
         )
 
     def _mutate(
@@ -653,6 +1043,34 @@ class CheckoutService:
                         "actor_id": self._context.actor_id,
                         "received_at": self._context.received_at,
                         "checkout_id": checkout_id,
+                    }
+                ),
+            ),
+        )
+
+    def _record_sanitized(
+        self,
+        connection: psycopg.Connection[Any],
+        event_type: str,
+        scenario_at: str,
+        checkout_id: str,
+        payload: dict[str, Any],
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO run_events (run_id, event_type, producer, scenario_at, payload)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (
+                self._run_id,
+                event_type,
+                "commerce_lab.checkout",
+                scenario_at,
+                Jsonb(
+                    {
+                        "request_id": self._context.request_id,
+                        "actor_id": self._context.actor_id,
+                        **payload,
                     }
                 ),
             ),

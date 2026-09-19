@@ -22,6 +22,7 @@ MIGRATIONS = (
     "004_checkout_sessions.sql",
     "007_checkout_mutations.sql",
     "008_checkout_payment_capability.sql",
+    "009_checkout_completion.sql",
 )
 FIXTURE_VERSION = "p0-catalog-v1"
 PRODUCER = "preparation.db-seed"
@@ -46,6 +47,11 @@ def _canonical(value: object) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
+def migration_sha256(path: Path) -> str:
+    normalized = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
 def fixture_snapshot() -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
     offers = [offer.model_dump(mode="json") for offer in fresh_p0_offers()]
     offers.sort(key=lambda offer: str(offer["id"]))
@@ -59,11 +65,48 @@ def fixture_snapshot() -> tuple[list[dict[str, Any]], str, dict[str, Any]]:
 
 
 def migrate() -> dict[str, object]:
+    applied: list[str] = []
+    already_applied: list[str] = []
     with psycopg.connect(database_url()) as connection, connection.transaction():
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+              version text PRIMARY KEY,
+              sha256 text NOT NULL CHECK (sha256 ~ '^[0-9a-f]{64}$'),
+              applied_at timestamptz NOT NULL DEFAULT now()
+            )
+            """
+        )
         for migration in MIGRATIONS:
-            migration_sql = (ROOT / "migrations" / migration).read_text(encoding="utf-8")
+            migration_path = ROOT / "migrations" / migration
+            checksum = migration_sha256(migration_path)
+            existing = connection.execute(
+                "SELECT sha256 FROM schema_migrations WHERE version = %s",
+                (migration,),
+            ).fetchone()
+            if existing is not None:
+                if existing[0] != checksum:
+                    raise RuntimeError(
+                        f"Applied migration {migration} was modified; refusing to continue."
+                    )
+                already_applied.append(migration)
+                continue
+            migration_sql = migration_path.read_text(encoding="utf-8")
             connection.execute(sql.SQL(cast(LiteralString, migration_sql)))
-    return {"operation": "migrate", "migrations": list(MIGRATIONS), "status": "applied"}
+            connection.execute(
+                """
+                INSERT INTO schema_migrations (version, sha256)
+                VALUES (%s, %s)
+                """,
+                (migration, checksum),
+            )
+            applied.append(migration)
+    return {
+        "operation": "migrate",
+        "applied": applied,
+        "already_applied": already_applied,
+        "status": "applied" if applied else "already_applied",
+    }
 
 
 def seed(actor_id: str = "preparation-fixture", variant: str = "preparation") -> dict[str, object]:
@@ -246,10 +289,23 @@ def check_database_ready() -> None:
                        to_regclass('public.run_events') IS NOT NULL AS events,
                        to_regclass('public.lab_sessions') IS NOT NULL AS sessions,
                        to_regclass('public.checkout_sessions') IS NOT NULL AS checkouts,
-                       to_regclass('public.checkout_mutations') IS NOT NULL AS checkout_mutations
+                       to_regclass('public.checkout_mutations') IS NOT NULL AS checkout_mutations,
+                       to_regclass('public.orders') IS NOT NULL AS orders,
+                       to_regclass('public.checkout_completion_attempts')
+                         IS NOT NULL AS completion_attempts,
+                       to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations
                 """
             ).fetchone()
-            if row != (True, True, True, True, True, True):
+            if row is None or not all(row):
                 raise DatabaseNotReady("Required migrations are not applied")
+            versions = connection.execute(
+                "SELECT version, sha256 FROM schema_migrations"
+            ).fetchall()
+            expected = {
+                migration: migration_sha256(ROOT / "migrations" / migration)
+                for migration in MIGRATIONS
+            }
+            if dict(versions) != expected:
+                raise DatabaseNotReady("Required migration versions are not applied")
     except (psycopg.Error, ValueError) as error:
         raise DatabaseNotReady("PostgreSQL is unavailable or not prepared") from error

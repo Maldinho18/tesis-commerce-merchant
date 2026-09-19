@@ -1,4 +1,4 @@
-from commerce_lab.db.core import fixture_snapshot
+from commerce_lab.db.core import fixture_snapshot, migration_sha256
 
 
 def test_fixture_manifest_is_deterministic_and_complete() -> None:
@@ -21,3 +21,16 @@ def test_fixture_manifest_is_deterministic_and_complete() -> None:
         "SON-06",
         "SON-07",
     ]
+
+
+def test_migration_sha256_normalizes_line_endings_but_detects_content_changes(tmp_path) -> None:
+    lf = tmp_path / "lf.sql"
+    crlf = tmp_path / "crlf.sql"
+    changed = tmp_path / "changed.sql"
+    lf.write_text("SELECT 1;\n", encoding="utf-8", newline="")
+    crlf.write_bytes(b"SELECT 1;\r\n")
+    changed.write_text("SELECT 2;\n", encoding="utf-8", newline="")
+
+    assert migration_sha256(lf) == migration_sha256(crlf)
+    assert migration_sha256(lf) != migration_sha256(changed)
+    assert len(migration_sha256(lf)) == 64

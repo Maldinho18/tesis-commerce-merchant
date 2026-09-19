@@ -25,8 +25,16 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
   `/payment-handlers/tesis-sandbox/spec`, `/config-schema` e
   `/instrument-schema`. El handler usa `requires_delegate_payment=false`,
   acepta las familias sintéticas `spt_test_success_*`, `spt_test_declined_*` y
-  `spt_test_error_*`, y todavía no procesa tokens. Update selecciona la única
+  `spt_test_error_*`; `/complete` solo clasifica esos tokens localmente. Update selecciona la única
   opción de envío; cancel acepta cuerpo vacío o `intent_trace.reason_code`.
+- EC-06A añade `POST /checkout_sessions/{id}/complete` para el subconjunto
+  sintético `tesis_sandbox`. Acepta tokens `spt_test_success_*`,
+  `spt_test_declined_*` y `spt_test_error_*`, sin PSP externo ni dinero real.
+  El éxito revalida términos, decrementa inventario y crea exactamente una
+  Order en la misma transacción; el checkout queda `completed`. Declines son
+  deterministas y errores temporales devuelven `503` sin efectos comerciales.
+  La operación es idempotente y el permalink público `/orders/{order_id}`
+  muestra únicamente datos sanitizados. Todavía no hay webhooks.
 - Product Feed **estático de reemplazo completo**: `metadata.json` y un Product
   JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
   ACP `2026-04-17`. Feed API incremental no está implementada.
@@ -82,7 +90,7 @@ Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004`, `007` y `008`;
+Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008` y `009`;
 `005`/`006`
 pertenecen al carril live/browser legado y no se ejecutan aquí. Los episodios
 históricos no se reescriben; la semilla nueva usa `p0-catalog-v1`.
@@ -99,6 +107,6 @@ uv run pytest tests/integration
 Remove-Item Env:RUN_DB_INTEGRATION
 ```
 
-No están implementados Feed API incremental, `/complete`, Order, order
-permalink, webhooks ni frontend. El handler sandbox no procesa tokens ni
-dinero real; este subconjunto no afirma conformidad ACP integral.
+No están implementados Feed API incremental, webhooks ni frontend. El handler
+sandbox solo clasifica tokens sintéticos locales y no procesa credenciales
+reales ni dinero real; este subconjunto no afirma conformidad ACP integral.

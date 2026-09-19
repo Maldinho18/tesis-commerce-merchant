@@ -5,6 +5,7 @@ from referencing import Registry, Resource
 
 from commerce_lab.api import app
 from commerce_lab.payment_sandbox import (
+    classify_instrument,
     config_schema,
     instrument_schema,
     payment_handler,
@@ -101,3 +102,23 @@ def test_payment_handler_documents_are_public_and_deterministic() -> None:
         assert first.status_code == second.status_code == 200
         assert first.json() == second.json()
         assert first.headers["cache-control"] == "public, max-age=3600"
+
+
+def test_sandbox_instrument_classification_is_pure_and_deterministic() -> None:
+    base = {
+        "type": "sandbox_token",
+        "credential": {"type": "spt", "token": "spt_test_success_demo"},
+    }
+    assert classify_instrument(base) == "approved"
+    assert (
+        classify_instrument(
+            {**base, "credential": {**base["credential"], "token": "spt_test_declined_demo"}}
+        )
+        == "declined"
+    )
+    assert (
+        classify_instrument(
+            {**base, "credential": {**base["credential"], "token": "spt_test_error_demo"}}
+        )
+        == "temporary_provider_error"
+    )
