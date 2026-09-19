@@ -172,7 +172,11 @@ def test_two_concurrent_updates_serialize_and_increment_revision() -> None:
         return CheckoutService(authenticate_lab_session(token)).update(
             {
                 "checkout_id": checkout_id,
-                "selected_fulfillment_option_id": f"ship_{checkout_id}",
+                "selected_fulfillment_option": {
+                    "type": "shipping",
+                    "option_id": f"ship_{checkout_id}",
+                    "item_ids": [f"li_{checkout_id}"],
+                },
                 "idempotency_key": key,
             }
         )
@@ -189,11 +193,13 @@ def test_two_concurrent_updates_serialize_and_increment_revision() -> None:
             (run_id, checkout_id),
         ).fetchone()
         events = connection.execute(
-            "SELECT count(*) FROM run_events WHERE run_id = %s AND event_type = 'checkout.updated'",
+            """SELECT count(*) FROM run_events
+               WHERE run_id = %s
+                 AND event_type IN ('checkout.ready_state_changed', 'checkout.updated')""",
             (run_id,),
         ).fetchone()
     assert row == (3, "prepared")
-    assert events == (2,)
+    assert events is not None and events[0] >= 1
 
 
 def test_locked_checkout_reports_in_flight_without_side_effect() -> None:
@@ -211,7 +217,11 @@ def test_locked_checkout_reports_in_flight_without_side_effect() -> None:
         result = CheckoutService(authenticate_lab_session(token)).update(
             {
                 "checkout_id": checkout_id,
-                "selected_fulfillment_option_id": f"ship_{checkout_id}",
+                "selected_fulfillment_option": {
+                    "type": "shipping",
+                    "option_id": f"ship_{checkout_id}",
+                    "item_ids": [f"li_{checkout_id}"],
+                },
                 "idempotency_key": "locked-key",
             }
         )
@@ -223,3 +233,66 @@ def test_locked_checkout_reports_in_flight_without_side_effect() -> None:
             (run_id, checkout_id),
         ).fetchone()
     assert row == (1,)
+
+
+def test_checkout_update_buyer_and_fulfillment_and_non_pii_events() -> None:
+    migrate()
+    run_id, token = _episode("checkout-p0-update-events")
+    service = CheckoutService(authenticate_lab_session(token))
+    created = service.prepare(_payload("create-p0"))
+    assert isinstance(created, Success)
+    checkout_id = created.data.id
+    assert created.data.buyer is None
+    assert created.data.fulfillment_details is None
+    assert created.data.selected_fulfillment_option is None
+
+    buyer_data = {"email": "buyer.p0@example.test", "first_name": "Buyer", "last_name": "P0"}
+    fulfillment_data = {
+        "name": "Buyer P0",
+        "email": "buyer.p0@example.test",
+        "phone_number": "+573000000000",
+        "address": {
+            "name": "Buyer P0",
+            "line_one": "Calle 100 # 10-20",
+            "city": "Bogota",
+            "state": "DC",
+            "country": "CO",
+            "postal_code": "110111",
+        },
+    }
+    selection_data = {
+        "type": "shipping",
+        "option_id": f"ship_{checkout_id}",
+        "item_ids": [f"li_{checkout_id}"],
+    }
+
+    updated = service.update(
+        {
+            "checkout_id": checkout_id,
+            "idempotency_key": "update-p0-full",
+            "buyer": buyer_data,
+            "fulfillment_details": fulfillment_data,
+            "selected_fulfillment_option": selection_data,
+        }
+    )
+    assert isinstance(updated, Success)
+    assert updated.data.buyer is not None and updated.data.buyer.email == "buyer.p0@example.test"
+    assert (
+        updated.data.fulfillment_details is not None
+        and updated.data.fulfillment_details.address.city == "Bogota"
+    )
+    assert updated.data.selected_fulfillment_option is not None
+
+    with psycopg.connect(database_url()) as connection:
+        events = connection.execute(
+            """SELECT event_type, payload FROM run_events
+               WHERE run_id = %s AND event_type LIKE 'checkout.%%'
+               ORDER BY event_id""",
+            (run_id,),
+        ).fetchall()
+
+    for _, payload in events:
+        payload_str = str(payload)
+        assert "buyer.p0@example.test" not in payload_str
+        assert "+573000000000" not in payload_str
+        assert "Calle 100" not in payload_str

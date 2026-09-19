@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from jsonschema import Draft202012Validator, ValidationError
+from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 from pydantic import ValidationError as ModelValidationError
 from referencing import Registry, Resource
 
@@ -131,3 +131,97 @@ def test_lifecycle_requests_and_states_follow_frozen_bundle() -> None:
     checkout["status"] = "prepared"
     with pytest.raises(ValidationError):
         validator("CheckoutSession").validate(checkout)
+
+
+def test_p0_buyer_fulfillment_and_update_requests_validate_against_schema() -> None:
+    buyer = {"email": "buyer.p0@example.test", "first_name": "Buyer", "last_name": "P0"}
+    fulfillment = {
+        "name": "Buyer P0",
+        "email": "buyer.p0@example.test",
+        "phone_number": "+573000000000",
+        "address": {
+            "name": "Buyer P0",
+            "line_one": "Calle 100 # 10-20",
+            "city": "Bogota",
+            "state": "DC",
+            "country": "CO",
+            "postal_code": "110111",
+        },
+    }
+    selection = [{"type": "shipping", "option_id": "ship_chk_001", "item_ids": ["li_chk_001"]}]
+
+    validator("Buyer").validate(buyer)
+    validator("FulfillmentDetails").validate(fulfillment)
+
+    update_validator = validator("CheckoutSessionUpdateRequest")
+    update_validator.validate({"buyer": buyer})
+    update_validator.validate({"fulfillment_details": fulfillment})
+    update_validator.validate({"selected_fulfillment_options": selection})
+    update_validator.validate(
+        {
+            "buyer": buyer,
+            "fulfillment_details": fulfillment,
+            "selected_fulfillment_options": selection,
+        }
+    )
+
+    checkout = copy.deepcopy(GET_RESPONSE["body"])
+    checkout["buyer"] = buyer
+    checkout["fulfillment_details"] = fulfillment
+    checkout["selected_fulfillment_options"] = selection
+    validator("CheckoutSession").validate(checkout)
+
+
+def fmt_validator(definition: str) -> Draft202012Validator:
+    """Validator with FormatChecker enabled — mirrors _UPDATE_VALIDATOR in acp.py."""
+    return Draft202012Validator(
+        {"$ref": f"{BUNDLE['$id']}#/$defs/{definition}"},
+        registry=REGISTRY,
+        format_checker=FormatChecker(),
+    )
+
+
+def test_email_format_validation_accepts_valid_buyer_email() -> None:
+    buyer = {"email": "buyer.valid@example.test", "first_name": "Buyer", "last_name": "Valid"}
+    fmt_validator("Buyer").validate(buyer)  # must not raise
+
+
+def test_email_format_validation_rejects_invalid_buyer_email() -> None:
+    buyer = {"email": "not-an-email", "first_name": "Buyer", "last_name": "Bad"}
+    with pytest.raises(ValidationError, match="not-an-email"):
+        fmt_validator("Buyer").validate(buyer)
+
+
+def test_email_format_validation_accepts_valid_fulfillment_email() -> None:
+    fulfillment = {
+        "name": "Dest Valid",
+        "email": "dest.valid@example.test",
+        "phone_number": "+573000000000",
+        "address": {
+            "name": "Dest Valid",
+            "line_one": "Calle 100 # 10-20",
+            "city": "Bogota",
+            "state": "DC",
+            "country": "CO",
+            "postal_code": "110111",
+        },
+    }
+    fmt_validator("FulfillmentDetails").validate(fulfillment)  # must not raise
+
+
+def test_email_format_validation_rejects_invalid_fulfillment_email() -> None:
+    fulfillment = {
+        "name": "Dest Bad",
+        "email": "not-an-email",
+        "phone_number": "+573000000000",
+        "address": {
+            "name": "Dest Bad",
+            "line_one": "Calle 100 # 10-20",
+            "city": "Bogota",
+            "state": "DC",
+            "country": "CO",
+            "postal_code": "110111",
+        },
+    }
+    with pytest.raises(ValidationError, match="not-an-email"):
+        fmt_validator("FulfillmentDetails").validate(fulfillment)

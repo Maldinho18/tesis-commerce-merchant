@@ -8,7 +8,6 @@ from commerce_lab import __version__
 from commerce_lab.acp import (
     ACPCheckoutAdapter,
     ACPCheckoutCreateRequest,
-    ACPCheckoutUpdateRequest,
 )
 from commerce_lab.context import InvalidLabSession, authenticate_lab_session
 from commerce_lab.contracts import (
@@ -195,7 +194,7 @@ def checkout_session_get(
 @app.post("/checkout_sessions/{checkout_id}")
 def checkout_session_update(
     checkout_id: Identifier,
-    payload: ACPCheckoutUpdateRequest,
+    payload: dict[str, Any],
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],

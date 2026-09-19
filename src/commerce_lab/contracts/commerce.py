@@ -76,6 +76,36 @@ class Offer(StrictModel):
         return self
 
 
+class BuyerInfo(StrictModel):
+    email: str
+    first_name: str | None = None
+    last_name: str | None = None
+
+
+class AddressInfo(StrictModel):
+    name: str
+    line_one: str
+    line_two: str | None = None
+    city: Literal["Bogota"]
+    state: Literal["DC"]
+    country: Literal["CO"]
+    postal_code: Literal["110111"]
+    company: str | None = None
+
+
+class FulfillmentDetailsInfo(StrictModel):
+    name: str
+    email: str
+    phone_number: str
+    address: AddressInfo
+
+
+class SelectedFulfillmentOptionInfo(StrictModel):
+    type: Literal["shipping"]
+    option_id: Identifier
+    item_ids: Annotated[list[Identifier], Field(min_length=1)]
+
+
 class Checkout(StrictModel):
     id: Identifier
     revision: Revision
@@ -86,6 +116,9 @@ class Checkout(StrictModel):
     pricing: Pricing
     delivery_context: DeliveryContext
     delivery_days: Annotated[int, Field(strict=True, gt=0)]
+    buyer: BuyerInfo | None = None
+    fulfillment_details: FulfillmentDetailsInfo | None = None
+    selected_fulfillment_option: SelectedFulfillmentOptionInfo | None = None
     created_at: str
     updated_at: str
     expires_at: str
@@ -167,8 +200,10 @@ class CheckoutGetInput(StrictModel):
 
 class CheckoutUpdateInput(StrictModel):
     checkout_id: Identifier
-    selected_fulfillment_option_id: Identifier
     idempotency_key: IdempotencyKey
+    buyer: BuyerInfo | None = None
+    fulfillment_details: FulfillmentDetailsInfo | None = None
+    selected_fulfillment_option: SelectedFulfillmentOptionInfo | None = None
 
 
 class CheckoutCancelInput(StrictModel):

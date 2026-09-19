@@ -20,7 +20,55 @@ from commerce_lab.contracts import (
     Success,
     parse_timestamp,
 )
+from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
+
+
+class ReadinessState(StrictModel):
+    buyer_complete: bool
+    fulfillment_complete: bool
+    fulfillment_selected: bool
+    commerce_terms_valid: bool
+    payment_capability_available: bool
+    ready_for_payment: bool
+
+
+def evaluate_readiness(checkout: Checkout, offer: Offer | None = None) -> ReadinessState:
+    buyer_complete = checkout.buyer is not None and bool(checkout.buyer.email)
+    fulfillment_complete = (
+        checkout.fulfillment_details is not None
+        and bool(checkout.fulfillment_details.name)
+        and bool(checkout.fulfillment_details.email)
+        and bool(checkout.fulfillment_details.phone_number)
+        and checkout.fulfillment_details.address is not None
+        and checkout.fulfillment_details.address.city == "Bogota"
+        and checkout.fulfillment_details.address.state == "DC"
+        and checkout.fulfillment_details.address.country == "CO"
+        and checkout.fulfillment_details.address.postal_code == "110111"
+    )
+    fulfillment_selected = (
+        checkout.selected_fulfillment_option is not None
+        and checkout.selected_fulfillment_option.option_id == f"ship_{checkout.id}"
+    )
+    commerce_terms_valid = checkout.status == "prepared" and (
+        offer is None or (offer.availability == "in_stock" and offer.available_quantity >= 1)
+    )
+    payment_capability_available = False
+    ready_for_payment = (
+        buyer_complete
+        and fulfillment_complete
+        and fulfillment_selected
+        and commerce_terms_valid
+        and payment_capability_available
+    )
+    return ReadinessState(
+        buyer_complete=buyer_complete,
+        fulfillment_complete=fulfillment_complete,
+        fulfillment_selected=fulfillment_selected,
+        commerce_terms_valid=commerce_terms_valid,
+        payment_capability_available=payment_capability_available,
+        ready_for_payment=ready_for_payment,
+    )
 
 
 def _canonical(value: object) -> str:
@@ -93,6 +141,9 @@ class CheckoutService:
                 pricing=offer.pricing.model_copy(deep=True),
                 delivery_context=offer.delivery_context.model_copy(deep=True),
                 delivery_days=offer.delivery_days,
+                buyer=None,
+                fulfillment_details=None,
+                selected_fulfillment_option=None,
                 created_at=scenario_at,
                 updated_at=scenario_at,
                 expires_at=offer.expires_at,
@@ -164,11 +215,21 @@ class CheckoutService:
 
     def update(self, raw: object) -> Success[Checkout] | Failure:
         payload = CheckoutUpdateInput.model_validate(raw)
+        content: dict[str, Any] = {}
+        if payload.buyer is not None:
+            content["buyer"] = payload.buyer.model_dump(mode="json")
+        if payload.fulfillment_details is not None:
+            content["fulfillment_details"] = payload.fulfillment_details.model_dump(mode="json")
+        if payload.selected_fulfillment_option is not None:
+            content["selected_fulfillment_option"] = payload.selected_fulfillment_option.model_dump(
+                mode="json"
+            )
         return self._mutate(
             checkout_id=payload.checkout_id,
             operation="update",
             idempotency_key=payload.idempotency_key,
-            content={"selected_fulfillment_option_id": payload.selected_fulfillment_option_id},
+            content=content,
+            update_payload=payload,
         )
 
     def cancel(self, raw: object) -> Success[Checkout] | Failure:
@@ -186,7 +247,8 @@ class CheckoutService:
         checkout_id: str,
         operation: str,
         idempotency_key: str,
-        content: dict[str, str],
+        content: dict[str, Any],
+        update_payload: CheckoutUpdateInput | None = None,
     ) -> Success[Checkout] | Failure:
         key_hash = _sha256(idempotency_key)
         fingerprint = _sha256(_canonical(content))
@@ -236,16 +298,151 @@ class CheckoutService:
                     if checkout.status == "expired":
                         return _failure("CHECKOUT_EXPIRED", "Checkout has expired.")
                     return _failure("CHECKOUT_NOT_EDITABLE", "Checkout cannot be updated.")
-                if operation == "update" and content["selected_fulfillment_option_id"] != (
-                    f"ship_{checkout.id}"
-                ):
-                    return _failure("INVALID_INPUT", "Fulfillment option is unavailable.")
+
+                if operation == "update":
+                    if update_payload is None:
+                        return _failure("INVALID_INPUT", "Update payload is missing.")
+
+                    offer_row = connection.execute(
+                        """
+                        SELECT revision, snapshot
+                        FROM catalog_offers
+                        WHERE run_id = %s AND offer_id = %s
+                        FOR SHARE
+                        """,
+                        (self._run_id, checkout.offer_id),
+                    ).fetchone()
+                    if offer_row is None:
+                        return _failure("OFFER_NOT_FOUND", "Checkout offer is unavailable.")
+                    offer = Offer.model_validate(offer_row[1])
+
+                    if (
+                        offer.availability != "in_stock"
+                        or offer.available_quantity < checkout.quantity
+                    ):
+                        return _failure("OUT_OF_STOCK", "The requested quantity is not available.")
+                    if parse_timestamp(scenario_at) >= parse_timestamp(offer.expires_at):
+                        return _failure("OFFER_EXPIRED", "Offer has expired.")
+
+                    if update_payload.selected_fulfillment_option is not None:
+                        sel = update_payload.selected_fulfillment_option
+                        if sel.option_id != f"ship_{checkout_id}" or sel.item_ids != [
+                            f"li_{checkout_id}"
+                        ]:
+                            return _failure("INVALID_INPUT", "Fulfillment option is unavailable.")
+
+                    new_buyer = (
+                        update_payload.buyer if update_payload.buyer is not None else checkout.buyer
+                    )
+                    new_fulfillment = (
+                        update_payload.fulfillment_details
+                        if update_payload.fulfillment_details is not None
+                        else checkout.fulfillment_details
+                    )
+                    new_selection = (
+                        update_payload.selected_fulfillment_option
+                        if update_payload.selected_fulfillment_option is not None
+                        else checkout.selected_fulfillment_option
+                    )
+
+                    prev_readiness = evaluate_readiness(checkout, offer)
+
+                    changed = Checkout.model_validate(
+                        {
+                            **checkout.model_dump(mode="json"),
+                            "revision": checkout.revision + 1,
+                            "offer_revision": offer.revision,
+                            "pricing": offer.pricing.model_dump(mode="json"),
+                            "delivery_days": offer.delivery_days,
+                            "buyer": new_buyer.model_dump(mode="json") if new_buyer else None,
+                            "fulfillment_details": (
+                                new_fulfillment.model_dump(mode="json") if new_fulfillment else None
+                            ),
+                            "selected_fulfillment_option": (
+                                new_selection.model_dump(mode="json") if new_selection else None
+                            ),
+                            "updated_at": scenario_at,
+                        }
+                    )
+
+                    new_readiness = evaluate_readiness(changed, offer)
+
+                    connection.execute(
+                        """
+                        UPDATE checkout_sessions
+                        SET revision = %s, offer_revision = %s, status = %s,
+                            snapshot = %s, updated_at = %s
+                        WHERE run_id = %s AND actor_id = %s AND checkout_id = %s
+
+                        """,
+                        (
+                            changed.revision,
+                            changed.offer_revision,
+                            changed.status,
+                            Jsonb(changed.model_dump(mode="json")),
+                            changed.updated_at,
+                            self._run_id,
+                            self._context.actor_id,
+                            checkout_id,
+                        ),
+                    )
+                    connection.execute(
+                        """
+                        INSERT INTO checkout_mutations
+                          (run_id, actor_id, checkout_id, operation, idempotency_sha256,
+                           request_fingerprint, response_snapshot)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            self._run_id,
+                            self._context.actor_id,
+                            checkout_id,
+                            operation,
+                            key_hash,
+                            fingerprint,
+                            Jsonb(changed.model_dump(mode="json")),
+                        ),
+                    )
+
+                    if update_payload.buyer is not None:
+                        self._record_readiness_event(
+                            connection,
+                            "checkout.buyer_updated",
+                            scenario_at,
+                            checkout_id,
+                            changed,
+                            new_readiness,
+                        )
+                    if update_payload.fulfillment_details is not None:
+                        self._record_readiness_event(
+                            connection,
+                            "checkout.fulfillment_updated",
+                            scenario_at,
+                            checkout_id,
+                            changed,
+                            new_readiness,
+                        )
+                    if (
+                        update_payload.buyer is not None
+                        or update_payload.fulfillment_details is not None
+                        or update_payload.selected_fulfillment_option is not None
+                    ) or prev_readiness.ready_for_payment != new_readiness.ready_for_payment:
+                        self._record_readiness_event(
+                            connection,
+                            "checkout.ready_state_changed",
+                            scenario_at,
+                            checkout_id,
+                            changed,
+                            new_readiness,
+                        )
+
+                    return Success[Checkout](data=changed)
 
                 changed = Checkout.model_validate(
                     {
                         **checkout.model_dump(mode="json"),
                         "revision": checkout.revision + 1,
-                        "status": "canceled" if operation == "cancel" else checkout.status,
+                        "status": "canceled",
                         "updated_at": scenario_at,
                     }
                 )
@@ -284,13 +481,52 @@ class CheckoutService:
                 )
                 self._record(
                     connection,
-                    "checkout.updated" if operation == "update" else "checkout.canceled",
+                    "checkout.canceled",
                     scenario_at,
                     checkout_id,
                 )
                 return Success[Checkout](data=changed)
         except psycopg.errors.LockNotAvailable:
             return _failure("IDEMPOTENCY_IN_FLIGHT", "Checkout mutation is in flight.")
+
+    def _record_readiness_event(
+        self,
+        connection: psycopg.Connection[Any],
+        event_type: str,
+        scenario_at: str,
+        checkout_id: str,
+        checkout: Checkout,
+        readiness: ReadinessState,
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO run_events (run_id, event_type, producer, scenario_at, payload)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (
+                self._run_id,
+                event_type,
+                "commerce_lab.checkout",
+                scenario_at,
+                Jsonb(
+                    {
+                        "request_id": self._context.request_id,
+                        "actor_id": self._context.actor_id,
+                        "received_at": self._context.received_at,
+                        "checkout_id": checkout_id,
+                        "buyer_present": checkout.buyer is not None,
+                        "fulfillment_present": checkout.fulfillment_details is not None,
+                        "fulfillment_selected": checkout.selected_fulfillment_option is not None,
+                        "buyer_complete": readiness.buyer_complete,
+                        "fulfillment_complete": readiness.fulfillment_complete,
+                        "fulfillment_selected_flag": readiness.fulfillment_selected,
+                        "commerce_terms_valid": readiness.commerce_terms_valid,
+                        "payment_capability_available": readiness.payment_capability_available,
+                        "ready_for_payment": readiness.ready_for_payment,
+                    }
+                ),
+            ),
+        )
 
     def _load_run(self, connection: psycopg.Connection[Any]) -> tuple[Any, ...] | None:
         return connection.execute(

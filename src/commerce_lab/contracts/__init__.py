@@ -1,4 +1,6 @@
 from commerce_lab.contracts.commerce import (
+    AddressInfo,
+    BuyerInfo,
     CatalogSearchData,
     CatalogSearchInput,
     Checkout,
@@ -10,9 +12,11 @@ from commerce_lab.contracts.commerce import (
     CommerceErrorCode,
     DeliveryContext,
     Failure,
+    FulfillmentDetailsInfo,
     Offer,
     OfferGetInput,
     Pricing,
+    SelectedFulfillmentOptionInfo,
     Success,
 )
 from commerce_lab.contracts.primitives import (
@@ -31,6 +35,8 @@ from commerce_lab.contracts.primitives import (
 __all__ = [
     "ACP_VERSION",
     "MAX_SAFE_INTEGER",
+    "AddressInfo",
+    "BuyerInfo",
     "CatalogSearchData",
     "CatalogSearchInput",
     "Checkout",
@@ -43,6 +49,7 @@ __all__ = [
     "DeliveryContext",
     "ExecutionContext",
     "Failure",
+    "FulfillmentDetailsInfo",
     "Identifier",
     "Money",
     "Offer",
@@ -50,6 +57,7 @@ __all__ = [
     "Pricing",
     "Revision",
     "ScenarioClock",
+    "SelectedFulfillmentOptionInfo",
     "Success",
     "is_expired",
     "parse_timestamp",

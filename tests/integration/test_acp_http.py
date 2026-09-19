@@ -199,13 +199,16 @@ def test_acp_update_get_replay_conflict_and_authoritative_revision() -> None:
         events = connection.execute(
             """SELECT event_type, payload FROM run_events
                WHERE run_id = %s
-                 AND event_type IN ('checkout.updated', 'checkout.update_replayed')
+                 AND event_type IN ('checkout.ready_state_changed', 'checkout.update_replayed')
                ORDER BY event_id""",
             (run_id,),
         ).fetchall()
     assert row is not None and row[0] == 2 and row[1] == "prepared"
     assert row[2]["revision"] == 2
-    assert [event[0] for event in events] == ["checkout.updated", "checkout.update_replayed"]
+    assert [event[0] for event in events] == [
+        "checkout.ready_state_changed",
+        "checkout.update_replayed",
+    ]
     assert all(event[1]["checkout_id"] == checkout_id for event in events)
     assert all(event[1]["actor_id"] == "acp-update-cycle" for event in events)
     assert all(event[1]["request_id"] for event in events)
@@ -281,9 +284,11 @@ def test_acp_lifecycle_rejects_missing_headers_foreign_ids_and_terminal_update()
         headers={**headers, "Idempotency-Key": "unsupported-cancel"},
         json={"intent_trace": {"reason_code": "other", "trace_summary": "private"}},
     )
-    assert unsupported_update.status_code == 422
+    assert unsupported_update.status_code == 400
+    assert unsupported_update.json()["detail"]["code"] == "INVALID_INPUT"
     assert unsupported_cancel.status_code == 400
     assert unsupported_cancel.json()["detail"]["code"] == "INVALID_INPUT"
+
     for path, body in ((update_path, _selection(checkout_id)), (cancel_path, {})):
         assert owner.post(path, headers=headers, json=body).status_code == 400
         assert owner.post(path, headers={"API-Version": "2026-04-17"}, json=body).status_code == 401
@@ -393,3 +398,48 @@ def test_acp_expired_checkout_cannot_be_updated_but_can_be_canceled() -> None:
         client.get(f"/checkout_sessions/{checkout_id}", headers=headers).json()["status"]
         == "canceled"
     )
+
+
+def test_acp_update_rejects_unsupported_fields_and_invalid_address() -> None:
+    migrate()
+    client, headers = _client("acp-unsupported-fields")
+    checkout_id = _create(client, headers)
+    path = f"/checkout_sessions/{checkout_id}"
+
+    unsupported_discounts = client.post(
+        path,
+        headers={**headers, "Idempotency-Key": "unsupported-disc"},
+        json={"discounts": {"codes": ["DISC10"]}},
+    )
+    assert unsupported_discounts.status_code == 400
+    assert unsupported_discounts.json()["detail"]["code"] == "INVALID_INPUT"
+
+    unsupported_items = client.post(
+        path,
+        headers={**headers, "Idempotency-Key": "unsupported-li"},
+        json={"line_items": [{"id": "SON-02"}]},
+    )
+    assert unsupported_items.status_code == 400
+    assert unsupported_items.json()["detail"]["code"] == "INVALID_INPUT"
+
+    invalid_address = client.post(
+        path,
+        headers={**headers, "Idempotency-Key": "invalid-addr"},
+        json={
+            "fulfillment_details": {
+                "name": "Buyer P0",
+                "email": "buyer.p0@example.test",
+                "phone_number": "+573000000000",
+                "address": {
+                    "name": "Buyer P0",
+                    "line_one": "123 Main St",
+                    "city": "New York",
+                    "state": "NY",
+                    "country": "US",
+                    "postal_code": "10001",
+                },
+            }
+        },
+    )
+    assert invalid_address.status_code == 400
+    assert invalid_address.json()["detail"]["code"] == "INVALID_INPUT"

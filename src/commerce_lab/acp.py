@@ -5,19 +5,23 @@ from typing import Annotated, Any, Literal
 from uuid import UUID
 
 import psycopg
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import Field
+from pydantic import ValidationError as ModelValidationError
 from referencing import Registry, Resource
 
-from commerce_lab.checkout import CheckoutService
+from commerce_lab.checkout import CheckoutService, evaluate_readiness
 from commerce_lab.contracts import (
     ACP_VERSION,
+    BuyerInfo,
     Checkout,
     ExecutionContext,
     Failure,
+    FulfillmentDetailsInfo,
     Identifier,
     Offer,
+    SelectedFulfillmentOptionInfo,
     parse_timestamp,
 )
 from commerce_lab.contracts.primitives import StrictModel
@@ -29,14 +33,21 @@ _BUNDLE = json.loads(
     ).read_text(encoding="utf-8")
 )
 _REGISTRY = Registry().with_resource(str(_BUNDLE["$id"]), Resource.from_contents(_BUNDLE))
+_CHECKER = FormatChecker()
 _UPDATE_VALIDATOR = Draft202012Validator(
-    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSessionUpdateRequest"}, registry=_REGISTRY
+    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSessionUpdateRequest"},
+    registry=_REGISTRY,
+    format_checker=_CHECKER,
 )
 _CANCEL_VALIDATOR = Draft202012Validator(
-    {"$ref": f"{_BUNDLE['$id']}#/$defs/CancelSessionRequest"}, registry=_REGISTRY
+    {"$ref": f"{_BUNDLE['$id']}#/$defs/CancelSessionRequest"},
+    registry=_REGISTRY,
+    format_checker=_CHECKER,
 )
 _CHECKOUT_VALIDATOR = Draft202012Validator(
-    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSession"}, registry=_REGISTRY
+    {"$ref": f"{_BUNDLE['$id']}#/$defs/CheckoutSession"},
+    registry=_REGISTRY,
+    format_checker=_CHECKER,
 )
 
 
@@ -64,12 +75,6 @@ class ACPSelectedFulfillmentOption(StrictModel):
     type: Literal["shipping"]
     option_id: Identifier
     item_ids: Annotated[list[Identifier], Field(min_length=1, max_length=1)]
-
-
-class ACPCheckoutUpdateRequest(StrictModel):
-    selected_fulfillment_options: Annotated[
-        list[ACPSelectedFulfillmentOption], Field(min_length=1, max_length=1)
-    ]
 
 
 class ACPCheckoutAdapter:
@@ -123,19 +128,93 @@ class ACPCheckoutAdapter:
         return self._response(result.data, offer)
 
     def update(
-        self, checkout_id: str, request: ACPCheckoutUpdateRequest, idempotency_key: str
+        self, checkout_id: str, request: dict[str, Any], idempotency_key: str
     ) -> dict[str, Any] | Failure:
-        _UPDATE_VALIDATOR.validate(request.model_dump(mode="json"))
-        selected = request.selected_fulfillment_options[0]
-        if selected.item_ids != [f"li_{checkout_id}"]:
+        try:
+            _UPDATE_VALIDATOR.validate(request)
+        except SchemaValidationError:
             return Failure.model_validate(
-                {"error": {"code": "INVALID_INPUT", "message": "Invalid checkout line selection."}}
+                {"error": {"code": "INVALID_INPUT", "message": "Invalid ACP update request."}}
             )
+
+        unsupported_keys = {
+            "line_items",
+            "discounts",
+            "coupons",
+            "fulfillment_groups",
+            "order_notes",
+        }
+        if any(key in request for key in unsupported_keys):
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "INVALID_INPUT",
+                        "message": "Unsupported update fields for P0 profile.",
+                    }
+                }
+            )
+
+        buyer_info: BuyerInfo | None = None
+        fulfillment_info: FulfillmentDetailsInfo | None = None
+        selected_info: SelectedFulfillmentOptionInfo | None = None
+
+        if "buyer" in request:
+            try:
+                buyer_info = BuyerInfo.model_validate(request["buyer"])
+            except ModelValidationError:
+                return Failure.model_validate(
+                    {"error": {"code": "INVALID_INPUT", "message": "Invalid buyer details."}}
+                )
+
+        if "fulfillment_details" in request:
+            try:
+                fulfillment_info = FulfillmentDetailsInfo.model_validate(
+                    request["fulfillment_details"]
+                )
+            except ModelValidationError:
+                return Failure.model_validate(
+                    {
+                        "error": {
+                            "code": "INVALID_INPUT",
+                            "message": "The delivery context is not supported.",
+                        }
+                    }
+                )
+
+        if "selected_fulfillment_options" in request:
+            options = request["selected_fulfillment_options"]
+            if not isinstance(options, list) or len(options) != 1:
+                return Failure.model_validate(
+                    {
+                        "error": {
+                            "code": "INVALID_INPUT",
+                            "message": "Invalid fulfillment option selection.",
+                        }
+                    }
+                )
+            try:
+                selected_info = SelectedFulfillmentOptionInfo.model_validate(options[0])
+            except ModelValidationError:
+                return Failure.model_validate(
+                    {
+                        "error": {
+                            "code": "INVALID_INPUT",
+                            "message": "Invalid fulfillment option selection.",
+                        }
+                    }
+                )
+
         result = self._checkout.update(
             {
                 "checkout_id": checkout_id,
-                "selected_fulfillment_option_id": selected.option_id,
                 "idempotency_key": idempotency_key,
+                "buyer": buyer_info.model_dump(mode="json") if buyer_info else None,
+                "fulfillment_details": (
+                    fulfillment_info.model_dump(mode="json") if fulfillment_info else None
+                ),
+                "selected_fulfillment_option": (
+                    selected_info.model_dump(mode="json") if selected_info else None
+                ),
             }
         )
         if isinstance(result, Failure):
@@ -209,7 +288,63 @@ class ACPCheckoutAdapter:
         delivery_at = parse_timestamp(checkout.created_at) + timedelta(days=checkout.delivery_days)
         delivery_timestamp = delivery_at.isoformat().replace("+00:00", "Z")
         acp_status = "not_ready_for_payment" if checkout.status == "prepared" else checkout.status
-        response = {
+
+        readiness = evaluate_readiness(checkout, offer)
+        messages: list[dict[str, Any]] = []
+
+        if not readiness.buyer_complete:
+            messages.append(
+                {
+                    "type": "info",
+                    "severity": "info",
+                    "content_type": "plain",
+                    "content": "Buyer information is missing.",
+                }
+            )
+        if not readiness.fulfillment_complete:
+            messages.append(
+                {
+                    "type": "info",
+                    "severity": "info",
+                    "content_type": "plain",
+                    "content": "Fulfillment contact and address details are missing.",
+                }
+            )
+        if not readiness.fulfillment_selected:
+            messages.append(
+                {
+                    "type": "info",
+                    "severity": "info",
+                    "content_type": "plain",
+                    "content": "Fulfillment option selection is missing.",
+                }
+            )
+        if (
+            readiness.buyer_complete
+            and readiness.fulfillment_complete
+            and readiness.fulfillment_selected
+            and readiness.commerce_terms_valid
+            and not readiness.payment_capability_available
+        ):
+            messages.append(
+                {
+                    "type": "info",
+                    "severity": "info",
+                    "content_type": "plain",
+                    "content": (
+                        "Buyer/fulfillment readiness is complete, but payment capability is not"
+                        " implemented until the payment-sandbox ticket."
+                    ),
+                }
+            )
+
+        selected_fulfillment_options = (
+            [checkout.selected_fulfillment_option.model_dump(mode="json")]
+            if checkout.selected_fulfillment_option is not None
+            else []
+        )
+
+        response: dict[str, Any] = {
             "id": checkout.id,
             "protocol": {"version": ACP_VERSION},
             "status": acp_status,
@@ -271,18 +406,19 @@ class ACPCheckoutAdapter:
                     ],
                 }
             ],
-            "selected_fulfillment_options": [
-                {
-                    "type": "shipping",
-                    "option_id": fulfillment_id,
-                    "item_ids": [line_item_id],
-                }
-            ],
-            "messages": [],
+            "selected_fulfillment_options": selected_fulfillment_options,
+            "messages": messages,
             "links": [],
             "created_at": checkout.created_at,
             "updated_at": checkout.updated_at,
             "expires_at": checkout.expires_at,
         }
+        if checkout.buyer is not None:
+            response["buyer"] = checkout.buyer.model_dump(mode="json", exclude_none=True)
+        if checkout.fulfillment_details is not None:
+            response["fulfillment_details"] = checkout.fulfillment_details.model_dump(
+                mode="json", exclude_none=True
+            )
+
         _CHECKOUT_VALIDATOR.validate(response)
         return response
