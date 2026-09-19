@@ -26,6 +26,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
+from commerce_lab.payment_sandbox import checkout_payment_capabilities
 
 _BUNDLE = json.loads(
     (
@@ -349,7 +350,7 @@ class ACPCheckoutAdapter:
             "protocol": {"version": ACP_VERSION},
             "status": acp_status,
             "currency": "usd",
-            "capabilities": {"payment": {"handlers": []}},
+            "capabilities": checkout_payment_capabilities(),
             "line_items": [
                 {
                     "id": line_item_id,

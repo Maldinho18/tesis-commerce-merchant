@@ -78,7 +78,7 @@ def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path)
     assert body["line_items"][0]["item"]["unit_amount"] == 73_000
     assert next(total for total in body["totals"] if total["type"] == "total")["amount"] == 75_000
     assert "order" not in body
-    assert body["capabilities"]["payment"]["handlers"] == []
+    assert body["capabilities"]["payment"]["handlers"][0]["id"] == "tesis_sandbox"
 
     checkout_id = body["id"]
     fetched = client.get(f"/checkout_sessions/{checkout_id}", headers=headers)

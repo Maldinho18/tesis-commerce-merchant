@@ -23,6 +23,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.db import DatabaseNotReady, check_database_ready
 from commerce_lab.discovery import discovery_document
+from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
 
 app = FastAPI(
@@ -38,6 +39,30 @@ app = FastAPI(
 def discovery() -> JSONResponse:
     return JSONResponse(
         content=discovery_document(),
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/payment-handlers/tesis-sandbox/spec", include_in_schema=False)
+def payment_handler_spec() -> JSONResponse:
+    return JSONResponse(
+        content=handler_spec(),
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/payment-handlers/tesis-sandbox/config-schema", include_in_schema=False)
+def payment_handler_config_schema() -> JSONResponse:
+    return JSONResponse(
+        content=config_schema(),
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/payment-handlers/tesis-sandbox/instrument-schema", include_in_schema=False)
+def payment_handler_instrument_schema() -> JSONResponse:
+    return JSONResponse(
+        content=instrument_schema(),
         headers={"Cache-Control": "public, max-age=3600"},
     )
 

@@ -32,6 +32,44 @@ def _payload(key: str, offer_id: str = "SON-01") -> dict[str, object]:
     }
 
 
+def _buyer() -> dict[str, object]:
+    return {
+        "email": "buyer.lifecycle@example.test",
+        "first_name": "Buyer",
+        "last_name": "Lifecycle",
+    }
+
+
+def _fulfillment() -> dict[str, object]:
+    return {
+        "name": "Buyer Lifecycle",
+        "email": "buyer.lifecycle@example.test",
+        "phone_number": "+573000000000",
+        "address": {
+            "name": "Buyer Lifecycle",
+            "line_one": "Calle 100 # 10-20",
+            "city": "Bogota",
+            "state": "DC",
+            "country": "CO",
+            "postal_code": "110111",
+        },
+    }
+
+
+def _complete_update(checkout_id: str, key: str) -> dict[str, object]:
+    return {
+        "checkout_id": checkout_id,
+        "idempotency_key": key,
+        "buyer": _buyer(),
+        "fulfillment_details": _fulfillment(),
+        "selected_fulfillment_option": {
+            "type": "shipping",
+            "option_id": f"ship_{checkout_id}",
+            "item_ids": [f"li_{checkout_id}"],
+        },
+    }
+
+
 def test_prepare_is_persistent_idempotent_and_server_authoritative() -> None:
     migrate()
     run_id, token = _episode("checkout-idempotent")
@@ -296,3 +334,75 @@ def test_checkout_update_buyer_and_fulfillment_and_non_pii_events() -> None:
         assert "buyer.p0@example.test" not in payload_str
         assert "+573000000000" not in payload_str
         assert "Calle 100" not in payload_str
+
+
+def test_ready_for_payment_lifecycle_is_persisted_and_event_idempotent() -> None:
+    migrate()
+    run_id, token = _episode("checkout-ready-lifecycle")
+    service = CheckoutService(authenticate_lab_session(token))
+    prepared = service.prepare(_payload("ready-create", offer_id="ALT-01"))
+    assert isinstance(prepared, Success)
+    checkout_id = prepared.data.id
+
+    ready = service.update(_complete_update(checkout_id, "ready-transition"))
+    replay = service.update(_complete_update(checkout_id, "ready-transition"))
+    assert isinstance(ready, Success)
+    assert isinstance(replay, Success)
+    assert ready.data.status == replay.data.status == "ready_for_payment"
+
+    with psycopg.connect(database_url()) as connection:
+        stored = connection.execute(
+            """SELECT status, snapshot ->> 'status'
+               FROM checkout_sessions
+               WHERE run_id = %s AND checkout_id = %s""",
+            (run_id, checkout_id),
+        ).fetchone()
+        ready_events = connection.execute(
+            """SELECT count(*) FROM run_events
+               WHERE run_id = %s AND payload ->> 'checkout_id' = %s
+                 AND event_type = 'checkout.ready_state_changed'""",
+            (run_id, checkout_id),
+        ).fetchone()
+    assert stored == ("ready_for_payment", "ready_for_payment")
+    assert ready_events == (1,)
+
+    unchanged = service.update(
+        {
+            "checkout_id": checkout_id,
+            "idempotency_key": "ready-unchanged",
+            "buyer": _buyer(),
+        }
+    )
+    assert isinstance(unchanged, Success)
+    assert unchanged.data.status == "ready_for_payment"
+    with psycopg.connect(database_url()) as connection:
+        unchanged_events = connection.execute(
+            """SELECT count(*) FROM run_events
+               WHERE run_id = %s AND payload ->> 'checkout_id' = %s
+                 AND event_type = 'checkout.ready_state_changed'""",
+            (run_id, checkout_id),
+        ).fetchone()
+    assert unchanged_events == (1,)
+
+    fetched = service.get({"checkout_id": checkout_id})
+    assert isinstance(fetched, Success)
+    assert fetched.data.status == "ready_for_payment"
+
+    canceled = service.cancel({"checkout_id": checkout_id, "idempotency_key": "ready-cancel"})
+    assert isinstance(canceled, Success)
+    assert canceled.data.status == "canceled"
+
+    expiring = service.prepare(_payload("ready-expiring", offer_id="ALT-02"))
+    assert isinstance(expiring, Success)
+    expiring_id = expiring.data.id
+    expiring_ready = service.update(_complete_update(expiring_id, "expiring-transition"))
+    assert isinstance(expiring_ready, Success)
+    assert expiring_ready.data.status == "ready_for_payment"
+    with psycopg.connect(database_url()) as connection, connection.transaction():
+        connection.execute(
+            "UPDATE experiment_runs SET clock_at = %s WHERE run_id = %s",
+            (FIXTURE_EXPIRES_AT, run_id),
+        )
+    expired = service.get({"checkout_id": expiring_id})
+    assert isinstance(expired, Success)
+    assert expired.data.status == "expired"

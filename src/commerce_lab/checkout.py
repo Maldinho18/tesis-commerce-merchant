@@ -22,6 +22,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
+from commerce_lab.payment_sandbox import payment_capability_available
 
 
 class ReadinessState(StrictModel):
@@ -50,23 +51,23 @@ def evaluate_readiness(checkout: Checkout, offer: Offer | None = None) -> Readin
         checkout.selected_fulfillment_option is not None
         and checkout.selected_fulfillment_option.option_id == f"ship_{checkout.id}"
     )
-    commerce_terms_valid = checkout.status == "prepared" and (
+    commerce_terms_valid = checkout.status in {"prepared", "ready_for_payment"} and (
         offer is None or (offer.availability == "in_stock" and offer.available_quantity >= 1)
     )
-    payment_capability_available = False
+    capability_available = payment_capability_available()
     ready_for_payment = (
         buyer_complete
         and fulfillment_complete
         and fulfillment_selected
         and commerce_terms_valid
-        and payment_capability_available
+        and capability_available
     )
     return ReadinessState(
         buyer_complete=buyer_complete,
         fulfillment_complete=fulfillment_complete,
         fulfillment_selected=fulfillment_selected,
         commerce_terms_valid=commerce_terms_valid,
-        payment_capability_available=payment_capability_available,
+        payment_capability_available=capability_available,
         ready_for_payment=ready_for_payment,
     )
 
@@ -292,9 +293,16 @@ class CheckoutService:
                 checkout = self._expire_if_needed(
                     connection, Checkout.model_validate(row[0]), scenario_at
                 )
-                if operation == "cancel" and checkout.status not in {"prepared", "expired"}:
+                if operation == "cancel" and checkout.status not in {
+                    "prepared",
+                    "ready_for_payment",
+                    "expired",
+                }:
                     return _failure("CHECKOUT_NOT_CANCELABLE", "Checkout cannot be canceled.")
-                if operation == "update" and checkout.status != "prepared":
+                if operation == "update" and checkout.status not in {
+                    "prepared",
+                    "ready_for_payment",
+                }:
                     if checkout.status == "expired":
                         return _failure("CHECKOUT_EXPIRED", "Checkout has expired.")
                     return _failure("CHECKOUT_NOT_EDITABLE", "Checkout cannot be updated.")
@@ -366,6 +374,14 @@ class CheckoutService:
                     )
 
                     new_readiness = evaluate_readiness(changed, offer)
+                    if new_readiness.ready_for_payment:
+                        changed = Checkout.model_validate(
+                            {
+                                **changed.model_dump(mode="json"),
+                                "status": "ready_for_payment",
+                            }
+                        )
+                        new_readiness = evaluate_readiness(changed, offer)
 
                     connection.execute(
                         """
@@ -423,10 +439,9 @@ class CheckoutService:
                             new_readiness,
                         )
                     if (
-                        update_payload.buyer is not None
-                        or update_payload.fulfillment_details is not None
-                        or update_payload.selected_fulfillment_option is not None
-                    ) or prev_readiness.ready_for_payment != new_readiness.ready_for_payment:
+                        prev_readiness.model_dump() != new_readiness.model_dump()
+                        or checkout.status != changed.status
+                    ):
                         self._record_readiness_event(
                             connection,
                             "checkout.ready_state_changed",
@@ -584,9 +599,9 @@ class CheckoutService:
         checkout: Checkout,
         scenario_at: str,
     ) -> Checkout:
-        if checkout.status != "prepared" or parse_timestamp(scenario_at) < parse_timestamp(
-            checkout.expires_at
-        ):
+        if checkout.status not in {"prepared", "ready_for_payment"} or parse_timestamp(
+            scenario_at
+        ) < parse_timestamp(checkout.expires_at):
             return checkout
         expired = Checkout.model_validate(
             {**checkout.model_dump(mode="json"), "status": "expired", "updated_at": scenario_at}
@@ -604,6 +619,14 @@ class CheckoutService:
                 self._run_id,
                 expired.id,
             ),
+        )
+        self._record_readiness_event(
+            connection,
+            "checkout.ready_state_changed",
+            scenario_at,
+            expired.id,
+            expired,
+            evaluate_readiness(expired),
         )
         return expired
 

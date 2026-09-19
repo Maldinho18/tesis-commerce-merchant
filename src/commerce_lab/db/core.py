@@ -21,6 +21,7 @@ MIGRATIONS = (
     "003_execution_context.sql",
     "004_checkout_sessions.sql",
     "007_checkout_mutations.sql",
+    "008_checkout_payment_capability.sql",
 )
 FIXTURE_VERSION = "p0-catalog-v1"
 PRODUCER = "preparation.db-seed"

@@ -79,7 +79,7 @@ def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None
     assert create.headers["Idempotency-Key"] == "acp-create-001"
     assert create.headers["Request-Id"]
     assert create.json()["status"] == "not_ready_for_payment"
-    assert create.json()["capabilities"]["payment"]["handlers"] == []
+    assert create.json()["capabilities"]["payment"]["handlers"][0]["id"] == "tesis_sandbox"
     assert "order" not in create.json()
     assert "revision" not in create.json()
 

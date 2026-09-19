@@ -13,4 +13,8 @@ sintéticos locales: sin dinero real, credenciales reales ni LLM dentro del merc
 El cliente no fija precio autoritativo. Todo POST con efecto debe ser idempotente.
 
 La base se publica solo en 127.0.0.1:55433 y FastAPI solo en 127.0.0.1:4120.
-No incorpore Buyer Agent, LangGraph, navegador, payment, order ni OPA en esta extracción.
+No use credenciales de pago reales ni dinero real. La capability de pago
+sintética `tesis_sandbox` está permitida. No incorpore procesamiento de pagos,
+`/complete`, Order, decremento de inventario ni webhooks, salvo autorización
+explícita del ticket actual. No incorpore Buyer Agent, LangGraph, navegador ni
+OPA en esta extracción.

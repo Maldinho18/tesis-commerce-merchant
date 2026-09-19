@@ -18,9 +18,15 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
   localhost exige HTTPS.
 - Checkout ACP create/get/update/cancel, Bearer sintético, API-Version,
   idempotencia persistente, aislamiento por actor y episodio, y validación de
-  los esquemas ACP congelados. `prepared` se publica como
-  `not_ready_for_payment`. Update selecciona la única opción de envío; cancel
-  acepta cuerpo vacío o `intent_trace.reason_code`.
+  los esquemas ACP congelados. Buyer y fulfillment ya están implementados:
+  `prepared` se publica como `not_ready_for_payment` y, tras completar buyer,
+  fulfillment y selección de envío, pasa a `ready_for_payment`. Todas las
+  respuestas anuncian la capability P0 `tesis_sandbox`, con endpoints públicos
+  `/payment-handlers/tesis-sandbox/spec`, `/config-schema` e
+  `/instrument-schema`. El handler usa `requires_delegate_payment=false`,
+  acepta las familias sintéticas `spt_test_success_*`, `spt_test_declined_*` y
+  `spt_test_error_*`, y todavía no procesa tokens. Update selecciona la única
+  opción de envío; cancel acepta cuerpo vacío o `intent_trace.reason_code`.
 - Product Feed **estático de reemplazo completo**: `metadata.json` y un Product
   JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
   ACP `2026-04-17`. Feed API incremental no está implementada.
@@ -76,7 +82,8 @@ Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004` y `007`; `005`/`006`
+Las migraciones merchant son `001`, `002`, `003`, `004`, `007` y `008`;
+`005`/`006`
 pertenecen al carril live/browser legado y no se ejecutan aquí. Los episodios
 históricos no se reescriben; la semilla nueva usa `p0-catalog-v1`.
 
@@ -92,6 +99,6 @@ uv run pytest tests/integration
 Remove-Item Env:RUN_DB_INTEGRATION
 ```
 
-No están implementados Feed API incremental, payment sandbox, complete,
-order, order permalink, webhooks, buyer/address completo ni frontend. Este
-subconjunto no afirma conformidad ACP integral ni procesa dinero real.
+No están implementados Feed API incremental, `/complete`, Order, order
+permalink, webhooks ni frontend. El handler sandbox no procesa tokens ni
+dinero real; este subconjunto no afirma conformidad ACP integral.

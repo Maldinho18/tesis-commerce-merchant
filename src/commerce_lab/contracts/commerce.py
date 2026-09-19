@@ -109,7 +109,7 @@ class SelectedFulfillmentOptionInfo(StrictModel):
 class Checkout(StrictModel):
     id: Identifier
     revision: Revision
-    status: Literal["prepared", "expired", "canceled"]
+    status: Literal["prepared", "ready_for_payment", "expired", "canceled"]
     offer_id: Identifier
     offer_revision: Revision
     quantity: Literal[1]
