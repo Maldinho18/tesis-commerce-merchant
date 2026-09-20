@@ -90,10 +90,18 @@ Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008` y `009`;
+Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009` y `010`;
 `005`/`006`
 pertenecen al carril live/browser legado y no se ejecutan aquí. Los episodios
 históricos no se reescriben; la semilla nueva usa `p0-catalog-v1`.
+
+El outbox webhook usa `WEBHOOK_RECEIVER_URL` y `MERCHANT_WEBHOOK_SECRET` solo
+para el dispatcher local. La creación de una Order y su entrega `order_create`
+se registran en la misma transacción; si falta configuración, la entrega queda
+pendiente sin intentar HTTP. `python -m commerce_lab.db order-update RUN_ID
+ACTOR_ID ORDER_ID` produce la transición sintética P0 `confirmed` →
+`processing`, y `python -m commerce_lab.db webhook-dispatch` procesa entregas
+vencidas con un máximo de cinco intentos.
 
 ## Verificación
 

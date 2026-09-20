@@ -26,6 +26,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
+from commerce_lab.order_projection import order_to_acp
 from commerce_lab.payment_sandbox import checkout_payment_capabilities, validate_instrument
 
 _BUNDLE = json.loads(
@@ -506,46 +507,4 @@ class ACPCheckoutAdapter:
 
     @staticmethod
     def _order_response(order: Any) -> dict[str, Any]:
-        return {
-            "id": order.id,
-            "checkout_session_id": order.checkout_session_id,
-            "order_number": order.order_number,
-            "permalink_url": order.permalink_url,
-            "status": order.status,
-            "line_items": [
-                {
-                    "id": f"oli_{order.id}",
-                    "title": order.title,
-                    "product_id": order.product_id,
-                    "quantity": {"ordered": 1, "current": 1, "fulfilled": 0},
-                    "unit_price": order.unit_price,
-                    "subtotal": order.subtotal,
-                    "status": "processing",
-                }
-            ],
-            "fulfillments": [
-                {
-                    "id": f"ful_{order.id}",
-                    "type": "shipping",
-                    "status": "pending",
-                    "line_items": [{"id": f"oli_{order.id}", "quantity": 1}],
-                }
-            ],
-            "totals": [
-                {
-                    "type": "subtotal",
-                    "display_text": "Producto con impuestos incluidos",
-                    "amount": order.subtotal,
-                },
-                {
-                    "type": "fulfillment",
-                    "display_text": "Envio simulado",
-                    "amount": order.shipping_total,
-                },
-                {
-                    "type": "total",
-                    "display_text": "Total de la compra",
-                    "amount": order.total,
-                },
-            ],
-        }
+        return order_to_acp(order)

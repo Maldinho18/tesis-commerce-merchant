@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
   "jsonschema[format]>=4.25,<5",
   "psycopg[binary]>=3.2,<4",
   "pydantic>=2.11,<3",
@@ -16,7 +17,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "httpx>=0.28,<1",
   "pyright>=1.1.405,<2",
   "pytest>=8.4,<10",
   "ruff>=0.12,<1",

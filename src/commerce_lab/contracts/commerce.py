@@ -219,7 +219,7 @@ class OrderRecord(StrictModel):
     id: Identifier
     checkout_session_id: Identifier
     order_number: Identifier
-    status: Literal["confirmed"]
+    status: Literal["confirmed", "processing"]
     offer_id: Identifier
     product_id: Identifier
     title: str

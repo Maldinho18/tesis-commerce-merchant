@@ -5,7 +5,7 @@ Los tres archivos originales de `2026-04-17/` provienen de
 `schema.feed.json` y `openapi.feed.yaml` desde el commit upstream
 `7fdd78df677a94dce04c770644b0fbbb1401272b`.
 `.gitattributes` desactiva la conversión de saltos de línea para el snapshot.
-El origen ACP y los hashes SHA256 de los cinco archivos están registrados en
+El origen ACP y los hashes SHA256 de los seis archivos están registrados en
 `provenance.json`; sus bytes se comprueban en tests.
 
 El servidor merchant y el adaptador validan create, get, update y cancel
@@ -19,5 +19,12 @@ Discovery público y la exportación estática de Feed P0 se validan contra
 `DiscoveryResponse`, `FeedMetadata` y `Product` del snapshot. El feed es un
 reemplazo completo, no la Feed API incremental.
 
-Siguen pendientes complete, capacidad de pago, order/payment y el resto de
-la cobertura necesaria para conformidad ACP integral.
+El contrato webhook congelado se conserva en
+`2026-04-17/openapi.agentic_checkout_webhook.yaml`, con origen
+`spec/2026-04-17/openapi/openapi.agentic_checkout_webhook.yaml`, commit
+`7fdd78df677a94dce04c770644b0fbbb1401272b` y SHA256 registrado en
+`provenance.json`. Sus bytes no se modifican.
+
+El alcance sigue siendo una extracción P0 acotada; complete, la capacidad de
+pago, Order y webhooks están implementados sintéticamente, sin afirmar
+conformidad ACP integral.

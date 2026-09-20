@@ -10,7 +10,9 @@ from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
 from commerce_lab.api import app
+from commerce_lab.checkout import CheckoutService
 from commerce_lab.context import issue_lab_session
+from commerce_lab.contracts import ExecutionContext
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
 
@@ -110,6 +112,11 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
     assert first.json() == replay.json()
     assert replay.headers["Idempotent-Replayed"] == "true"
     order_id = first.json()["order"]["id"]
+    with psycopg.connect(database_url()) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM webhook_deliveries WHERE order_id = %s",
+            (order_id,),
+        ).fetchone() == (1,)
     assert (
         client.get(f"/checkout_sessions/{checkout_id}", headers=headers).json()["status"]
         == "completed"
@@ -131,6 +138,14 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
             """,
             (run_id,),
         ).fetchone()
+        deliveries = connection.execute(
+            """SELECT event_type, count(*), payload ->> 'type', payload -> 'data' ->> 'type'
+           FROM webhook_deliveries
+           WHERE order_id = %s
+           GROUP BY event_type, payload ->> 'type', payload -> 'data' ->> 'type'
+           ORDER BY event_type""",
+            (order_id,),
+        ).fetchall()
         stored = connection.execute(
             """SELECT status, snapshot ->> 'status'
                FROM checkout_sessions WHERE checkout_id = %s""",
@@ -147,6 +162,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
         ).fetchone()
     assert stored == ("completed", "completed")
     assert orders == (1,)
+    assert deliveries == [("order_create", 1, "order_create", "order")]
     assert completion_snapshot is not None
     for secret in (
         "buyer.complete@example.test",
@@ -170,6 +186,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
         "007_checkout_mutations.sql",
         "008_checkout_payment_capability.sql",
         "009_checkout_completion.sql",
+        "010_webhook_delivery.sql",
     ]
 
 
@@ -182,7 +199,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
 )
 def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, code: str) -> None:
     migrate()
-    client, headers, checkout_id, _ = _client(f"complete-{outcome}")
+    client, headers, checkout_id, run_id = _client(f"complete-{outcome}")
     path = f"/checkout_sessions/{checkout_id}/complete"
     first = client.post(
         path, headers={**headers, "Idempotency-Key": outcome}, json=_payment(outcome)
@@ -196,6 +213,11 @@ def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, 
     assert replay.json() == first.json()
     if outcome == "declined":
         assert replay.headers["Idempotent-Replayed"] == "true"
+        with psycopg.connect(database_url()) as connection:
+            assert connection.execute(
+                "SELECT count(*) FROM webhook_deliveries WHERE run_id = %s",
+                (run_id,),
+            ).fetchone() == (0,)
     assert (
         client.get(f"/checkout_sessions/{checkout_id}", headers=headers).json()["status"]
         == "ready_for_payment"
@@ -380,3 +402,46 @@ def test_completed_checkout_rejects_update_and_cancel() -> None:
     assert update.json()["detail"]["code"] == "CHECKOUT_NOT_EDITABLE"
     assert cancel.status_code == 405
     assert cancel.json()["detail"]["code"] == "CHECKOUT_NOT_CANCELABLE"
+
+
+def test_order_update_creates_one_full_delivery_and_is_idempotent() -> None:
+    migrate()
+    client, headers, checkout_id, run_id = _client("order-update")
+    complete = client.post(
+        f"/checkout_sessions/{checkout_id}/complete",
+        headers={**headers, "Idempotency-Key": "update-complete"},
+        json=_payment(),
+    )
+    assert complete.status_code == 200
+    order_id = complete.json()["order"]["id"]
+    changed = CheckoutService(
+        ExecutionContext(
+            run_id=run_id,
+            actor_id="order-update",
+            request_id="update-1",
+            received_at="2026-09-19T00:00:00Z",
+        )
+    ).update_order_status(order_id)
+    repeated = CheckoutService(
+        ExecutionContext(
+            run_id=run_id,
+            actor_id="order-update",
+            request_id="update-2",
+            received_at="2026-09-19T00:00:00Z",
+        )
+    ).update_order_status(order_id)
+    assert changed.ok is True
+    assert repeated.ok is True
+    assert changed.data.status == "processing"
+    assert repeated.data.status == "processing"
+    with psycopg.connect(database_url()) as connection:
+        rows = connection.execute(
+            """SELECT event_type, payload ->> 'type', payload -> 'data' ->> 'type',
+                      payload -> 'data' ->> 'status'
+               FROM webhook_deliveries WHERE order_id = %s ORDER BY event_type""",
+            (order_id,),
+        ).fetchall()
+    assert rows == [
+        ("order_create", "order_create", "order", "confirmed"),
+        ("order_update", "order_update", "order", "processing"),
+    ]

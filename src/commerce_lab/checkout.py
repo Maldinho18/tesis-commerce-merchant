@@ -28,6 +28,7 @@ from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
 from commerce_lab.payment_sandbox import classify_instrument, payment_capability_available
 from commerce_lab.settings import get_settings
+from commerce_lab.webhook_delivery import enqueue_order_event, update_order_to_processing
 
 
 class ReadinessState(StrictModel):
@@ -516,6 +517,14 @@ class CheckoutService:
                         order.created_at,
                     ),
                 )
+                enqueue_order_event(
+                    connection,
+                    run_id=str(self._run_id),
+                    actor_id=self._context.actor_id,
+                    scenario_at=scenario_at,
+                    event_type="order_create",
+                    order=order,
+                )
                 self._record_sanitized(
                     connection,
                     "payment.approved",
@@ -574,6 +583,23 @@ class CheckoutService:
                 )
         except psycopg.errors.LockNotAvailable:
             return _failure("IDEMPOTENCY_IN_FLIGHT", "Checkout completion is in flight.")
+
+    def update_order_status(self, order_id: str) -> Success[OrderRecord] | Failure:
+        try:
+            with psycopg.connect(database_url()) as connection, connection.transaction():
+                run = self._load_run(connection)
+                if run is None:
+                    return _failure("FORBIDDEN", "Execution context does not own the episode.")
+                changed = update_order_to_processing(
+                    connection,
+                    run_id=str(self._run_id),
+                    actor_id=self._context.actor_id,
+                    order_id=order_id,
+                    scenario_at=_as_timestamp(run[0]),
+                )
+                return Success[OrderRecord](data=changed)
+        except ValueError as error:
+            return _failure("CHECKOUT_NOT_COMPLETABLE", str(error))
 
     def _completion_replay(
         self, snapshot: Any, checkout: Checkout

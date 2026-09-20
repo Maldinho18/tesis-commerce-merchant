@@ -34,7 +34,13 @@
       "upstream_path": "spec/2026-04-17/openapi/openapi.feed.yaml",
       "sha256": "c1462ec8f0a795571b839291bb8f33b1ebf45aadbfee846b04ab443b7410e6c8",
       "modified": false
+    },
+    {
+      "path": "2026-04-17/openapi.agentic_checkout_webhook.yaml",
+      "upstream_path": "spec/2026-04-17/openapi/openapi.agentic_checkout_webhook.yaml",
+      "sha256": "10f84a9a20658d1990bd514017c8ad8494d8c65bd30568f476da1883b747c1c9",
+      "modified": false
     }
   ],
-  "scope": "Unmodified 2026-04-17 checkout and Product Feed JSON Schema/OpenAPI snapshots, plus Apache-2.0 license. Merchant implements a bounded checkout and static full-replacement feed; no full protocol conformance claim."
+  "scope": "Unmodified 2026-04-17 checkout, Product Feed, and Webhooks JSON Schema/OpenAPI snapshots, plus Apache-2.0 license. Merchant implements bounded synthetic checkout, payment, Order, and webhook delivery slices; no full protocol conformance claim."
 }
