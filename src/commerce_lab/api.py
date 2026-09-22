@@ -138,29 +138,38 @@ def acp_checkout(
 
 
 def _raise_commerce_failure(failure: Failure, headers: dict[str, str] | None = None) -> Never:
-    code = failure.error.code
-    if code in {"OFFER_NOT_FOUND", "CHECKOUT_NOT_FOUND"}:
+    internal_code = failure.error.code
+    if internal_code in {"OFFER_NOT_FOUND", "CHECKOUT_NOT_FOUND"}:
         status_code = status.HTTP_404_NOT_FOUND
-    elif code == "FORBIDDEN":
+    elif internal_code == "FORBIDDEN":
         status_code = status.HTTP_403_FORBIDDEN
-    elif code == "INVALID_INPUT":
+    elif internal_code == "INVALID_INPUT":
         status_code = status.HTTP_400_BAD_REQUEST
-    elif code == "IDEMPOTENCY_IN_FLIGHT":
+    elif internal_code == "IDEMPOTENCY_IN_FLIGHT":
         status_code = status.HTTP_409_CONFLICT
-    elif code == "IDEMPOTENCY_CONFLICT" or code == "PAYMENT_DECLINED":
+    elif internal_code == "IDEMPOTENCY_CONFLICT" or internal_code == "PAYMENT_DECLINED":
         status_code = status.HTTP_422_UNPROCESSABLE_CONTENT
-    elif code in {"CHECKOUT_TERMS_CHANGED", "CHECKOUT_NOT_COMPLETABLE"}:
+    elif internal_code in {"CHECKOUT_TERMS_CHANGED", "CHECKOUT_NOT_COMPLETABLE"}:
         status_code = status.HTTP_409_CONFLICT
-    elif code == "PROVIDER_UNAVAILABLE":
+    elif internal_code == "PROVIDER_UNAVAILABLE":
         status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    elif code == "CHECKOUT_NOT_CANCELABLE":
+    elif internal_code == "CHECKOUT_NOT_CANCELABLE":
         status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     else:
         status_code = status.HTTP_409_CONFLICT
+    public_code = {
+        "IDEMPOTENCY_CONFLICT": "idempotency_conflict",
+        "IDEMPOTENCY_IN_FLIGHT": "idempotency_in_flight",
+    }.get(internal_code, internal_code)
+    error_headers = dict(headers or {})
+    if internal_code == "IDEMPOTENCY_IN_FLIGHT":
+        error_headers.setdefault("Retry-After", "1")
+    detail = failure.error.model_dump(mode="json")
+    detail["code"] = public_code
     raise HTTPException(
         status_code=status_code,
-        detail=failure.error.model_dump(mode="json"),
-        headers=headers,
+        detail=detail,
+        headers=error_headers or None,
     )
 
 
@@ -259,8 +268,6 @@ def checkout_session_complete(
             "Request-Id": context.request_id,
             "Idempotency-Key": idempotency_key,
         }
-        if result.error.code == "IDEMPOTENCY_IN_FLIGHT":
-            error_headers["Retry-After"] = "1"
         if checkout.last_completion_replayed:
             error_headers["Idempotent-Replayed"] = "true"
         _raise_commerce_failure(result, headers=error_headers)

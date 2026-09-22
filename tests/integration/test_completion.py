@@ -239,7 +239,7 @@ def test_complete_in_flight_returns_retry_header_and_request_headers() -> None:
             json=_payment(),
         )
         assert response.status_code == 409
-        assert response.json()["detail"]["code"] == "IDEMPOTENCY_IN_FLIGHT"
+        assert response.json()["detail"]["code"] == "idempotency_in_flight"
         assert response.headers["Retry-After"] == "1"
         assert response.headers["Request-Id"]
         assert response.headers["Idempotency-Key"] == "in-flight"
@@ -308,7 +308,7 @@ def test_complete_rejects_unsupported_fields_and_conflicting_key() -> None:
         path, headers={**headers, "Idempotency-Key": "conflict"}, json=_payment("declined")
     )
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
 
 
 def test_last_unit_completion_serializes_to_one_order() -> None:

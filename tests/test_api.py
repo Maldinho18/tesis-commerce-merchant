@@ -110,26 +110,32 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
 
 
 @pytest.mark.parametrize(
-    ("code", "http_status"),
+    ("code", "http_status", "public_code"),
     [
-        ("INVALID_INPUT", 400),
-        ("OFFER_NOT_FOUND", 404),
-        ("CHECKOUT_NOT_FOUND", 404),
-        ("FORBIDDEN", 403),
-        ("OUT_OF_STOCK", 409),
-        ("OFFER_EXPIRED", 409),
-        ("IDEMPOTENCY_IN_FLIGHT", 409),
-        ("IDEMPOTENCY_CONFLICT", 422),
+        ("INVALID_INPUT", 400, "INVALID_INPUT"),
+        ("OFFER_NOT_FOUND", 404, "OFFER_NOT_FOUND"),
+        ("CHECKOUT_NOT_FOUND", 404, "CHECKOUT_NOT_FOUND"),
+        ("FORBIDDEN", 403, "FORBIDDEN"),
+        ("OUT_OF_STOCK", 409, "OUT_OF_STOCK"),
+        ("OFFER_EXPIRED", 409, "OFFER_EXPIRED"),
+        ("IDEMPOTENCY_IN_FLIGHT", 409, "idempotency_in_flight"),
+        ("IDEMPOTENCY_CONFLICT", 422, "idempotency_conflict"),
     ],
 )
-def test_acp_http_error_status_preserves_typed_commercial_code(code: str, http_status: int) -> None:
+def test_acp_http_error_status_preserves_typed_commercial_code(
+    code: str, http_status: int, public_code: str
+) -> None:
     failure = Failure(error=CommerceError.model_validate({"code": code, "message": "Test failure"}))
 
     with pytest.raises(HTTPException) as captured:
         _raise_commerce_failure(failure)
 
     assert captured.value.status_code == http_status
-    assert captured.value.detail == {"code": code, "message": "Test failure"}
+    assert captured.value.detail == {"code": public_code, "message": "Test failure"}
+    if code == "IDEMPOTENCY_IN_FLIGHT":
+        assert captured.value.headers == {"Retry-After": "1"}
+    else:
+        assert captured.value.headers is None
 
 
 def test_raise_commerce_failure_accepts_http_headers() -> None:
@@ -143,6 +149,24 @@ def test_raise_commerce_failure_accepts_http_headers() -> None:
         _raise_commerce_failure(failure, headers={"Retry-After": "1"})
 
     assert captured.value.headers == {"Retry-After": "1"}
+
+
+def test_raise_commerce_failure_keeps_request_id_and_adds_retry_after() -> None:
+    failure = Failure(
+        error=CommerceError.model_validate(
+            {"code": "IDEMPOTENCY_IN_FLIGHT", "message": "Test failure"}
+        )
+    )
+
+    with pytest.raises(HTTPException) as captured:
+        _raise_commerce_failure(failure, headers={"Request-Id": "request-1"})
+
+    assert captured.value.status_code == 409
+    assert captured.value.detail == {
+        "code": "idempotency_in_flight",
+        "message": "Test failure",
+    }
+    assert captured.value.headers == {"Request-Id": "request-1", "Retry-After": "1"}
 
 
 @pytest.mark.parametrize(

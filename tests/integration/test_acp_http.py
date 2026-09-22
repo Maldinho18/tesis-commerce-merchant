@@ -123,7 +123,9 @@ def test_acp_create_replays_same_checkout_and_rejects_conflicting_content() -> N
     assert first.status_code == replay.status_code == 201
     assert first.json()["id"] == replay.json()["id"]
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
+    assert conflict.headers["Request-Id"]
+    assert conflict.json()["detail"].get("id") is None
 
 
 def test_acp_fails_closed_on_protocol_headers_and_unsupported_fields() -> None:
@@ -189,7 +191,7 @@ def test_acp_update_get_replay_conflict_and_authoritative_revision() -> None:
     assert first.json()["updated_at"] == "2026-09-10T14:01:00Z"
     assert first.json()["status"] == "not_ready_for_payment"
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
     with psycopg.connect(database_url()) as connection:
         row = connection.execute(
             """SELECT revision, status, snapshot FROM checkout_sessions
@@ -251,7 +253,7 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     assert create_replay.json()["id"] == checkout_id
     assert create_replay.json()["status"] == "not_ready_for_payment"
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
     assert second.status_code == 405
     assert second.json()["detail"]["code"] == "CHECKOUT_NOT_CANCELABLE"
     with psycopg.connect(database_url()) as connection:
@@ -374,7 +376,9 @@ def test_acp_update_reports_in_flight_as_http_409() -> None:
             json=_selection(checkout_id),
         )
         assert response.status_code == 409
-        assert response.json()["detail"]["code"] == "IDEMPOTENCY_IN_FLIGHT"
+        assert response.json()["detail"]["code"] == "idempotency_in_flight"
+        assert response.headers["Retry-After"] == "1"
+        assert response.headers["Request-Id"]
 
 
 def test_acp_expired_checkout_cannot_be_updated_but_can_be_canceled() -> None:
