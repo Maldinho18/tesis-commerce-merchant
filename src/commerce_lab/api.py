@@ -37,6 +37,14 @@ app = FastAPI(
     openapi_url=None,
 )
 
+_PUBLIC_ERROR_CODES = {
+    "IDEMPOTENCY_CONFLICT": "idempotency_conflict",
+    "IDEMPOTENCY_IN_FLIGHT": "idempotency_in_flight",
+    "OFFER_NOT_FOUND": "invalid_item",
+    "OUT_OF_STOCK": "out_of_stock",
+    "PAYMENT_DECLINED": "payment_declined",
+}
+
 
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
@@ -157,10 +165,7 @@ def _raise_commerce_failure(failure: Failure, headers: dict[str, str] | None = N
         status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     else:
         status_code = status.HTTP_409_CONFLICT
-    public_code = {
-        "IDEMPOTENCY_CONFLICT": "idempotency_conflict",
-        "IDEMPOTENCY_IN_FLIGHT": "idempotency_in_flight",
-    }.get(internal_code, internal_code)
+    public_code = _PUBLIC_ERROR_CODES.get(internal_code, internal_code)
     error_headers = dict(headers or {})
     if internal_code == "IDEMPOTENCY_IN_FLIGHT":
         error_headers.setdefault("Retry-After", "1")

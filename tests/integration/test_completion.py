@@ -193,7 +193,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
 @pytest.mark.parametrize(
     ("outcome", "status", "code"),
     [
-        ("declined", 422, "PAYMENT_DECLINED"),
+        ("declined", 422, "payment_declined"),
         ("error", 503, "PROVIDER_UNAVAILABLE"),
     ],
 )
@@ -209,6 +209,8 @@ def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, 
     )
     assert first.status_code == status
     assert first.json()["detail"]["code"] == code
+    assert first.headers["Request-Id"]
+    assert "order" not in first.json()
     assert replay.status_code == status
     assert replay.json() == first.json()
     if outcome == "declined":
@@ -218,6 +220,22 @@ def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, 
                 "SELECT count(*) FROM webhook_deliveries WHERE run_id = %s",
                 (run_id,),
             ).fetchone() == (0,)
+            assert connection.execute(
+                "SELECT count(*) FROM orders WHERE checkout_id = %s",
+                (checkout_id,),
+            ).fetchone() == (0,)
+            assert connection.execute(
+                "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
+                "WHERE run_id = %s AND offer_id = 'ALT-01'",
+                (run_id,),
+            ).fetchone() == ("10",)
+            stored_attempt = connection.execute(
+                "SELECT result_snapshot::text FROM checkout_completion_attempts "
+                "WHERE checkout_id = %s",
+                (checkout_id,),
+            ).fetchone()
+        assert stored_attempt is not None
+        assert "spt_test_" not in stored_attempt[0]
     assert (
         client.get(f"/checkout_sessions/{checkout_id}", headers=headers).json()["status"]
         == "ready_for_payment"
@@ -376,7 +394,7 @@ def test_last_unit_completion_serializes_to_one_order() -> None:
     assert sorted(response.status_code for response in results) == [200, 409]
     assert sum(response.status_code == 200 for response in results) == 1
     failed = next(response for response in results if response.status_code == 409)
-    assert failed.json()["detail"]["code"] == "OUT_OF_STOCK"
+    assert failed.json()["detail"]["code"] == "out_of_stock"
 
 
 def test_completed_checkout_rejects_update_and_cancel() -> None:

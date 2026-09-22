@@ -91,6 +91,38 @@ def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None
     assert get.headers["Request-Id"] != create.headers["Request-Id"]
 
 
+@pytest.mark.parametrize(
+    ("offer_id", "http_status", "public_code"),
+    [
+        ("MISSING-01", 404, "invalid_item"),
+        ("SON-07", 409, "out_of_stock"),
+    ],
+)
+def test_acp_create_exposes_public_item_errors_without_creating_checkout(
+    offer_id: str, http_status: int, public_code: str
+) -> None:
+    migrate()
+    client, headers = _client(f"acp-public-{public_code}")
+    run_id = authenticate_lab_session(headers["Authorization"].split(" ", 1)[1]).run_id
+
+    response = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": f"create-{public_code}"},
+        json=_body(offer_id),
+    )
+
+    assert response.status_code == http_status
+    assert response.json()["detail"]["code"] == public_code
+    assert response.headers["Request-Id"]
+    assert "id" not in response.json()
+    assert "order" not in response.json()
+    with psycopg.connect(database_url()) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM checkout_sessions WHERE run_id = %s",
+            (run_id,),
+        ).fetchone() == (0,)
+
+
 def test_acp_create_http_accepts_empty_and_legacy_capabilities_but_rejects_invented() -> None:
     migrate()
     client, headers = _client("acp-create-empty-capabilities")
