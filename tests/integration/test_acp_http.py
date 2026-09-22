@@ -226,7 +226,10 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
         )
     path = f"/checkout_sessions/{checkout_id}/cancel"
     request_headers = {**headers, "Idempotency-Key": "cancel-key"}
-    first = client.post(path, headers=request_headers)
+    first = client.post(
+        path,
+        headers={**request_headers, "Request-Id": "attacker-controlled"},
+    )
     replay = client.post(path, headers=request_headers, json={})
     conflict = client.post(
         path, headers=request_headers, json={"intent_trace": {"reason_code": "other"}}
@@ -237,6 +240,9 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
         "/checkout_sessions", headers={**headers, "Idempotency-Key": "create-key"}, json=_body()
     )
     assert first.status_code == replay.status_code == current.status_code == 200
+    assert first.headers["Request-Id"] != "attacker-controlled"
+    assert first.headers["Request-Id"]
+    assert replay.headers["Request-Id"] != first.headers["Request-Id"]
     CHECKOUT_VALIDATOR.validate(first.json())
     assert first.json() == replay.json() == current.json()
     assert first.json()["status"] == "canceled"
@@ -264,7 +270,8 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     assert [event[0] for event in events] == ["checkout.canceled", "checkout.cancel_replayed"]
     assert all(event[1]["checkout_id"] == checkout_id for event in events)
     assert all(event[1]["actor_id"] == "acp-cancel-cycle" for event in events)
-    assert all(event[1]["request_id"] for event in events)
+    assert events[0][1]["request_id"] == first.headers["Request-Id"]
+    assert events[1][1]["request_id"] == replay.headers["Request-Id"]
 
 
 def test_acp_lifecycle_rejects_missing_headers_foreign_ids_and_terminal_update() -> None:

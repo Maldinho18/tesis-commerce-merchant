@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -49,6 +51,37 @@ def test_lab_catalog_requires_server_resolved_session() -> None:
     response = TestClient(app).post("/lab/catalog/search", json={"category": "headphones"})
     assert response.status_code == 401
     assert "actor_id" not in response.text
+
+
+def test_invalid_bearer_gets_server_request_id_without_changing_auth_body() -> None:
+    response = TestClient(app).post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": "Bearer invalid",
+            "API-Version": "2026-04-17",
+            "Idempotency-Key": "invalid-bearer",
+        },
+        json={
+            "line_items": [{"id": "SON-01"}],
+            "currency": "usd",
+            "capabilities": {"payment": {"handlers": []}},
+        },
+    )
+
+    assert response.status_code == 401
+    UUID(response.headers["Request-Id"])
+    assert response.json()["detail"] == "A valid synthetic lab session is required."
+
+
+def test_request_ids_are_unique_and_client_request_id_is_ignored() -> None:
+    client = TestClient(app)
+    first = client.get("/health/live", headers={"Request-Id": "attacker-controlled"})
+    second = client.get("/health/live")
+
+    assert UUID(first.headers["Request-Id"])
+    assert UUID(second.headers["Request-Id"])
+    assert first.headers["Request-Id"] != second.headers["Request-Id"]
+    assert first.headers["Request-Id"] != "attacker-controlled"
 
 
 def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None:
@@ -189,6 +222,8 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
     assert unsupported.json()["detail"]["code"] == "unsupported_api_version"
     assert missing.json()["detail"]["supported_versions"] == ["2026-04-17"]
     assert unsupported.json()["detail"]["supported_versions"] == ["2026-04-17"]
+    UUID(missing.headers["Request-Id"])
+    UUID(unsupported.headers["Request-Id"])
     assert accepted.status_code == success_status
     assert checkout.calls == 1
     anonymous = TestClient(app)

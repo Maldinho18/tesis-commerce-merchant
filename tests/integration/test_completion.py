@@ -402,6 +402,7 @@ def test_completed_checkout_rejects_update_and_cancel() -> None:
     assert update.json()["detail"]["code"] == "CHECKOUT_NOT_EDITABLE"
     assert cancel.status_code == 405
     assert cancel.json()["detail"]["code"] == "CHECKOUT_NOT_CANCELABLE"
+    assert cancel.headers["Request-Id"]
 
 
 def test_order_update_creates_one_full_delivery_and_is_idempotent() -> None:

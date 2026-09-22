@@ -1,8 +1,9 @@
 from html import escape
 from typing import Annotated, Any, Never
+from uuid import uuid4
 
 import psycopg
-from fastapi import Body, Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -35,6 +36,15 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None,
 )
+
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = str(uuid4())
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["Request-Id"] = request_id
+    return response
 
 
 @app.get("/.well-known/acp.json", include_in_schema=False)
@@ -77,6 +87,7 @@ class HealthResponse(BaseModel):
 
 
 def trusted_context(
+    request: Request,
     authorization: Annotated[str | None, Header()] = None,
 ) -> ExecutionContext:
     scheme, _, token = (authorization or "").partition(" ")
@@ -86,12 +97,13 @@ def trusted_context(
             detail="A valid synthetic lab session is required.",
         )
     try:
-        return authenticate_lab_session(token)
+        context = authenticate_lab_session(token)
     except InvalidLabSession as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A valid synthetic lab session is required.",
         ) from error
+    return context.model_copy(update={"request_id": request.state.request_id})
 
 
 def persistent_catalog(
