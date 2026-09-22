@@ -1,3 +1,7 @@
+import json
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema import ValidationError as SchemaValidationError
@@ -5,17 +9,16 @@ from referencing import Registry, Resource
 
 from commerce_lab.api import app
 from commerce_lab.payment_sandbox import (
-    classify_instrument,
     config_schema,
     instrument_schema,
     payment_handler,
+    validate_instrument,
 )
+
+TOKEN = "vt_" + "a" * 64
 
 
 def test_payment_handler_matches_frozen_acp_definition() -> None:
-    import json
-    from pathlib import Path
-
     bundle = json.loads(
         (
             Path(__file__).parents[1]
@@ -34,60 +37,25 @@ def test_payment_handler_matches_frozen_acp_definition() -> None:
     handler = payment_handler()
     validator.validate(handler)
     assert handler["psp"] == "tesis_sandbox"
-    assert handler["requires_delegate_payment"] is False
+    assert handler["requires_delegate_payment"] is True
     assert handler["requires_pci_compliance"] is False
 
 
-def test_payment_schemas_accept_only_sandbox_configuration_and_tokens() -> None:
-    config_validator = Draft202012Validator(config_schema())
-    config_validator.validate({"environment": "sandbox"})
-
-    instrument_validator = Draft202012Validator(instrument_schema())
-    for outcome in ("success", "declined", "error"):
-        instrument_validator.validate(
-            {
-                "type": "sandbox_token",
-                "credential": {
-                    "type": "spt",
-                    "token": f"spt_test_{outcome}_demo",
-                },
-            }
-        )
+def test_payment_schemas_accept_only_delegated_tokens() -> None:
+    Draft202012Validator(config_schema()).validate({"environment": "sandbox"})
+    instrument = {
+        "type": "sandbox_token",
+        "credential": {"type": "vault_token", "token": TOKEN},
+    }
+    Draft202012Validator(instrument_schema()).validate(instrument)
+    validate_instrument(instrument)
     for invalid in (
-        "spt_test_unknown_demo",
-        "arbitrary-token",
+        {"type": "sandbox_token", "credential": {"type": "vault_token", "token": "fake"}},
+        {"type": "sandbox_token", "credential": {"type": "spt", "token": TOKEN}},
+        {**instrument, "card_number": "4111111111111111"},
     ):
-        with_schema_error = {
-            "type": "sandbox_token",
-            "credential": {"type": "spt", "token": invalid},
-        }
-        try:
-            instrument_validator.validate(with_schema_error)
-        except SchemaValidationError:
-            pass
-        else:
-            raise AssertionError("invalid sandbox token was accepted")
-
-    for invalid in (
-        {
-            "type": "sandbox_token",
-            "credential": {"type": "other", "token": "spt_test_success_demo"},
-        },
-        {
-            "type": "sandbox_token",
-            "credential": {
-                "type": "spt",
-                "token": "spt_test_success_demo",
-                "card_number": "4111111111111111",
-            },
-        },
-    ):
-        try:
-            instrument_validator.validate(invalid)
-        except SchemaValidationError:
-            pass
-        else:
-            raise AssertionError("invalid instrument was accepted")
+        with pytest.raises(SchemaValidationError):
+            validate_instrument(invalid)
 
 
 def test_payment_handler_documents_are_public_and_deterministic() -> None:
@@ -102,23 +70,3 @@ def test_payment_handler_documents_are_public_and_deterministic() -> None:
         assert first.status_code == second.status_code == 200
         assert first.json() == second.json()
         assert first.headers["cache-control"] == "public, max-age=3600"
-
-
-def test_sandbox_instrument_classification_is_pure_and_deterministic() -> None:
-    base = {
-        "type": "sandbox_token",
-        "credential": {"type": "spt", "token": "spt_test_success_demo"},
-    }
-    assert classify_instrument(base) == "approved"
-    assert (
-        classify_instrument(
-            {**base, "credential": {**base["credential"], "token": "spt_test_declined_demo"}}
-        )
-        == "declined"
-    )
-    assert (
-        classify_instrument(
-            {**base, "credential": {**base["credential"], "token": "spt_test_error_demo"}}
-        )
-        == "temporary_provider_error"
-    )

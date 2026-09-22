@@ -15,6 +15,7 @@ from commerce_lab.context import issue_lab_session
 from commerce_lab.contracts import ExecutionContext
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
+from commerce_lab.payment_client import PaymentProviderError
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_DB_INTEGRATION") != "1",
@@ -31,6 +32,18 @@ ORDER_VALIDATOR = Draft202012Validator(
     registry=REGISTRY,
     format_checker=FormatChecker(),
 )
+
+
+@pytest.fixture(autouse=True)
+def synthetic_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    def confirm_payment(*, token: str, **_: object) -> str:
+        if token == "vt_" + "a" * 64:
+            return "approved"
+        if token == "vt_" + "b" * 64:
+            return "declined"
+        raise PaymentProviderError("unavailable")
+
+    monkeypatch.setattr("commerce_lab.checkout.confirm_payment", confirm_payment)
 
 
 def _client(actor: str, offer_id: str = "ALT-01") -> tuple[TestClient, dict[str, str], str, str]:
@@ -90,12 +103,13 @@ def _client(actor: str, offer_id: str = "ALT-01") -> tuple[TestClient, dict[str,
 
 
 def _payment(outcome: str = "success") -> dict[str, object]:
+    prefix = {"success": "a", "declined": "b", "error": "c"}[outcome]
     return {
         "payment_data": {
             "handler_id": "tesis_sandbox",
             "instrument": {
                 "type": "sandbox_token",
-                "credential": {"type": "spt", "token": f"spt_test_{outcome}_demo"},
+                "credential": {"type": "vault_token", "token": "vt_" + prefix * 64},
             },
         }
     }
@@ -127,7 +141,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
     assert "+573000000000" not in permalink.text
     assert "Calle 100" not in permalink.text
     assert "Buyer Complete" not in permalink.text
-    assert "spt_test_" not in permalink.text
+    assert "vt_" not in permalink.text
 
     with psycopg.connect(database_url()) as connection:
         offer = connection.execute(
@@ -169,13 +183,13 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
         "+573000000000",
         "Calle 100",
         "Buyer Complete",
-        "spt_test_",
+        "vt_",
     ):
         assert secret not in completion_snapshot[0]
     assert offer is not None
     assert offer[0] == 2
     serialized = json.dumps(offer[1])
-    assert "spt_test_success_" not in serialized
+    assert "vt_" not in serialized
     rerun = migrate()
     assert rerun["applied"] == []
     assert rerun["already_applied"] == [

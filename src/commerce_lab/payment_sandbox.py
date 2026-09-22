@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
-from jsonschema import ValidationError as SchemaValidationError
 from referencing import Registry, Resource
 
 from commerce_lab.settings import get_settings
@@ -41,10 +40,10 @@ _INSTRUMENT_SCHEMA: dict[str, Any] = {
             "type": "object",
             "additionalProperties": False,
             "properties": {
-                "type": {"const": "spt"},
+                "type": {"const": "vault_token"},
                 "token": {
                     "type": "string",
-                    "pattern": r"^spt_test_(success|declined|error)_[A-Za-z0-9._-]+$",
+                    "pattern": r"^vt_[0-9a-f]{64}$",
                 },
             },
             "required": ["type", "token"],
@@ -65,7 +64,7 @@ def payment_handler() -> dict[str, Any]:
         "display_name": "Tesis Sandbox",
         "version": "2026-09-19",
         "spec": _url("/payment-handlers/tesis-sandbox/spec"),
-        "requires_delegate_payment": False,
+        "requires_delegate_payment": True,
         "requires_pci_compliance": False,
         "psp": "tesis_sandbox",
         "config_schema": _url("/payment-handlers/tesis-sandbox/config-schema"),
@@ -81,7 +80,7 @@ def payment_capability_available() -> bool:
     return (
         handler["id"] == "tesis_sandbox"
         and handler["psp"] == "tesis_sandbox"
-        and handler["requires_delegate_payment"] is False
+        and handler["requires_delegate_payment"] is True
         and handler["requires_pci_compliance"] is False
     )
 
@@ -91,7 +90,7 @@ def handler_spec() -> dict[str, Any]:
         "title": "Tesis Sandbox payment handler",
         "handler": payment_handler()["name"],
         "version": payment_handler()["version"],
-        "description": "Synthetic sandbox capability; no payment tokens are processed.",
+        "description": "Delegated synthetic tokens are confirmed by an independent provider.",
     }
 
 
@@ -105,19 +104,6 @@ def instrument_schema() -> dict[str, Any]:
 
 def validate_instrument(instrument: object) -> None:
     Draft202012Validator(_INSTRUMENT_SCHEMA, format_checker=FormatChecker()).validate(instrument)
-
-
-def classify_instrument(instrument: object) -> str:
-    """Classify an already validated synthetic instrument without external effects."""
-    validate_instrument(instrument)
-    token = instrument["credential"]["token"]  # type: ignore[index]
-    if token.startswith("spt_test_success_"):
-        return "approved"
-    if token.startswith("spt_test_declined_"):
-        return "declined"
-    if token.startswith("spt_test_error_"):
-        return "temporary_provider_error"
-    raise SchemaValidationError("Unsupported sandbox token.")
 
 
 def checkout_payment_capabilities() -> dict[str, Any]:

@@ -26,7 +26,8 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.contracts.primitives import StrictModel
 from commerce_lab.db import database_url
-from commerce_lab.payment_sandbox import classify_instrument, payment_capability_available
+from commerce_lab.payment_client import PaymentProviderError, confirm_payment
+from commerce_lab.payment_sandbox import payment_capability_available, validate_instrument
 from commerce_lab.settings import get_settings
 from commerce_lab.webhook_delivery import enqueue_order_event, update_order_to_processing
 
@@ -394,17 +395,26 @@ class CheckoutService:
                         "PROVIDER_UNAVAILABLE",
                         "The sandbox payment capability is unavailable.",
                     )
-                try:
-                    outcome = classify_instrument(payment_data["instrument"])
-                except (KeyError, TypeError, SchemaValidationError):
-                    return _failure("INVALID_INPUT", "Invalid sandbox payment instrument.")
                 if payment_data.get("handler_id") != "tesis_sandbox":
                     return _failure("INVALID_INPUT", "Unsupported payment handler.")
-                if outcome == "temporary_provider_error":
-                    return _failure(
-                        "PROVIDER_UNAVAILABLE",
-                        "The sandbox payment provider is temporarily unavailable.",
+                try:
+                    instrument = payment_data["instrument"]
+                    validate_instrument(instrument)
+                    token = instrument["credential"]["token"]
+                except (KeyError, TypeError, SchemaValidationError):
+                    return _failure("INVALID_INPUT", "Invalid sandbox payment instrument.")
+                try:
+                    outcome = confirm_payment(
+                        token=token,
+                        checkout_id=checkout_id,
+                        amount=checkout.pricing.total_minor,
+                        currency=checkout.pricing.currency,
+                        idempotency_key=idempotency_key,
                     )
+                except PaymentProviderError as error:
+                    if error.code == "invalid_token":
+                        return _failure("INVALID_INPUT", "Payment token is not valid for checkout.")
+                    return _failure("PROVIDER_UNAVAILABLE", "Payment provider is unavailable.")
                 if outcome == "declined":
                     failure = _failure("PAYMENT_DECLINED", "The sandbox payment was declined.")
                     self._store_completion_failure(

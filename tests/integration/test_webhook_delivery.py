@@ -20,6 +20,11 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+@pytest.fixture(autouse=True)
+def synthetic_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("commerce_lab.checkout.confirm_payment", lambda **_: "approved")
+
+
 def _ready_checkout(actor: str) -> tuple[TestClient, dict[str, str], str, str, str]:
     episode = seed(actor_id=actor, variant="B0")
     run_id = str(episode["run_id"])
@@ -77,7 +82,7 @@ def _complete(actor: str) -> tuple[str, str]:
                 "handler_id": "tesis_sandbox",
                 "instrument": {
                     "type": "sandbox_token",
-                    "credential": {"type": "spt", "token": "spt_test_success_demo"},
+                    "credential": {"type": "vault_token", "token": "vt_" + "a" * 64},
                 },
             }
         },
@@ -345,7 +350,7 @@ def test_webhook_attempt_metadata_excludes_sensitive_values(
         ).fetchall()
     serialized = json.dumps(rows)
     for value in (
-        "spt_test_",
+        "vt_",
         "Bearer ",
         "Merchant-Signature",
         "secret",
@@ -381,7 +386,7 @@ def test_completion_rolls_back_when_outbox_insert_fails(
                 "handler_id": "tesis_sandbox",
                 "instrument": {
                     "type": "sandbox_token",
-                    "credential": {"type": "spt", "token": "spt_test_success_demo"},
+                    "credential": {"type": "vault_token", "token": "vt_" + "a" * 64},
                 },
             }
         },

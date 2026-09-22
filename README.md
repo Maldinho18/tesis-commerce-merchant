@@ -23,18 +23,17 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
   fulfillment y selección de envío, pasa a `ready_for_payment`. Todas las
   respuestas anuncian la capability P0 `tesis_sandbox`, con endpoints públicos
   `/payment-handlers/tesis-sandbox/spec`, `/config-schema` e
-  `/instrument-schema`. El handler usa `requires_delegate_payment=false`,
-  acepta las familias sintéticas `spt_test_success_*`, `spt_test_declined_*` y
-  `spt_test_error_*`; `/complete` solo clasifica esos tokens localmente. Update selecciona la única
-  opción de envío; cancel acepta cuerpo vacío o `intent_trace.reason_code`.
+  `/instrument-schema`. El handler usa `requires_delegate_payment=true` y acepta una
+  credencial opaca `vt_*` emitida por el proveedor sandbox independiente. Update selecciona la
+  única opción de envío; cancel acepta cuerpo vacío o `intent_trace.reason_code`.
 - EC-06A añade `POST /checkout_sessions/{id}/complete` para el subconjunto
-  sintético `tesis_sandbox`. Acepta tokens `spt_test_success_*`,
-  `spt_test_declined_*` y `spt_test_error_*`, sin PSP externo ni dinero real.
+  sintético `tesis_sandbox`. Envía el token opaco al proveedor de pagos propio para confirmar
+  monto, moneda, checkout y resultado; no deduce el resultado del token ni mueve dinero real.
   El éxito revalida términos, decrementa inventario y crea exactamente una
   Order en la misma transacción; el checkout queda `completed`. Declines son
   deterministas y errores temporales devuelven `503` sin efectos comerciales.
   La operación es idempotente y el permalink público `/orders/{order_id}`
-  muestra únicamente datos sanitizados. Todavía no hay webhooks.
+  muestra únicamente datos sanitizados.
 - Product Feed **estático de reemplazo completo**: `metadata.json` y un Product
   JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
   ACP `2026-04-17`. Feed API incremental no está implementada.
@@ -103,6 +102,11 @@ ACTOR_ID ORDER_ID` produce la transición sintética P0 `confirmed` →
 `processing`, y `python -m commerce_lab.db webhook-dispatch` procesa entregas
 vencidas con un máximo de cinco intentos.
 
+Para completar compras configure `PAYMENT_PROVIDER_URL`, `PAYMENT_MERCHANT_BEARER_TOKEN` y
+`PAYMENT_MERCHANT_ID` con el proveedor sandbox separado. Sin esa credencial, `/complete` falla
+cerrado con `PROVIDER_UNAVAILABLE`; el merchant nunca acepta un token por su prefijo como
+evidencia de pago.
+
 ## Verificación
 
 ```powershell
@@ -115,6 +119,5 @@ uv run pytest tests/integration
 Remove-Item Env:RUN_DB_INTEGRATION
 ```
 
-No están implementados Feed API incremental, webhooks ni frontend. El handler
-sandbox solo clasifica tokens sintéticos locales y no procesa credenciales
-reales ni dinero real; este subconjunto no afirma conformidad ACP integral.
+Feed API incremental y frontend no están implementados. El handler sandbox no procesa
+credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.

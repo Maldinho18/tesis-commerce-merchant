@@ -1,7 +1,7 @@
 from functools import lru_cache
 from urllib.parse import urlparse
 
-from pydantic import field_validator
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,8 +14,11 @@ class Settings(BaseSettings):
     acp_api_base_url: str = "http://127.0.0.1:4120"
     webhook_receiver_url: str | None = None
     merchant_webhook_secret: str | None = None
+    payment_provider_url: str = "http://127.0.0.1:4130"
+    payment_merchant_bearer_token: SecretStr | None = None
+    payment_merchant_id: str = "tesis_merchant"
 
-    @field_validator("acp_api_base_url")
+    @field_validator("acp_api_base_url", "payment_provider_url")
     @classmethod
     def validate_acp_api_base_url(cls, value: str) -> str:
         parsed = urlparse(value)
@@ -29,7 +32,9 @@ class Settings(BaseSettings):
             or parsed.fragment
             or parsed.path not in {"", "/"}
         ):
-            raise ValueError("ACP base URL must use HTTPS outside localhost and contain no path")
+            raise ValueError(
+                "Service base URL must use HTTPS outside localhost and contain no path"
+            )
         return value.rstrip("/")
 
     @field_validator("webhook_receiver_url")
