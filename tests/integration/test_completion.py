@@ -101,6 +101,18 @@ def _payment(outcome: str = "success") -> dict[str, object]:
     }
 
 
+def _observation(request_id: str) -> tuple[object, ...]:
+    with psycopg.connect(database_url()) as connection:
+        row = connection.execute(
+            """SELECT run_id::text, actor_id, operation, result, http_status, latency_ms,
+                      checkout_id, order_id, error_code
+               FROM request_observations WHERE request_id = %s""",
+            (request_id,),
+        ).fetchone()
+    assert row is not None
+    return row
+
+
 def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
     migrate()
     client, headers, checkout_id, run_id = _client("complete-success")
@@ -112,6 +124,17 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
     assert first.json() == replay.json()
     assert replay.headers["Idempotent-Replayed"] == "true"
     order_id = first.json()["order"]["id"]
+    first_observation = _observation(first.headers["Request-Id"])
+    assert first_observation[:5] == (
+        run_id,
+        "complete-success",
+        "complete",
+        "success",
+        200,
+    )
+    assert isinstance(first_observation[5], int)
+    assert first_observation[5] >= 0
+    assert first_observation[6:] == (checkout_id, order_id, None)
     with psycopg.connect(database_url()) as connection:
         assert connection.execute(
             "SELECT count(*) FROM webhook_deliveries WHERE order_id = %s",
@@ -187,6 +210,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
         "008_checkout_payment_capability.sql",
         "009_checkout_completion.sql",
         "010_webhook_delivery.sql",
+        "011_request_observability.sql",
     ]
 
 
@@ -213,6 +237,16 @@ def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, 
     assert "order" not in first.json()
     assert replay.status_code == status
     assert replay.json() == first.json()
+    observation = _observation(first.headers["Request-Id"])
+    assert observation[:5] == (
+        run_id,
+        f"complete-{outcome}",
+        "complete",
+        "error",
+        status,
+    )
+    assert observation[6:8] == (checkout_id, None)
+    assert observation[8] == code
     if outcome == "declined":
         assert replay.headers["Idempotent-Replayed"] == "true"
         with psycopg.connect(database_url()) as connection:
@@ -261,6 +295,15 @@ def test_complete_in_flight_returns_retry_header_and_request_headers() -> None:
         assert response.headers["Retry-After"] == "1"
         assert response.headers["Request-Id"]
         assert response.headers["Idempotency-Key"] == "in-flight"
+    observation = _observation(response.headers["Request-Id"])
+    assert observation[:5] == (
+        run_id,
+        "complete-in-flight",
+        "complete",
+        "error",
+        409,
+    )
+    assert observation[6:] == (checkout_id, None, "idempotency_in_flight")
 
 
 def test_expired_checkout_completion_does_not_create_order_or_decrement_stock() -> None:
@@ -421,6 +464,9 @@ def test_completed_checkout_rejects_update_and_cancel() -> None:
     assert cancel.status_code == 405
     assert cancel.json()["detail"]["code"] == "CHECKOUT_NOT_CANCELABLE"
     assert cancel.headers["Request-Id"]
+    observation = _observation(cancel.headers["Request-Id"])
+    assert observation[2:5] == ("cancel", "error", 405)
+    assert observation[6:] == (checkout_id, None, "CHECKOUT_NOT_CANCELABLE")
 
 
 def test_order_update_creates_one_full_delivery_and_is_idempotent() -> None:

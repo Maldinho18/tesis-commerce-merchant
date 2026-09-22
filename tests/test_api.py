@@ -1,7 +1,8 @@
+from dataclasses import asdict
 from uuid import UUID
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
 
 from commerce_lab.api import (
@@ -15,6 +16,78 @@ from commerce_lab.catalog import CatalogReader
 from commerce_lab.contracts import CommerceError, ExecutionContext, Failure, ScenarioClock
 from commerce_lab.db import DatabaseNotReady
 from commerce_lab.fixtures import FIXTURE_NOW, fresh_p0_offers
+from commerce_lab.request_observability import (
+    RequestObservation,
+    classify_checkout_route,
+    hash_idempotency_key,
+)
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "operation", "checkout_id"),
+    [
+        ("POST", "/checkout_sessions", "create", None),
+        ("GET", "/checkout_sessions/chk_1", "get", "chk_1"),
+        ("POST", "/checkout_sessions/chk_1", "update", "chk_1"),
+        ("POST", "/checkout_sessions/chk_1/complete", "complete", "chk_1"),
+        ("POST", "/checkout_sessions/chk_1/cancel", "cancel", "chk_1"),
+    ],
+)
+def test_checkout_route_classification_is_exact(
+    method: str, path: str, operation: str, checkout_id: str | None
+) -> None:
+    route = classify_checkout_route(method, path)
+
+    assert route is not None
+    assert route.operation == operation
+    assert route.checkout_id == checkout_id
+
+
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("GET", "/checkout_sessions"),
+        ("DELETE", "/checkout_sessions/chk_1"),
+        ("GET", "/checkout_sessions/chk_1/complete"),
+        ("POST", "/checkout_sessions/chk_1/cancel/extra"),
+        ("GET", "/health/live"),
+        ("GET", "/orders/ord_1"),
+    ],
+)
+def test_non_checkout_routes_are_not_classified(method: str, path: str) -> None:
+    assert classify_checkout_route(method, path) is None
+
+
+def test_observation_hashes_idempotency_key_and_has_no_sensitive_fields() -> None:
+    raw_key = "never-persist-this-key"
+    digest = hash_idempotency_key(raw_key)
+    observation = RequestObservation(
+        request_id="request-1",
+        run_id=None,
+        actor_id=None,
+        operation="create",
+        result="error",
+        http_status=401,
+        latency_ms=0,
+        checkout_id=None,
+        order_id=None,
+        idempotency_sha256=digest,
+        error_code=None,
+    )
+
+    assert digest == "791aa869c952454630a643982908ffc7231dbfae72564ef1aa49f428fabd31da"
+    serialized = str(asdict(observation))
+    assert raw_key not in serialized
+    assert not {
+        "authorization",
+        "session",
+        "idempotency_key",
+        "request_body",
+        "response_body",
+        "payment_data",
+        "token",
+        "webhook_secret",
+    }.intersection(asdict(observation))
 
 
 def test_live_reports_process_without_claiming_model_check() -> None:
@@ -53,7 +126,9 @@ def test_lab_catalog_requires_server_resolved_session() -> None:
     assert "actor_id" not in response.text
 
 
-def test_invalid_bearer_gets_server_request_id_without_changing_auth_body() -> None:
+def test_invalid_bearer_gets_server_request_id_without_changing_auth_body(monkeypatch) -> None:
+    observations: list[RequestObservation] = []
+    monkeypatch.setattr("commerce_lab.api.write_request_observation", observations.append)
     response = TestClient(app).post(
         "/checkout_sessions",
         headers={
@@ -66,6 +141,35 @@ def test_invalid_bearer_gets_server_request_id_without_changing_auth_body() -> N
             "currency": "usd",
             "capabilities": {"payment": {"handlers": []}},
         },
+    )
+
+    assert response.status_code == 401
+    UUID(response.headers["Request-Id"])
+    assert response.json()["detail"] == "A valid synthetic lab session is required."
+    assert len(observations) == 1
+    observation = observations[0]
+    assert observation.request_id == response.headers["Request-Id"]
+    assert observation.run_id is observation.actor_id is None
+    assert observation.operation == "create"
+    assert observation.result == "error"
+    assert observation.http_status == 401
+    assert observation.idempotency_sha256 == hash_idempotency_key("invalid-bearer")
+    assert observation.error_code is None
+
+
+def test_observation_writer_failure_does_not_change_commercial_response(monkeypatch) -> None:
+    def unavailable(_observation: RequestObservation) -> None:
+        raise RuntimeError("synthetic writer failure")
+
+    monkeypatch.setattr("commerce_lab.api.write_request_observation", unavailable)
+    response = TestClient(app).post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": "Bearer invalid",
+            "API-Version": "2026-04-17",
+            "Idempotency-Key": "writer-failure",
+        },
+        json={},
     )
 
     assert response.status_code == 401
@@ -139,6 +243,18 @@ def test_acp_http_error_status_preserves_typed_commercial_code(
         assert captured.value.headers is None
 
 
+def test_commerce_failure_exposes_public_error_code_to_observation_state() -> None:
+    request = Request({"type": "http", "method": "POST", "path": "/checkout_sessions"})
+    failure = Failure(
+        error=CommerceError.model_validate({"code": "PAYMENT_DECLINED", "message": "Test failure"})
+    )
+
+    with pytest.raises(HTTPException):
+        _raise_commerce_failure(failure, request=request)
+
+    assert request.state.observation_error_code == "payment_declined"
+
+
 def test_raise_commerce_failure_accepts_http_headers() -> None:
     failure = Failure(
         error=CommerceError.model_validate(
@@ -195,13 +311,24 @@ def test_raise_commerce_failure_keeps_request_id_and_adds_retry_after() -> None:
             200,
         ),
         ("POST", "/checkout_sessions/chk_test/cancel", {}, 200),
+        (
+            "POST",
+            "/checkout_sessions/chk_test/complete",
+            {"payment_data": {}},
+            200,
+        ),
     ],
 )
 def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
-    method: str, path: str, body: dict[str, object] | None, success_status: int
+    method: str,
+    path: str,
+    body: dict[str, object] | None,
+    success_status: int,
+    monkeypatch,
 ) -> None:
     class StubCheckout:
         calls = 0
+        last_completion_replayed = False
 
         def create(self, payload, idempotency_key):
             self.calls += 1
@@ -219,6 +346,10 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
             self.calls += 1
             return {"id": checkout_id}
 
+        def complete(self, checkout_id, payload, idempotency_key):
+            self.calls += 1
+            return {"id": checkout_id, "order": {"id": "ord_test"}}
+
     checkout = StubCheckout()
     context = ExecutionContext(
         actor_id="version-test",
@@ -228,6 +359,8 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
     )
     app.dependency_overrides[trusted_context] = lambda: context
     app.dependency_overrides[acp_checkout] = lambda: checkout
+    observations: list[RequestObservation] = []
+    monkeypatch.setattr("commerce_lab.api.write_request_observation", observations.append)
     try:
         client = TestClient(app)
         headers = {"Idempotency-Key": "version-key"}
@@ -261,3 +394,10 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
         ).status_code
         == 401
     )
+    observation = next(
+        item
+        for item in observations
+        if item.request_id == missing_without_auth.headers["Request-Id"]
+    )
+    assert observation.error_code == "missing_api_version"
+    assert observation.run_id is observation.actor_id is None

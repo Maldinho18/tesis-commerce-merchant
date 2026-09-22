@@ -1,4 +1,6 @@
+import logging
 from html import escape
+from time import perf_counter
 from typing import Annotated, Any, Never
 from uuid import uuid4
 
@@ -6,6 +8,7 @@ import psycopg
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from commerce_lab import __version__
 from commerce_lab.acp import (
@@ -28,6 +31,14 @@ from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
+from commerce_lab.request_observability import (
+    RequestObservation,
+    classify_checkout_route,
+    hash_idempotency_key,
+    write_request_observation,
+)
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Commerce Lab",
@@ -50,9 +61,70 @@ _PUBLIC_ERROR_CODES = {
 async def add_request_id(request: Request, call_next):
     request_id = str(uuid4())
     request.state.request_id = request_id
-    response = await call_next(request)
+    route = classify_checkout_route(request.method, request.url.path)
+    if route is not None:
+        request.state.observation_run_id = None
+        request.state.observation_actor_id = None
+        request.state.observation_checkout_id = route.checkout_id
+        request.state.observation_order_id = None
+        request.state.observation_error_code = None
+        idempotency_sha256 = (
+            None
+            if route.operation == "get"
+            else hash_idempotency_key(request.headers.get("Idempotency-Key"))
+        )
+    else:
+        idempotency_sha256 = None
+
+    started_at = perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        if route is not None:
+            latency_ms = max(0, round((perf_counter() - started_at) * 1000))
+            observation = RequestObservation(
+                request_id=request_id,
+                run_id=request.state.observation_run_id,
+                actor_id=request.state.observation_actor_id,
+                operation=route.operation,
+                result="error",
+                http_status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                latency_ms=latency_ms,
+                checkout_id=request.state.observation_checkout_id,
+                order_id=request.state.observation_order_id,
+                idempotency_sha256=idempotency_sha256,
+                error_code=request.state.observation_error_code,
+            )
+            await run_in_threadpool(_write_observation_safely, observation)
+        raise
+    latency_ms = max(0, round((perf_counter() - started_at) * 1000))
     response.headers["Request-Id"] = request_id
+    if route is not None:
+        observation = RequestObservation(
+            request_id=request_id,
+            run_id=request.state.observation_run_id,
+            actor_id=request.state.observation_actor_id,
+            operation=route.operation,
+            result="success" if response.status_code < 400 else "error",
+            http_status=response.status_code,
+            latency_ms=latency_ms,
+            checkout_id=request.state.observation_checkout_id,
+            order_id=request.state.observation_order_id,
+            idempotency_sha256=idempotency_sha256,
+            error_code=request.state.observation_error_code,
+        )
+        await run_in_threadpool(_write_observation_safely, observation)
     return response
+
+
+def _write_observation_safely(observation: RequestObservation) -> None:
+    try:
+        write_request_observation(observation)
+    except Exception:
+        logger.exception(
+            "Failed to persist checkout request observation",
+            extra={"request_id": observation.request_id, "operation": observation.operation},
+        )
 
 
 @app.get("/.well-known/acp.json", include_in_schema=False)
@@ -111,7 +183,10 @@ def trusted_context(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A valid synthetic lab session is required.",
         ) from error
-    return context.model_copy(update={"request_id": request.state.request_id})
+    trusted = context.model_copy(update={"request_id": request.state.request_id})
+    request.state.observation_run_id = trusted.run_id
+    request.state.observation_actor_id = trusted.actor_id
+    return trusted
 
 
 def persistent_catalog(
@@ -121,14 +196,17 @@ def persistent_catalog(
 
 
 def require_acp_version(
+    request: Request,
     api_version: Annotated[str | None, Header(alias="API-Version")] = None,
 ) -> None:
     if api_version != ACP_VERSION:
         missing = api_version is None
+        public_code = "missing_api_version" if missing else "unsupported_api_version"
+        request.state.observation_error_code = public_code
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "code": "missing_api_version" if missing else "unsupported_api_version",
+                "code": public_code,
                 "message": (
                     "API-Version header is required."
                     if missing
@@ -145,7 +223,12 @@ def acp_checkout(
     return ACPCheckoutAdapter(context)
 
 
-def _raise_commerce_failure(failure: Failure, headers: dict[str, str] | None = None) -> Never:
+def _raise_commerce_failure(
+    failure: Failure,
+    headers: dict[str, str] | None = None,
+    *,
+    request: Request | None = None,
+) -> Never:
     internal_code = failure.error.code
     if internal_code in {"OFFER_NOT_FOUND", "CHECKOUT_NOT_FOUND"}:
         status_code = status.HTTP_404_NOT_FOUND
@@ -166,6 +249,8 @@ def _raise_commerce_failure(failure: Failure, headers: dict[str, str] | None = N
     else:
         status_code = status.HTTP_409_CONFLICT
     public_code = _PUBLIC_ERROR_CODES.get(internal_code, internal_code)
+    if request is not None:
+        request.state.observation_error_code = public_code
     error_headers = dict(headers or {})
     if internal_code == "IDEMPOTENCY_IN_FLIGHT":
         error_headers.setdefault("Retry-After", "1")
@@ -218,6 +303,7 @@ def offer_get(
 @app.post("/checkout_sessions", status_code=status.HTTP_201_CREATED)
 def checkout_session_create(
     payload: ACPCheckoutCreateRequest,
+    request: Request,
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
@@ -231,15 +317,17 @@ def checkout_session_create(
         )
     result = checkout.create(payload, idempotency_key)
     if isinstance(result, Failure):
-        _raise_commerce_failure(result)
+        _raise_commerce_failure(result, request=request)
     response.headers["Request-Id"] = context.request_id
     response.headers["Idempotency-Key"] = idempotency_key
+    request.state.observation_checkout_id = result["id"]
     return result
 
 
 @app.get("/checkout_sessions/{checkout_id}")
 def checkout_session_get(
     checkout_id: Identifier,
+    request: Request,
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
@@ -247,7 +335,7 @@ def checkout_session_get(
 ) -> dict[str, object]:
     result = checkout.get(checkout_id)
     if isinstance(result, Failure):
-        _raise_commerce_failure(result)
+        _raise_commerce_failure(result, request=request)
     response.headers["Request-Id"] = context.request_id
     return result
 
@@ -256,6 +344,7 @@ def checkout_session_get(
 def checkout_session_complete(
     checkout_id: Identifier,
     payload: Annotated[Any, Body()],
+    request: Request,
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
@@ -275,11 +364,14 @@ def checkout_session_complete(
         }
         if checkout.last_completion_replayed:
             error_headers["Idempotent-Replayed"] = "true"
-        _raise_commerce_failure(result, headers=error_headers)
+        _raise_commerce_failure(result, headers=error_headers, request=request)
     response.headers["Request-Id"] = context.request_id
     response.headers["Idempotency-Key"] = idempotency_key
     if checkout.last_completion_replayed:
         response.headers["Idempotent-Replayed"] = "true"
+    order = result.get("order")
+    if isinstance(order, dict):
+        request.state.observation_order_id = order.get("id")
     return result
 
 
@@ -314,6 +406,7 @@ def order_permalink(order_id: str) -> HTMLResponse:
 def checkout_session_update(
     checkout_id: Identifier,
     payload: dict[str, Any],
+    request: Request,
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
@@ -327,7 +420,7 @@ def checkout_session_update(
         )
     result = checkout.update(checkout_id, payload, idempotency_key)
     if isinstance(result, Failure):
-        _raise_commerce_failure(result)
+        _raise_commerce_failure(result, request=request)
     response.headers["Request-Id"] = context.request_id
     response.headers["Idempotency-Key"] = idempotency_key
     return result
@@ -336,6 +429,7 @@ def checkout_session_update(
 @app.post("/checkout_sessions/{checkout_id}/cancel")
 def checkout_session_cancel(
     checkout_id: Identifier,
+    request: Request,
     response: Response,
     _: Annotated[None, Depends(require_acp_version)],
     context: Annotated[ExecutionContext, Depends(trusted_context)],
@@ -350,7 +444,7 @@ def checkout_session_cancel(
         )
     result = checkout.cancel(checkout_id, payload, idempotency_key)
     if isinstance(result, Failure):
-        _raise_commerce_failure(result)
+        _raise_commerce_failure(result, request=request)
     response.headers["Request-Id"] = context.request_id
     response.headers["Idempotency-Key"] = idempotency_key
     return result

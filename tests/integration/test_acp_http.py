@@ -13,6 +13,7 @@ from commerce_lab.api import app
 from commerce_lab.context import authenticate_lab_session, issue_lab_session
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
+from commerce_lab.request_observability import hash_idempotency_key
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_DB_INTEGRATION") != "1",
@@ -64,6 +65,158 @@ def _create(client: TestClient, headers: dict[str, str]) -> str:
     )
     assert response.status_code == 201
     return str(response.json()["id"])
+
+
+def _observation(request_id: str) -> tuple[Any, ...]:
+    with psycopg.connect(database_url()) as connection:
+        row = connection.execute(
+            """SELECT request_id, run_id::text, actor_id, operation, result, http_status,
+                      latency_ms, checkout_id, order_id, idempotency_sha256, error_code
+               FROM request_observations WHERE request_id = %s""",
+            (request_id,),
+        ).fetchone()
+    assert row is not None
+    return row
+
+
+def test_request_observability_covers_checkout_http_boundaries() -> None:
+    migrate()
+    client, headers = _client("observability-http")
+    run_id = authenticate_lab_session(headers["Authorization"].split(" ", 1)[1]).run_id
+
+    created = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-create"},
+        json=_body(),
+    )
+    checkout_id = created.json()["id"]
+    read = client.get(
+        f"/checkout_sessions/{checkout_id}",
+        headers={**headers, "Idempotency-Key": "ignored-on-get"},
+    )
+    updated = client.post(
+        f"/checkout_sessions/{checkout_id}",
+        headers={**headers, "Idempotency-Key": "observe-update"},
+        json=_selection(checkout_id),
+    )
+    missing_item = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-missing"},
+        json=_body("MISSING-01"),
+    )
+    out_of_stock = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-stock"},
+        json=_body("SON-07"),
+    )
+    missing_version = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": headers["Authorization"],
+            "Idempotency-Key": "observe-version",
+        },
+        json=_body(),
+    )
+    unsupported_version = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": headers["Authorization"],
+            "API-Version": "2025-09-29",
+            "Idempotency-Key": "observe-unsupported",
+        },
+        json=_body(),
+    )
+    invalid_bearer = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": "Bearer invalid",
+            "API-Version": "2026-04-17",
+            "Idempotency-Key": "observe-auth",
+        },
+        json=_body(),
+    )
+
+    assert [
+        created.status_code,
+        read.status_code,
+        updated.status_code,
+        missing_item.status_code,
+        out_of_stock.status_code,
+        missing_version.status_code,
+        unsupported_version.status_code,
+        invalid_bearer.status_code,
+    ] == [201, 200, 200, 404, 409, 400, 400, 401]
+
+    create_row = _observation(created.headers["Request-Id"])
+    assert create_row[1:6] == (run_id, "observability-http", "create", "success", 201)
+    assert create_row[6] >= 0
+    assert create_row[7:] == (
+        checkout_id,
+        None,
+        hash_idempotency_key("observe-create"),
+        None,
+    )
+
+    get_row = _observation(read.headers["Request-Id"])
+    assert get_row[1:6] == (run_id, "observability-http", "get", "success", 200)
+    assert get_row[7:] == (checkout_id, None, None, None)
+
+    update_row = _observation(updated.headers["Request-Id"])
+    assert update_row[1:6] == (run_id, "observability-http", "update", "success", 200)
+    assert update_row[7:] == (
+        checkout_id,
+        None,
+        hash_idempotency_key("observe-update"),
+        None,
+    )
+
+    for response, expected_status, expected_code in (
+        (missing_item, 404, "invalid_item"),
+        (out_of_stock, 409, "out_of_stock"),
+    ):
+        row = _observation(response.headers["Request-Id"])
+        assert row[1:6] == (
+            run_id,
+            "observability-http",
+            "create",
+            "error",
+            expected_status,
+        )
+        assert row[7] is row[8] is None
+        assert row[10] == expected_code
+
+    for response, expected_code in (
+        (missing_version, "missing_api_version"),
+        (unsupported_version, "unsupported_api_version"),
+    ):
+        row = _observation(response.headers["Request-Id"])
+        assert row[1:5] == (None, None, "create", "error")
+        assert row[5] == 400
+        assert row[10] == expected_code
+
+    auth_row = _observation(invalid_bearer.headers["Request-Id"])
+    assert auth_row[1:6] == (None, None, "create", "error", 401)
+    assert auth_row[9] == hash_idempotency_key("observe-auth")
+    assert auth_row[10] is None
+
+    with psycopg.connect(database_url()) as connection:
+        columns = {
+            row[0]
+            for row in connection.execute(
+                """SELECT column_name FROM information_schema.columns
+                   WHERE table_schema = 'public' AND table_name = 'request_observations'"""
+            ).fetchall()
+        }
+    assert not {
+        "authorization",
+        "session",
+        "idempotency_key",
+        "request_body",
+        "response_body",
+        "payment_data",
+        "token",
+        "webhook_secret",
+    }.intersection(columns)
 
 
 def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None:
