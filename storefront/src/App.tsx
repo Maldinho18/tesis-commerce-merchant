@@ -6,6 +6,7 @@ import { FilterSidebar } from "@/components/storefront/filter-sidebar"
 import { ProductCard } from "@/components/storefront/product-card"
 import { ProductDetail } from "@/components/storefront/product-detail"
 import { SiteHeader } from "@/components/storefront/site-header"
+import { navigate, productPath, useRoute } from "@/lib/router"
 import {
   CATEGORY_LABELS,
   MERCHANT_ORIGIN,
@@ -14,7 +15,6 @@ import {
   conditionsOf,
   fetchCatalog,
   type Catalog,
-  type FeedProduct,
 } from "@/lib/catalog"
 import {
   EMPTY_FILTERS,
@@ -32,9 +32,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [sort, setSort] = useState<SortKey>("relevance")
-  const [openProduct, setOpenProduct] = useState<FeedProduct | null>(null)
   const [page, setPage] = useState(0)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const route = useRoute()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -92,7 +92,16 @@ export default function App() {
     setPage(0)
   }
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [route])
+
   const currency = products[0]?.variants[0]?.price.currency ?? "COP"
+  const routedProduct =
+    route.name === "product"
+      ? (products.find((product) => product.id === route.id) ?? null)
+      : null
+
   const heading = filters.category
     ? (CATEGORY_LABELS[filters.category] ?? filters.category)
     : "Todo el catálogo"
@@ -108,153 +117,171 @@ export default function App() {
         onCategory={(category) => applyFilters({ ...filters, category })}
       />
 
+      {routedProduct ? (
+        <ProductDetail product={routedProduct} onBack={() => navigate("/")} />
+      ) : route.name === "product" && catalog ? (
+        <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-16 text-center sm:px-6">
+          <p className="text-sm font-medium">Ese producto no está en el catálogo.</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/")}>
+            Volver al catálogo
+          </Button>
+        </div>
+      ) : (
+        <>
       <nav
-        className="mx-auto w-full max-w-7xl px-4 pt-4 text-xs text-gray-600 sm:px-6"
-        aria-label="Ruta"
-      >
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>Inicio</li>
-          <li aria-hidden>›</li>
-          <li>Catálogo</li>
-          <li aria-hidden>›</li>
-          <li className="font-medium text-foreground">{heading}</li>
-        </ol>
-      </nav>
-
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-10 sm:px-6">
-        {error && (
-          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <p className="font-medium">No se pudo cargar el catálogo.</p>
-            <p className="mt-1 text-xs">
-              {error} — se consultó {MERCHANT_ORIGIN}/storefront/catalog
-            </p>
-          </div>
-        )}
-
-        {!catalog && !error && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }, (_, index) => (
-              <div key={index} className="h-80 animate-pulse rounded-xl bg-muted" />
-            ))}
-          </div>
-        )}
-
-        {catalog && (
-          <div className="flex gap-6">
-            <aside
-              className={`${filtersOpen ? "block" : "hidden"} w-64 shrink-0 lg:block`}
-              aria-label="Filtros"
-            >
-              <div className="sticky top-40 border border-border bg-card px-4 py-3">
-                <FilterSidebar
-                  filters={filters}
-                  brands={facets.brands}
-                  topBrands={facets.topBrands}
-                  conditions={facets.conditions}
-                  budgets={facets.budgets}
-                  currency={currency}
-                  onChange={applyFilters}
-                />
-              </div>
-            </aside>
-
-            <div className="min-w-0 flex-1">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-border bg-gray-50 px-4 py-2.5">
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <h1 className="text-base font-semibold tracking-tight">{heading}</h1>
-                  <p className="text-xs text-gray-600">
-                    Mostrando{" "}
-                    {visible.length === 0
-                      ? 0
-                      : (current * PAGE_SIZE + 1).toLocaleString("es-CO")}
-                    –
-                    {Math.min((current + 1) * PAGE_SIZE, visible.length).toLocaleString("es-CO")} de{" "}
-                    {visible.length.toLocaleString("es-CO")} productos
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="lg:hidden"
-                    onClick={() => setFiltersOpen((open) => !open)}
-                  >
-                    <SlidersHorizontal />
-                    Filtros
-                  </Button>
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                    Ordenar
-                    <select
-                      value={sort}
-                      onChange={(event) => {
-                        setSort(event.target.value as SortKey)
-                        setPage(0)
-                      }}
-                      className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    >
-                      {Object.entries(SORT_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-              {visible.length === 0 ? (
-                <div className="border border-border bg-card px-4 py-16 text-center">
-                  <p className="text-sm font-medium">Ningún producto cumple esos filtros.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => applyFilters(EMPTY_FILTERS)}
-                  >
-                    Limpiar filtros
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-                    {shown.map((product) => (
-                      <ProductCard key={product.id} product={product} onOpen={setOpenProduct} />
-                    ))}
-                  </div>
-
-                  {pageCount > 1 && (
-                    <nav
-                      className="mt-6 flex items-center justify-center gap-2"
-                      aria-label="Paginación"
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={current === 0}
-                        onClick={() => setPage(current - 1)}
-                      >
-                        Anterior
-                      </Button>
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {current + 1} / {pageCount}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={current >= pageCount - 1}
-                        onClick={() => setPage(current + 1)}
-                      >
-                        Siguiente
-                      </Button>
-                    </nav>
-                  )}
-                </>
-              )}
+          className="mx-auto w-full max-w-7xl px-4 pt-4 text-xs text-gray-600 sm:px-6"
+          aria-label="Ruta"
+        >
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li>Inicio</li>
+            <li aria-hidden>›</li>
+            <li>Catálogo</li>
+            <li aria-hidden>›</li>
+            <li className="font-medium text-foreground">{heading}</li>
+          </ol>
+        </nav>
+  
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-10 sm:px-6">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <p className="font-medium">No se pudo cargar el catálogo.</p>
+              <p className="mt-1 text-xs">
+                {error} — se consultó {MERCHANT_ORIGIN}/storefront/catalog
+              </p>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+  
+          {!catalog && !error && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }, (_, index) => (
+                <div key={index} className="h-80 animate-pulse rounded-xl bg-muted" />
+              ))}
+            </div>
+          )}
+  
+          {catalog && (
+            <div className="flex gap-6">
+              <aside
+                className={`${filtersOpen ? "block" : "hidden"} w-64 shrink-0 lg:block`}
+                aria-label="Filtros"
+              >
+                <div className="sticky top-40 border border-border bg-card px-4 py-3">
+                  <FilterSidebar
+                    filters={filters}
+                    brands={facets.brands}
+                    topBrands={facets.topBrands}
+                    conditions={facets.conditions}
+                    budgets={facets.budgets}
+                    currency={currency}
+                    onChange={applyFilters}
+                  />
+                </div>
+              </aside>
+  
+              <div className="min-w-0 flex-1">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-border bg-gray-50 px-4 py-2.5">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h1 className="text-base font-semibold tracking-tight">{heading}</h1>
+                    <p className="text-xs text-gray-600">
+                      Mostrando{" "}
+                      {visible.length === 0
+                        ? 0
+                        : (current * PAGE_SIZE + 1).toLocaleString("es-CO")}
+                      –
+                      {Math.min((current + 1) * PAGE_SIZE, visible.length).toLocaleString("es-CO")} de{" "}
+                      {visible.length.toLocaleString("es-CO")} productos
+                    </p>
+                  </div>
+  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="lg:hidden"
+                      onClick={() => setFiltersOpen((open) => !open)}
+                    >
+                      <SlidersHorizontal />
+                      Filtros
+                    </Button>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      Ordenar
+                      <select
+                        value={sort}
+                        onChange={(event) => {
+                          setSort(event.target.value as SortKey)
+                          setPage(0)
+                        }}
+                        className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                      >
+                        {Object.entries(SORT_LABELS).map(([key, label]) => (
+                          <option key={key} value={key}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+  
+                {visible.length === 0 ? (
+                  <div className="border border-border bg-card px-4 py-16 text-center">
+                    <p className="text-sm font-medium">Ningún producto cumple esos filtros.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => applyFilters(EMPTY_FILTERS)}
+                    >
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+                      {shown.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          onOpen={(item) => navigate(productPath(item.id))}
+                        />
+                      ))}
+                    </div>
+  
+                    {pageCount > 1 && (
+                      <nav
+                        className="mt-6 flex items-center justify-center gap-2"
+                        aria-label="Paginación"
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={current === 0}
+                          onClick={() => setPage(current - 1)}
+                        >
+                          Anterior
+                        </Button>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {current + 1} / {pageCount}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={current >= pageCount - 1}
+                          onClick={() => setPage(current + 1)}
+                        >
+                          Siguiente
+                        </Button>
+                      </nav>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+  
+          </>
+      )}
 
       <footer className="bg-gray-900 text-gray-300">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
@@ -297,7 +324,6 @@ export default function App() {
         </div>
       </footer>
 
-      {openProduct && <ProductDetail product={openProduct} onClose={() => setOpenProduct(null)} />}
     </div>
   )
 }

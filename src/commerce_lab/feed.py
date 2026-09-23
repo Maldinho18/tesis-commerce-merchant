@@ -155,7 +155,13 @@ def build_feed(
                         "available": offer.available_quantity > 0,
                         "status": availability_status,
                     },
-                    "categories": [{"value": offer.category, "taxonomy": "merchant"}],
+                    # La marca se publica como categoría en su propia taxonomía: el esquema
+                    # ACP no tiene campo de marca, y derivarla del título da "iPhone" en vez
+                    # de "Apple". Quien consuma el feed debe filtrar por `taxonomy`.
+                    "categories": [
+                        {"value": offer.category, "taxonomy": "merchant"},
+                        {"value": offer.brand, "taxonomy": "brand"},
+                    ],
                     "condition": [offer.condition],
                     "variant_options": _variant_options(offer),
                     "seller": {"name": "Synthetic Commerce Merchant"},

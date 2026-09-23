@@ -104,12 +104,58 @@ def _price(entity: str, category: str, title: str, brand: str, released: str | N
     return max((amount // 10_000_00) * 10_000_00, 199_000_00)
 
 
+# Wikidata nombra al fabricante por su razón social; la tienda necesita la marca comercial.
+_BRAND_ALIASES: Final[dict[str, str]] = {
+    "apple inc.": "Apple",
+    "samsung electronics": "Samsung",
+    "samsung group": "Samsung",
+    "sony mobile communications": "Sony",
+    "sony corporation": "Sony",
+    "lg electronics": "LG",
+    "guangdong oplus holdings co., ltd.": "OnePlus",
+    "oneplus technology": "OnePlus",
+    "beijing xiaomi mobile software": "Xiaomi",
+    "huawei technologies": "Huawei",
+    "google llc": "Google",
+    "motorola mobility": "Motorola",
+    "asustek computer": "ASUS",
+    "lenovo group": "Lenovo",
+    "htc corporation": "HTC",
+    "nokia corporation": "Nokia",
+}
+# Cuando el modelo no declara fabricante, la primera palabra del título casi siempre es la
+# marca; estas son las excepciones donde nombra la línea de producto.
+_TITLE_BRANDS: Final[dict[str, str]] = {
+    "iphone": "Apple",
+    "ipad": "Apple",
+    "macbook": "Apple",
+    "galaxy": "Samsung",
+    "redmi": "Xiaomi",
+    "poco": "Xiaomi",
+    "pixel": "Google",
+    "thinkpad": "Lenovo",
+    "legion": "Lenovo",
+    "moto": "Motorola",
+    "nord": "OnePlus",
+    "zenfone": "ASUS",
+    "xperia": "Sony",
+}
+
+
 def _brand_of(product: dict[str, Any]) -> str:
     brand = product.get("brand")
     if isinstance(brand, str) and brand.strip():
-        return brand.strip()[:100]
-    # Sin fabricante declarado, la primera palabra del título es la mejor aproximación.
-    return str(product["title"]).split()[0][:100]
+        cleaned = brand.strip()
+        alias = _BRAND_ALIASES.get(cleaned.casefold())
+        if alias:
+            return alias
+        # Se recorta la forma societaria para que no aparezcan dos veces la misma marca.
+        for suffix in (" Inc.", " Corporation", " Electronics", " Group", " Co., Ltd.", " LLC"):
+            if cleaned.endswith(suffix):
+                cleaned = cleaned[: -len(suffix)]
+        return cleaned[:100]
+    head = str(product["title"]).split()[0]
+    return _TITLE_BRANDS.get(head.casefold(), head)[:100]
 
 
 _ASSETS_DIR: Final = Path(__file__).resolve().parents[3] / "assets/products"

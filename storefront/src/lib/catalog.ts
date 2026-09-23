@@ -61,7 +61,9 @@ export function formatMoney(amountMinor: number, currency: string): string {
 export function categoriesOf(product: FeedProduct): string[] {
   const values = new Set<string>()
   for (const variant of product.variants) {
-    for (const row of variant.categories) values.add(row.value)
+    for (const row of variant.categories) {
+      if (row.taxonomy !== "brand") values.add(row.value)
+    }
   }
   return [...values]
 }
@@ -74,8 +76,16 @@ export function conditionsOf(product: FeedProduct): string[] {
   return [...values]
 }
 
-/** Marca declarada por el vendedor; el feed no la expone aparte, así que sale del título. */
+/**
+ * Marca del producto. El feed la publica como categoría en la taxonomía `brand`, porque el
+ * esquema ACP no tiene un campo propio; derivarla del título daba "iPhone" en vez de "Apple".
+ */
 export function brandOf(product: FeedProduct): string {
+  for (const variant of product.variants) {
+    for (const row of variant.categories) {
+      if (row.taxonomy === "brand" && row.value) return row.value
+    }
+  }
   return product.title.split(" ")[0] ?? ""
 }
 

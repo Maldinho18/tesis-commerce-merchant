@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Check, Package, Truck, X } from "lucide-react"
+import { useState } from "react"
+import { ArrowLeft, Check, Package, Truck } from "lucide-react"
 
 import { ProductImage } from "@/components/storefront/product-image"
 import {
@@ -40,50 +40,47 @@ function availabilityTone(status: string) {
 
 export function ProductDetail({
   product,
-  onClose,
+  onBack,
 }: {
   product: FeedProduct
-  onClose: () => void
+  onBack: () => void
 }) {
   const [selectedId, setSelectedId] = useState(product.variants[0]?.id ?? "")
   const [tab, setTab] = useState<Tab>("descripcion")
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
 
   const selected: FeedVariant | undefined =
     product.variants.find((variant) => variant.id === selectedId) ?? product.variants[0]
   if (!selected) return null
 
   const brand = brandOf(product)
-  const category = categoriesOf(product)[0]
+  const category = categoriesOf(product)[0] ?? ""
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-gray-900/50 p-0 sm:p-6"
-      onClick={onClose}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={product.title}
-        onClick={(event) => event.stopPropagation()}
-        className="relative w-full max-w-5xl bg-background shadow-xl"
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="absolute top-3 right-3 z-10 grid size-8 place-items-center bg-gray-50 text-gray-600 hover:bg-gray-900 hover:text-primary-foreground"
-        >
-          <X className="size-4" />
-        </button>
+    <div className="mx-auto w-full max-w-7xl px-4 pt-4 pb-10 sm:px-6">
+      <nav className="text-xs text-gray-600" aria-label="Ruta">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <button type="button" onClick={onBack} className="hover:text-primary">
+              Inicio
+            </button>
+          </li>
+          <li aria-hidden>›</li>
+          <li>{CATEGORY_LABELS[category] ?? category}</li>
+          <li aria-hidden>›</li>
+          <li className="font-medium text-foreground">{product.title}</li>
+        </ol>
+      </nav>
 
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Volver al catálogo
+      </button>
+
+      <div className="mt-4 border border-border bg-background">
         <div className="grid gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
           <div>
             <div className="aspect-square overflow-hidden border border-border bg-gray-50">
