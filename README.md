@@ -119,3 +119,25 @@ Remove-Item Env:RUN_DB_INTEGRATION
 
 Feed API incremental y frontend no están implementados. El handler sandbox no procesa
 credenciales reales ni dinero real; este subconjunto no afirma conformidad ACP integral.
+
+## Despliegue de la demo sintética
+
+El `Dockerfile` ejecuta `scripts/railway_bootstrap.py` antes de servir la API. En una instancia
+PostgreSQL dedicada y privada, configure `DATABASE_URL` para la base `tesis_lab`, y
+`BOOTSTRAP_ADMIN_DATABASE_URL` para la base administrativa inicial si `tesis_lab` aún no existe.
+`MERCHANT_ALLOW_REMOTE_DB=true` permite únicamente hosts `*.railway.internal`; en local sigue
+exigiéndose loopback. El bootstrap migra, siembra el episodio P0 cuando falta y registra el hash
+de `MERCHANT_AGENT_BEARER_TOKEN` sin imprimir el Bearer. Si hay más de un episodio P0 de
+preparación, falla en vez de escoger uno arbitrario.
+
+Configure `ACP_API_BASE_URL` con el origen HTTPS público del merchant. El agente debe usar ese
+mismo origen como `MERCHANT_BASE_URL` y el mismo Bearer. `PAYMENT_PROVIDER_URL` y
+`PAYMENT_MERCHANT_BEARER_TOKEN` apuntan al proveedor sandbox independiente;
+`PAYMENT_MERCHANT_ID` debe coincidir en los tres servicios. Para entregar webhooks configure
+`WEBHOOK_RECEIVER_URL` con el origen HTTPS del agente (sin la ruta) y comparta
+`MERCHANT_WEBHOOK_SECRET` solo con él. El outbox requiere ejecutar su dispatcher; arrancar la API
+no lo despacha automáticamente.
+
+El episodio P0 usa tiempo sintético `2026-09-10T14:00:00Z`; agente y proveedor necesitan sus
+relojes sandbox correspondientes para no tratar como vencido el checkout. La configuración
+completa de la demo está en el [runbook del agente](https://github.com/YairAndrade1/tesis-commerce-agent/blob/main/docs/deployment-railway.md).

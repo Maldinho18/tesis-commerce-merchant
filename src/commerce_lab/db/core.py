@@ -36,12 +36,27 @@ class DatabaseNotReady(RuntimeError):
 
 
 def database_url() -> str:
-    value = get_settings().database_url
+    settings = get_settings()
+    return validate_database_url(
+        settings.database_url, allow_private=settings.merchant_allow_remote_db
+    )
+
+
+def validate_database_url(value: str, *, allow_private: bool) -> str:
     parsed = urlparse(value)
-    if parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
-        raise ValueError("Merchant requires a localhost database")
-    if parsed.path != "/tesis_lab":
-        raise ValueError("Merchant requires the tesis_lab database")
+    host = parsed.hostname
+    local = host in {"localhost", "127.0.0.1", "::1"}
+    private = allow_private and host is not None and host.endswith(".railway.internal")
+    if (
+        parsed.scheme not in {"postgres", "postgresql"}
+        or parsed.username is None
+        or parsed.password is None
+        or parsed.query
+        or parsed.fragment
+        or parsed.path != "/tesis_lab"
+        or not (local or private)
+    ):
+        raise ValueError("Merchant database URL is outside the allowed scope")
     return value
 
 

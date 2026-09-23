@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = "postgresql://tesis_dev:tesis_local_only@127.0.0.1:55433/tesis_lab"
+    # Solo para despliegues sintéticos con base gestionada; en local queda en falso.
+    merchant_allow_remote_db: bool = False
     acp_api_base_url: str = "http://127.0.0.1:4120"
     webhook_receiver_url: str | None = None
     merchant_webhook_secret: str | None = None
