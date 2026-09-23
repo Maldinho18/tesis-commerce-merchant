@@ -1,20 +1,43 @@
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { Minus, Plus } from "lucide-react"
+
 import { CONDITION_LABELS, formatMoney } from "@/lib/catalog"
 import { EMPTY_FILTERS, activeFilterCount, type Filters } from "@/lib/filters"
 import { cn } from "cn"
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** Sección plegable, como los acordeones de filtro del kit. */
+function Section({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <section className="border-b border-border py-4 first:pt-0 last:border-b-0">
-      <h3 className="mb-2.5 text-xs font-semibold tracking-wide text-foreground uppercase">
-        {title}
-      </h3>
-      {children}
+    <section className="border-b border-border last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between py-3 text-left"
+      >
+        <span className="text-sm font-semibold">{title}</span>
+        {open ? (
+          <Minus className="size-4 text-gray-500" aria-hidden />
+        ) : (
+          <Plus className="size-4 text-gray-500" aria-hidden />
+        )}
+      </button>
+      {open && <div className="pb-4">{children}</div>}
     </section>
   )
 }
 
-function Option({
+/** Opción con casilla, como en el kit: la marca de verificación va a la izquierda. */
+function Check({
   active,
   children,
   onClick,
@@ -28,14 +51,24 @@ function Option({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={cn(
-        "-mx-2 block w-[calc(100%+1rem)] rounded-md px-2 py-1 text-left text-sm transition-colors",
-        active
-          ? "bg-accent font-medium text-accent-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      )}
+      className="flex w-full items-center gap-2 py-1 text-left text-sm"
     >
-      {children}
+      <span
+        className={cn(
+          "grid size-4 shrink-0 place-items-center rounded-[3px] border transition-colors",
+          active ? "border-primary bg-primary" : "border-gray-300 bg-background"
+        )}
+        aria-hidden
+      >
+        {active && (
+          <svg viewBox="0 0 10 8" className="size-2.5 fill-none stroke-white stroke-2">
+            <path d="M1 4l2.5 2.5L9 1" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className={cn("truncate", active ? "text-foreground" : "text-gray-600")}>
+        {children}
+      </span>
     </button>
   )
 }
@@ -65,28 +98,29 @@ export function FilterSidebar({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between pb-3">
-        <h2 className="text-sm font-semibold">Filtros</h2>
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <h2 className="text-base font-semibold">Filtros</h2>
         {count > 0 && (
-          <Button variant="ghost" size="xs" onClick={() => onChange(EMPTY_FILTERS)}>
+          <button
+            type="button"
+            onClick={() => onChange(EMPTY_FILTERS)}
+            className="text-xs font-medium text-primary hover:underline"
+          >
             Limpiar ({count})
-          </Button>
+          </button>
         )}
       </div>
 
       <Section title="Marca">
-        <div className="flex flex-col gap-0.5">
-          <Option active={filters.brand === null} onClick={() => onChange({ ...filters, brand: null })}>
-            Todas las marcas
-          </Option>
+        <div className="flex flex-col">
           {topBrands.map((brand) => (
-            <Option
+            <Check
               key={brand}
               active={filters.brand === brand}
-              onClick={() => onChange({ ...filters, brand })}
+              onClick={() => onChange({ ...filters, brand: filters.brand === brand ? null : brand })}
             >
               {brand}
-            </Option>
+            </Check>
           ))}
         </div>
         {brands.length > topBrands.length && (
@@ -94,7 +128,7 @@ export function FilterSidebar({
             value={filters.brand && !topBrands.includes(filters.brand) ? filters.brand : ""}
             onChange={(event) => onChange({ ...filters, brand: event.target.value || null })}
             aria-label="Todas las marcas"
-            className="mt-2 h-8 w-full rounded-md border border-border bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="mt-2 h-8 w-full rounded-sm border border-border bg-background px-2 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25"
           >
             <option value="">Otra marca…</option>
             {brands.map((brand) => (
@@ -106,53 +140,48 @@ export function FilterSidebar({
         )}
       </Section>
 
-      <Section title="Precio">
-        <div className="flex flex-col gap-0.5">
-          <Option
-            active={filters.maxAmount === null}
-            onClick={() => onChange({ ...filters, maxAmount: null })}
-          >
-            Cualquier precio
-          </Option>
+      <Section title="Rango de precio">
+        <div className="flex flex-col">
           {budgets.map((amount) => (
-            <Option
+            <Check
               key={amount}
               active={filters.maxAmount === amount}
-              onClick={() => onChange({ ...filters, maxAmount: amount })}
+              onClick={() =>
+                onChange({ ...filters, maxAmount: filters.maxAmount === amount ? null : amount })
+              }
             >
               Hasta {formatMoney(amount, currency)}
-            </Option>
+            </Check>
           ))}
         </div>
       </Section>
 
       <Section title="Condición">
-        <div className="flex flex-col gap-0.5">
-          <Option
-            active={filters.condition === null}
-            onClick={() => onChange({ ...filters, condition: null })}
-          >
-            Cualquiera
-          </Option>
+        <div className="flex flex-col">
           {conditions.map((condition) => (
-            <Option
+            <Check
               key={condition}
               active={filters.condition === condition}
-              onClick={() => onChange({ ...filters, condition })}
+              onClick={() =>
+                onChange({
+                  ...filters,
+                  condition: filters.condition === condition ? null : condition,
+                })
+              }
             >
               {CONDITION_LABELS[condition] ?? condition}
-            </Option>
+            </Check>
           ))}
         </div>
       </Section>
 
       <Section title="Disponibilidad">
-        <Option
+        <Check
           active={filters.onlyAvailable}
           onClick={() => onChange({ ...filters, onlyAvailable: !filters.onlyAvailable })}
         >
           Solo productos disponibles
-        </Option>
+        </Check>
       </Section>
     </div>
   )

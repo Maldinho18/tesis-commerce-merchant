@@ -98,7 +98,7 @@ export default function App() {
     : "Todo el catálogo"
 
   return (
-    <div className="flex min-h-svh flex-col bg-secondary/30">
+    <div className="flex min-h-svh flex-col bg-background">
       <SiteHeader
         query={filters.query}
         category={filters.category}
@@ -108,7 +108,20 @@ export default function App() {
         onCategory={(category) => applyFilters({ ...filters, category })}
       />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+      <nav
+        className="mx-auto w-full max-w-7xl px-4 pt-4 text-xs text-gray-600 sm:px-6"
+        aria-label="Ruta"
+      >
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>Inicio</li>
+          <li aria-hidden>›</li>
+          <li>Catálogo</li>
+          <li aria-hidden>›</li>
+          <li className="font-medium text-foreground">{heading}</li>
+        </ol>
+      </nav>
+
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-10 sm:px-6">
         {error && (
           <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <p className="font-medium">No se pudo cargar el catálogo.</p>
@@ -129,10 +142,10 @@ export default function App() {
         {catalog && (
           <div className="flex gap-6">
             <aside
-              className={`${filtersOpen ? "block" : "hidden"} w-60 shrink-0 lg:block`}
+              className={`${filtersOpen ? "block" : "hidden"} w-64 shrink-0 lg:block`}
               aria-label="Filtros"
             >
-              <div className="sticky top-32 rounded-xl border border-border bg-card p-4">
+              <div className="sticky top-40 border border-border bg-card px-4 py-3">
                 <FilterSidebar
                   filters={filters}
                   brands={facets.brands}
@@ -146,12 +159,17 @@ export default function App() {
             </aside>
 
             <div className="min-w-0 flex-1">
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {visible.length.toLocaleString("es-CO")} resultados
-                    {pageCount > 1 && ` · página ${current + 1} de ${pageCount}`}
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-border bg-gray-50 px-4 py-2.5">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h1 className="text-base font-semibold tracking-tight">{heading}</h1>
+                  <p className="text-xs text-gray-600">
+                    Mostrando{" "}
+                    {visible.length === 0
+                      ? 0
+                      : (current * PAGE_SIZE + 1).toLocaleString("es-CO")}
+                    –
+                    {Math.min((current + 1) * PAGE_SIZE, visible.length).toLocaleString("es-CO")} de{" "}
+                    {visible.length.toLocaleString("es-CO")} productos
                   </p>
                 </div>
 
@@ -186,7 +204,7 @@ export default function App() {
               </div>
 
               {visible.length === 0 ? (
-                <div className="rounded-xl border border-border bg-card px-4 py-16 text-center">
+                <div className="border border-border bg-card px-4 py-16 text-center">
                   <p className="text-sm font-medium">Ningún producto cumple esos filtros.</p>
                   <Button
                     variant="outline"
@@ -238,16 +256,44 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto w-full max-w-7xl px-4 py-6 text-xs text-muted-foreground sm:px-6">
-          <p className="font-medium text-foreground">Tesis Commerce</p>
-          <p className="mt-1 max-w-2xl">
-            Vitrina de solo consulta para la tesis. El catálogo lo sirve el comercio y es el mismo
-            que consume el agente comprador por ACP; la compra nunca ocurre por aquí.
-          </p>
-          <p className="mt-2">
-            Datos e imágenes de productos provenientes de Wikidata y Wikimedia Commons.
-          </p>
+      <footer className="bg-gray-900 text-gray-300">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <p className="text-base font-bold text-primary-foreground">TESIS COMMERCE</p>
+            <p className="mt-2 max-w-md text-xs leading-relaxed">
+              Vitrina de solo consulta. El catálogo lo sirve el comercio y es el mismo que consume
+              el agente comprador por ACP; la compra nunca ocurre por aquí.
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold tracking-wide text-primary-foreground uppercase">
+              Categorías
+            </p>
+            <ul className="mt-3 space-y-1.5 text-xs">
+              {facets.categories.map((value) => (
+                <li key={value}>
+                  <button
+                    type="button"
+                    onClick={() => applyFilters({ ...filters, category: value })}
+                    className="hover:text-primary-foreground"
+                  >
+                    {CATEGORY_LABELS[value] ?? value}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold tracking-wide text-primary-foreground uppercase">
+              Procedencia
+            </p>
+            <ul className="mt-3 space-y-1.5 text-xs">
+              <li>Datos e imágenes: Wikidata</li>
+              <li>Fotografías: Wikimedia Commons</li>
+              <li>Inventario y precios: sintéticos</li>
+              <li>Protocolo: ACP 2026-04-17</li>
+            </ul>
+          </div>
         </div>
       </footer>
 
