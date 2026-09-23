@@ -17,14 +17,14 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <section className="border-b border-border last:border-b-0">
+    <section className="border-t border-border first:border-t-0">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between py-3 text-left"
+        className="flex w-full items-center justify-between py-3.5 text-left"
       >
-        <span className="text-sm font-semibold">{title}</span>
+        <span className="text-[0.8rem] font-medium">{title}</span>
         {open ? (
           <Minus className="size-4 text-gray-500" aria-hidden />
         ) : (
@@ -51,12 +51,12 @@ function Check({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="flex w-full items-center gap-2 py-1 text-left text-sm"
+      className="flex w-full items-center gap-2.5 py-1.5 text-left text-sm"
     >
       <span
         className={cn(
           "grid size-4 shrink-0 place-items-center rounded-[3px] border transition-colors",
-          active ? "border-primary bg-primary" : "border-gray-300 bg-background"
+          active ? "border-foreground bg-foreground" : "border-gray-300 bg-background"
         )}
         aria-hidden
       >
@@ -98,8 +98,8 @@ export function FilterSidebar({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b border-border pb-3">
-        <h2 className="text-base font-semibold">Filtros</h2>
+      <div className="flex items-center justify-between pb-1">
+        <h2 className="text-sm font-semibold">Filtros</h2>
         {count > 0 && (
           <button
             type="button"
@@ -128,7 +128,7 @@ export function FilterSidebar({
             value={filters.brand && !topBrands.includes(filters.brand) ? filters.brand : ""}
             onChange={(event) => onChange({ ...filters, brand: event.target.value || null })}
             aria-label="Todas las marcas"
-            className="mt-2 h-8 w-full rounded-sm border border-border bg-background px-2 text-sm outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25"
+            className="mt-2 h-9 w-full rounded-lg bg-muted px-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-foreground/10"
           >
             <option value="">Otra marca…</option>
             {brands.map((brand) => (

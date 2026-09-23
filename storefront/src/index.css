@@ -15,15 +15,15 @@
   --primary-foreground: #ffffff;
   --secondary: #f2f4f5;
   --secondary-foreground: #191c1f;
-  --muted: #f2f4f5;
+  --muted: #f7f8f9;
   --muted-foreground: #5f6c72;
   --accent: #fa8232;
   --accent-foreground: #ffffff;
   --destructive: #e53935;
-  --border: #e4e7e9;
+  --border: #edeff1;
   --input: #e4e7e9;
   --ring: #008ecc;
-  --radius: 0.25rem;
+  --radius: 0.75rem;
 
   /* Escala de grises del kit, para superficies que no encajan en los roles de arriba. */
   --gray-900: #191c1f;
@@ -32,7 +32,7 @@
   --gray-500: #77878f;
   --gray-400: #929fa5;
   --gray-300: #adb7bc;
-  --gray-50: #f2f4f5;
+  --gray-50: #f7f8f9;
   --warning: #ebc80c;
 }
 

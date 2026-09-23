@@ -129,7 +129,7 @@ export default function App() {
       ) : (
         <>
       <nav
-          className="mx-auto w-full max-w-7xl px-4 pt-4 text-xs text-gray-600 sm:px-6"
+          className="mx-auto w-full max-w-7xl px-6 pt-6 text-xs text-gray-500"
           aria-label="Ruta"
         >
           <ol className="flex flex-wrap items-center gap-1.5">
@@ -141,7 +141,7 @@ export default function App() {
           </ol>
         </nav>
   
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-10 sm:px-6">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-6 pt-6 pb-16">
           {error && (
             <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <p className="font-medium">No se pudo cargar el catálogo.</p>
@@ -160,12 +160,12 @@ export default function App() {
           )}
   
           {catalog && (
-            <div className="flex gap-6">
+            <div className="flex gap-10">
               <aside
                 className={`${filtersOpen ? "block" : "hidden"} w-64 shrink-0 lg:block`}
                 aria-label="Filtros"
               >
-                <div className="sticky top-40 border border-border bg-card px-4 py-3">
+                <div className="sticky top-36">
                   <FilterSidebar
                     filters={filters}
                     brands={facets.brands}
@@ -179,9 +179,9 @@ export default function App() {
               </aside>
   
               <div className="min-w-0 flex-1">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-border bg-gray-50 px-4 py-2.5">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <h1 className="text-base font-semibold tracking-tight">{heading}</h1>
+                    <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
                     <p className="text-xs text-gray-600">
                       Mostrando{" "}
                       {visible.length === 0
@@ -211,7 +211,7 @@ export default function App() {
                           setSort(event.target.value as SortKey)
                           setPage(0)
                         }}
-                        className="h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                        className="h-9 rounded-lg bg-muted px-2.5 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-foreground/10"
                       >
                         {Object.entries(SORT_LABELS).map(([key, label]) => (
                           <option key={key} value={key}>
@@ -224,7 +224,7 @@ export default function App() {
                 </div>
   
                 {visible.length === 0 ? (
-                  <div className="border border-border bg-card px-4 py-16 text-center">
+                  <div className="rounded-xl bg-muted px-4 py-20 text-center">
                     <p className="text-sm font-medium">Ningún producto cumple esos filtros.</p>
                     <Button
                       variant="outline"
@@ -237,7 +237,7 @@ export default function App() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
                       {shown.map((product) => (
                         <ProductCard
                           key={product.id}

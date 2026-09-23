@@ -32,10 +32,10 @@ function Tag({ tone, children }: { tone: "accent" | "muted" | "off"; children: R
   return (
     <span
       className={cn(
-        "rounded-sm px-1.5 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase",
+        "rounded-full px-2 py-0.5 text-[0.65rem] font-medium",
         tone === "accent" && "bg-accent text-accent-foreground",
-        tone === "muted" && "bg-gray-900 text-primary-foreground",
-        tone === "off" && "bg-background text-gray-600 ring-1 ring-border"
+        tone === "muted" && "bg-foreground/85 text-background",
+        tone === "off" && "bg-background/90 text-gray-600 backdrop-blur-sm"
       )}
     >
       {children}
@@ -59,16 +59,16 @@ export function ProductCard({
   return (
     <article
       onClick={() => onOpen(product)}
-      className="group flex cursor-pointer flex-col border border-border bg-card transition-colors hover:border-primary"
+      className="group flex cursor-pointer flex-col rounded-xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgb(0_0_0/0.12)]"
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         <ProductImage
           src={thumbnail(product.media[0]?.url, 320)}
           alt={product.media[0]?.alt_text ?? product.title}
           seed={product.id}
           category={categoriesOf(product)[0]}
           brand={brandOf(product)}
-          className="h-full w-full p-6 transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full p-7 transition-transform duration-300 group-hover:scale-[1.04]"
         />
         <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
           {!available && <Tag tone="off">Agotado</Tag>}
@@ -78,29 +78,27 @@ export function ProductCard({
           )}
         </div>
         <span
-          className="absolute right-2 bottom-2 grid size-8 place-items-center rounded-sm bg-gray-900 text-primary-foreground opacity-0 transition-opacity group-hover:opacity-100"
+          className="absolute right-3 bottom-3 grid size-9 place-items-center rounded-full bg-background/90 text-foreground opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100"
           aria-hidden
         >
           <ArrowUpRight className="size-4" />
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3">
-        <p className="text-[0.65rem] font-semibold tracking-wide text-gray-500 uppercase">
-          {brandOf(product)}
-        </p>
-        <h3 className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
+      <div className="flex flex-1 flex-col gap-1 px-1 pt-3 pb-1">
+        <p className="text-xs text-gray-500">{brandOf(product)}</p>
+        <h3 className="line-clamp-2 text-[0.9rem] leading-snug font-medium text-foreground">
           {product.title}
         </h3>
 
         <div className="mt-auto pt-2">
-          <p className="text-lg leading-tight font-bold text-primary tabular-nums">
+          <p className="text-[1.05rem] leading-tight font-semibold text-foreground tabular-nums">
             {range.min !== range.max && (
-              <span className="mr-1 text-[0.7rem] font-medium text-gray-500">Desde</span>
+              <span className="mr-1 text-xs font-normal text-gray-500">Desde</span>
             )}
             {formatMoney(range.min, range.currency)}
           </p>
-          <p className="mt-1 line-clamp-1 text-[0.7rem] text-gray-600">
+          <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
             {product.variants.length > 1
               ? `${product.variants.length} opciones${varying.length > 0 ? ` · ${varying.join(" · ")}` : ""}`
               : "Única presentación"}
