@@ -11,6 +11,7 @@ import {
   formatMoney,
   inStock,
   priceRange,
+  thumbnail,
   type FeedProduct,
 } from "@/lib/catalog"
 
@@ -51,7 +52,7 @@ export function ProductCard({
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-secondary/40">
         <ProductImage
-          src={product.media[0]?.url}
+          src={thumbnail(product.media[0]?.url, 320)}
           alt={product.media[0]?.alt_text ?? product.title}
           seed={product.id}
           category={categories[0]}

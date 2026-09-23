@@ -111,3 +111,15 @@ export const CONDITION_LABELS: Record<string, string> = {
   new: "Nuevo",
   refurbished: "Reacondicionado",
 }
+
+/**
+ * Miniatura del ancho pedido para las imágenes de Wikimedia Commons.
+ *
+ * El feed publica `?width=600`, que en una retícula de 48 tarjetas son varios megabytes
+ * por página. Commons sirve el tamaño que se le pida, así que la vitrina baja el ancho
+ * para el listado y deja el original para el detalle.
+ */
+export function thumbnail(url: string | undefined, width: number): string | undefined {
+  if (!url) return undefined
+  return url.includes("width=") ? url.replace(/width=\d+/, `width=${width}`) : url
+}
