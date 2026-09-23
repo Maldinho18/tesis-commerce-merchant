@@ -148,11 +148,11 @@ def test_legacy_offer_snapshot_derives_new_non_authoritative_fields() -> None:
     assert offer.attributes == {}
 
 
-def test_fixture_has_exactly_two_admissible_asus_configurations() -> None:
+def test_fixture_has_exactly_two_admissible_zephyrus_configurations() -> None:
     admissible = [
         offer.id
         for offer in P0_OFFERS
-        if offer.brand == "ASUS"
+        if offer.product_id == "prod-asus-rog-zephyrus-g16"
         and offer.condition == "new"
         and offer.pricing.total_minor <= 12_000_000_00
         and offer.delivery_days <= 5
@@ -180,8 +180,10 @@ def test_variant_attributes_carry_the_configuration_that_distinguishes_siblings(
 
 
 def test_every_p0_product_has_explicit_valid_internal_status() -> None:
-    assert len(P0_OFFERS) == 34
-    assert len({offer.product_id for offer in P0_OFFERS}) == 14
+    # El catálogo crece con el snapshot externo, así que se afirma la escala y las
+    # invariantes, no un conteo exacto que quedaría obsoleto en cada recolección.
+    assert len({offer.product_id for offer in P0_OFFERS}) >= 1_000
+    assert len(P0_OFFERS) >= len({offer.product_id for offer in P0_OFFERS})
     assert len({offer.id for offer in P0_OFFERS}) == len(P0_OFFERS)
     assert {offer.product_status for offer in P0_OFFERS} == {"active"}
     assert all("product_status" in offer.model_dump() for offer in P0_OFFERS)

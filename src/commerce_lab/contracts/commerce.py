@@ -57,6 +57,9 @@ class Offer(StrictModel):
     product_title: Annotated[str, Field(min_length=1, max_length=200)] | None = None
     product_description: Annotated[str, Field(min_length=1, max_length=2000)] | None = None
     brand: Brand
+    # URL absoluta de la imagen del producto. Cuando falta, el exportador la deriva del
+    # origen del comercio. Los productos tomados de un catálogo externo traen la suya.
+    image_url: Annotated[str, Field(min_length=1, max_length=2048)] | None = None
     color: Color | None = None
     attributes: Annotated[dict[Identifier, AttributeValue], Field(max_length=32)] = Field(
         default_factory=dict

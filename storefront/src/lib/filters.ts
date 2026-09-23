@@ -8,6 +8,7 @@ import {
 } from "@/lib/catalog"
 
 export type Filters = {
+  query: string
   category: string | null
   brand: string | null
   condition: string | null
@@ -16,6 +17,7 @@ export type Filters = {
 }
 
 export const EMPTY_FILTERS: Filters = {
+  query: "",
   category: null,
   brand: null,
   condition: null,
@@ -25,6 +27,7 @@ export const EMPTY_FILTERS: Filters = {
 
 export function activeFilterCount(filters: Filters): number {
   return (
+    Number(filters.query.trim().length > 0) +
     Number(filters.category !== null) +
     Number(filters.brand !== null) +
     Number(filters.condition !== null) +
@@ -33,8 +36,24 @@ export function activeFilterCount(filters: Filters): number {
   )
 }
 
-/** Mismo predicado que aplica el comprador sobre sus restricciones duras. */
+/** Texto sobre el que busca la vitrina: título, descripción y valores de opción. */
+function searchText(product: FeedProduct): string {
+  const parts = [product.title, product.description.plain]
+  for (const variant of product.variants) {
+    parts.push(variant.title)
+    for (const option of variant.variant_options) parts.push(option.value)
+  }
+  return parts.join(" ").toLowerCase()
+}
+
+/** Mismo predicado que aplica el comprador sobre sus restricciones duras, más el buscador. */
 export function matchesFilters(product: FeedProduct, filters: Filters): boolean {
+  const query = filters.query.trim().toLowerCase()
+  if (query) {
+    const haystack = searchText(product)
+    // Todos los términos deben aparecer: "samsung 512" acota, no ensancha.
+    if (!query.split(/\s+/).every((term) => haystack.includes(term))) return false
+  }
   if (filters.category && !categoriesOf(product).includes(filters.category)) return false
   if (filters.brand && brandOf(product) !== filters.brand) return false
   if (filters.condition && !conditionsOf(product).includes(filters.condition)) return false
@@ -50,3 +69,6 @@ export function budgetSteps(products: FeedProduct[]): number[] {
   const million = 1_000_000_00
   return [million, 3 * million, 6 * million, 12 * million].filter((amount) => amount < max)
 }
+
+/** Productos por página en la retícula. */
+export const PAGE_SIZE = 48

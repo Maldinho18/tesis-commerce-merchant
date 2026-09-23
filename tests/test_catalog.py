@@ -28,15 +28,18 @@ def test_catalog_exposes_every_variant_of_a_category() -> None:
 
 
 def test_catalog_exposes_every_configuration_of_one_product() -> None:
-    result = reader().search({"category": "laptops", "brand": "ASUS"})
-    assert [offer.id for offer in result.data.offers] == [
+    # La búsqueda pagina; el producto curado se aísla por product_id.
+    offers = [
+        offer for offer in fresh_p0_offers() if offer.product_id == "prod-asus-rog-zephyrus-g16"
+    ]
+    assert [offer.id for offer in offers] == [
         "ASUS-G16-16-5060-1TB",
         "ASUS-G16-32-5070-1TB",
         "ASUS-G16-32-5070TI-2TB",
         "ASUS-G16-32-5080-2TB",
     ]
-    assert {offer.product_id for offer in result.data.offers} == {"prod-asus-rog-zephyrus-g16"}
-    assert [offer.attributes["gpu"] for offer in result.data.offers] == [
+    assert {offer.product_id for offer in offers} == {"prod-asus-rog-zephyrus-g16"}
+    assert [offer.attributes["gpu"] for offer in offers] == [
         "RTX 5060",
         "RTX 5070",
         "RTX 5070 Ti",

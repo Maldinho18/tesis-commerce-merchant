@@ -12,6 +12,7 @@ Convención de montos: enteros en centavos de COP (exponente 2 de ISO 4217). Se 
 from typing import Final, Literal, NamedTuple
 
 from commerce_lab.contracts import DeliveryContext, Offer, Pricing
+from commerce_lab.fixtures.generated import build_generated_offers
 
 FIXTURE_NOW: Final = "2026-09-10T14:00:00Z"
 FIXTURE_EXPIRES_AT: Final = "2026-09-10T14:15:00Z"
@@ -664,6 +665,12 @@ _CATALOG: Final[tuple[Product, ...]] = (
 
 
 def _build_offers() -> tuple[Offer, ...]:
+    """Catálogo curado primero, luego el generado desde el snapshot de Wikidata.
+
+    El bloque curado conserva los casos borde que las pruebas usan como anclaje: última
+    unidad, agotado y reacondicionado. El generado aporta la escala con productos, marcas
+    e imágenes reales.
+    """
     offers: list[Offer] = []
     for product in _CATALOG:
         for variant in product.variants:
@@ -698,6 +705,13 @@ def _build_offers() -> tuple[Offer, ...]:
                     expires_at=FIXTURE_EXPIRES_AT,
                 )
             )
+    offers.extend(
+        build_generated_offers(
+            delivery_context=FIXTURE_DELIVERY_CONTEXT,
+            observed_at=FIXTURE_NOW,
+            expires_at=FIXTURE_EXPIRES_AT,
+        )
+    )
     return tuple(offers)
 
 

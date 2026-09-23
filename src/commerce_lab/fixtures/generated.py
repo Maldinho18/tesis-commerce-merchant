@@ -1,0 +1,198 @@
+"""Expande el snapshot de Wikidata a ofertas comprables, de forma determinista.
+
+El snapshot trae producto, marca e imagen reales. Inventario, precio y configuraciones son
+sintéticos, pero se derivan de un hash estable del identificador de Wikidata: la misma entrada
+produce siempre la misma salida, sin red ni reloj, que es lo que permite que `verify()` compare
+el catálogo sembrado contra este fixture.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Final
+
+from commerce_lab.contracts import DeliveryContext, Offer, Pricing
+
+SNAPSHOT_PATH: Final = Path(__file__).with_name("catalog_snapshot.json")
+
+# Rango de precio por categoría, en centavos de COP.
+_PRICE_RANGE: Final[dict[str, tuple[int, int]]] = {
+    "smartphones": (349_000_00, 7_499_000_00),
+    "laptops": (1_699_000_00, 15_999_000_00),
+    "tablets": (799_000_00, 5_499_000_00),
+}
+# Marcas que se posicionan en la mitad alta de su rango.
+_PREMIUM: Final[frozenset[str]] = frozenset(
+    {"Apple", "Apple Inc.", "Samsung Electronics", "Samsung Group", "Google", "Sony", "ASUS"}
+)
+
+_STORAGE: Final[dict[str, tuple[str, ...]]] = {
+    "smartphones": ("128 GB", "256 GB", "512 GB"),
+    "tablets": ("64 GB", "128 GB", "256 GB"),
+    "laptops": ("512 GB", "1 TB", "2 TB"),
+}
+_RAM: Final[tuple[str, ...]] = ("8 GB", "16 GB", "32 GB")
+_COLORS: Final[tuple[str, ...]] = ("negro", "plata", "azul", "blanco", "grafito")
+_SHIP_STD: Final = 25_000_00
+
+
+def _digits(entity: str) -> list[int]:
+    """Doce enteros estables por producto; toda variación sintética sale de aquí."""
+    raw = hashlib.sha256(entity.encode("utf-8")).digest()
+    return [byte for byte in raw[:12]]
+
+
+def _price(entity: str, category: str, brand: str | None, *, modern: bool) -> int:
+    low, high = _PRICE_RANGE.get(category, _PRICE_RANGE["smartphones"])
+    spread = _digits(entity)[0] / 255
+    if not modern:
+        spread = spread / 3
+    elif brand in _PREMIUM:
+        spread = 0.5 + spread / 2
+    amount = low + int((high - low) * spread)
+    # Se redondea a decenas de miles de pesos para que se lea como un precio de tienda.
+    return (amount // 10_000_00) * 10_000_00 or low
+
+
+def _brand_of(product: dict[str, Any]) -> str:
+    brand = product.get("brand")
+    if isinstance(brand, str) and brand.strip():
+        return brand.strip()[:100]
+    # Sin fabricante declarado, la primera palabra del título es la mejor aproximación.
+    return str(product["title"]).split()[0][:100]
+
+
+def _image_url(file_name: str) -> str:
+    from urllib.parse import quote
+
+    return (
+        "https://commons.wikimedia.org/wiki/Special:FilePath/"
+        f"{quote(file_name.replace(' ', '_'))}?width=600"
+    )
+
+
+def _description(product: dict[str, Any], brand: str, variants: int) -> str:
+    kind = product.get("kind") or "Producto"
+    released = product.get("released")
+    parts = [f"{kind} {brand}."]
+    if released:
+        parts.append(f"Lanzado en {released[:4]}.")
+    parts.append(
+        "Disponible en una configuración."
+        if variants == 1
+        else f"Disponible en {variants} configuraciones."
+    )
+    parts.append("Ficha sintética para el laboratorio de la tesis.")
+    return " ".join(parts)[:2000]
+
+
+# Antes de este año no se inventan capacidades modernas: un teléfono de 2005 con 512 GB es
+# ruido evidente en la vitrina. Los productos sin fecha se tratan como no fechables.
+_MODERN_FROM: Final = 2015
+
+
+def _is_modern(released: str | None) -> bool:
+    if not released or len(released) < 4 or not released[:4].isdigit():
+        return False
+    return int(released[:4]) >= _MODERN_FROM
+
+
+def _variant_specs(
+    entity: str, category: str, released: str | None
+) -> list[tuple[str, dict[str, str], str]]:
+    """Devuelve (código, atributos, color) por variante.
+
+    Solo los productos con fecha reciente reciben una matriz de configuraciones inventada.
+    El resto queda con una sola variante y su color, que es lo único que se puede afirmar
+    sin contradecir el producto real.
+    """
+    d = _digits(entity)
+    if not _is_modern(released):
+        return [("STD", {}, _COLORS[d[4] % len(_COLORS)])]
+    storages = _STORAGE.get(category, _STORAGE["smartphones"])
+    count = 1 + d[1] % 3
+    start = d[2] % max(len(storages) - count + 1, 1)
+    chosen = storages[start : start + count] or storages[:1]
+    specs: list[tuple[str, dict[str, str], str]] = []
+    for index, storage in enumerate(chosen):
+        attributes = {"storage": storage}
+        if category == "laptops":
+            attributes["ram"] = _RAM[(d[3] + index) % len(_RAM)]
+        color = _COLORS[(d[4] + index) % len(_COLORS)]
+        specs.append((storage.replace(" ", ""), attributes, color))
+    return specs
+
+
+@lru_cache
+def _snapshot() -> list[dict[str, Any]]:
+    if not SNAPSHOT_PATH.exists():
+        return []
+    document = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
+    products: list[dict[str, Any]] = document.get("products", [])
+    # Las fotos van primero; el arte vectorial queda al final del catálogo.
+    return sorted(products, key=lambda row: (row["is_vector"], row["category"], row["entity"]))
+
+
+def build_generated_offers(
+    *, delivery_context: DeliveryContext, observed_at: str, expires_at: str
+) -> list[Offer]:
+    offers: list[Offer] = []
+    for product in _snapshot():
+        entity = str(product["entity"])
+        category = str(product["category"])
+        brand = _brand_of(product)
+        title = str(product["title"])[:200]
+        d = _digits(entity)
+        released = product.get("released")
+        specs = _variant_specs(entity, category, released)
+        description = _description(product, brand, len(specs))
+        image_url = _image_url(str(product["image_file"]))
+        base = _price(entity, category, product.get("brand"), modern=_is_modern(released))
+        # Lo antiguo se ofrece casi siempre reacondicionado; lo reciente, rara vez.
+        refurbished = d[5] % 2 == 0 if not _is_modern(released) else d[5] % 8 == 0
+        condition = "refurbished" if refurbished else "new"
+
+        for index, (code, attributes, color) in enumerate(specs):
+            # Cada escalón de configuración sube el precio de forma estable.
+            item_minor = base + index * ((d[6] % 6 + 2) * 10_000_00)
+            if refurbished:
+                item_minor = int(item_minor * 0.7 // 10_000_00) * 10_000_00 or base
+            shipping = 0 if item_minor >= 2_000_000_00 else _SHIP_STD
+            quantity = (d[7] + index * 3) % 14
+            offers.append(
+                Offer(
+                    id=f"{entity}-{code}",
+                    product_id=f"prod-{entity.lower()}",
+                    product_status="active",
+                    sku=f"{entity}-{code}",
+                    merchant_id="merchant-sim-01",
+                    revision=1,
+                    category=category,
+                    # Sin configuración inventada, el nombre de la variante es el del producto.
+                    name=(title if code == "STD" else f"{title} {code}")[:200],
+                    product_title=title,
+                    product_description=description,
+                    brand=brand,
+                    image_url=image_url,
+                    color=color,
+                    attributes=dict(attributes),
+                    condition=condition,
+                    availability="in_stock" if quantity > 0 else "out_of_stock",
+                    available_quantity=quantity,
+                    pricing=Pricing(
+                        currency="cop",
+                        items_total_minor=item_minor,
+                        shipping_total_minor=shipping,
+                        total_minor=item_minor + shipping,
+                        tax_included=True,
+                    ),
+                    delivery_context=delivery_context,
+                    delivery_days=1 + d[8] % 8,
+                    observed_at=observed_at,
+                    expires_at=expires_at,
+                )
+            )
+    return offers

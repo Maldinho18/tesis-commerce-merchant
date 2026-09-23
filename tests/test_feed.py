@@ -15,8 +15,8 @@ REGISTRY = Registry().with_resource(str(BUNDLE["$id"]), Resource.from_contents(B
 
 # El origen se fija en la prueba para que el export no dependa de ACP_API_BASE_URL del entorno.
 ORIGIN = "https://merchant.example.test"
-PRODUCT_COUNT = 14
-VARIANT_COUNT = 34
+# El catálogo crece con el snapshot externo: se afirma escala e invariantes, no literales.
+MIN_PRODUCTS = 1_000
 
 
 def validate(definition: str, value: object) -> None:
@@ -35,8 +35,10 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
     second = tmp_path / "second"
     summary = export_feed(first, base_url=ORIGIN)
     export_feed(second, base_url=ORIGIN)
-    assert summary["product_count"] == PRODUCT_COUNT
-    assert summary["variant_count"] == VARIANT_COUNT
+    assert isinstance(summary["product_count"], int)
+    assert isinstance(summary["variant_count"], int)
+    assert summary["product_count"] >= MIN_PRODUCTS
+    assert summary["variant_count"] >= summary["product_count"]
     for name in ("metadata.json", "products.jsonl"):
         assert (first / name).read_bytes() == (second / name).read_bytes()
     metadata = json.loads((first / "metadata.json").read_text(encoding="utf-8"))
@@ -47,12 +49,12 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
         "updated_at": "2026-09-10T14:00:00Z",
     }
     lines = (first / "products.jsonl").read_text(encoding="utf-8").splitlines()
-    assert len(lines) == PRODUCT_COUNT
+    assert len(lines) == summary["product_count"]
     products = [json.loads(line) for line in lines]
     assert [product["id"] for product in products] == sorted(product["id"] for product in products)
-    assert len({product["id"] for product in products}) == PRODUCT_COUNT
+    assert len({product["id"] for product in products}) == len(products)
     variants = [variant for product in products for variant in product["variants"]]
-    assert len(variants) == len({variant["id"] for variant in variants}) == VARIANT_COUNT
+    assert len(variants) == len({variant["id"] for variant in variants})
     assert {variant["id"] for variant in variants} == {offer.id for offer in fresh_p0_offers()}
     # El catálogo P0 agrupa configuraciones bajo un mismo producto; sin esto el filtro de
     # opciones del agente no tendría nada que discriminar.
@@ -65,8 +67,11 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
             validate("Media", media)
             assert media["type"] == "image"
             parsed_url = urlparse(media["url"])
-            assert parsed_url.scheme == "https" and parsed_url.netloc == "merchant.example.test"
-            assert media["url"] == f"{ORIGIN}/assets/products/{product['id']}.jpg"
+            # El producto curado sirve su imagen desde el comercio; el tomado del catálogo
+            # externo trae la suya. En ambos casos tiene que ser HTTPS absoluto.
+            assert parsed_url.scheme == "https" and parsed_url.netloc
+            if parsed_url.netloc == "merchant.example.test":
+                assert media["url"] == f"{ORIGIN}/assets/products/{product['id']}.jpg"
             assert media["alt_text"].strip()
         assert len(product["variants"]) >= 1
         variant_ids = [variant["id"] for variant in product["variants"]]

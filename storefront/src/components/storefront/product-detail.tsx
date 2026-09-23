@@ -88,7 +88,7 @@ export function ProductDetail({
         </Button>
 
         <div className="grid gap-6 p-5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:p-6">
-          <div className="aspect-square overflow-hidden rounded-lg bg-secondary/40">
+          <div className="aspect-square shrink-0 overflow-hidden rounded-lg bg-secondary/40">
             <ProductImage
               src={product.media[0]?.url}
               alt={product.media[0]?.alt_text ?? product.title}

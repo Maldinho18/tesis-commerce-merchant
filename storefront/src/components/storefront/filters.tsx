@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Search } from "lucide-react"
 import { cn } from "cn"
 import { CATEGORY_LABELS, CONDITION_LABELS, formatMoney } from "@/lib/catalog"
 import { EMPTY_FILTERS, activeFilterCount, type Filters } from "@/lib/filters"
@@ -38,6 +39,7 @@ export function FilterBar({
   filters,
   categories,
   brands,
+  topBrands,
   conditions,
   budgets,
   currency,
@@ -46,6 +48,7 @@ export function FilterBar({
   filters: Filters
   categories: string[]
   brands: string[]
+  topBrands: string[]
   conditions: string[]
   budgets: number[]
   currency: string
@@ -55,6 +58,21 @@ export function FilterBar({
 
   return (
     <div className="flex flex-col gap-3 border-b border-border pb-4">
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={filters.query}
+          onChange={(event) => onChange({ ...filters, query: event.target.value })}
+          placeholder="Buscar por modelo, marca o característica…"
+          aria-label="Buscar en el catálogo"
+          className="h-10 w-full rounded-lg border border-border bg-background pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-xs font-medium text-muted-foreground">Categoría</span>
         <Chip active={filters.category === null} onClick={() => onChange({ ...filters, category: null })}>
@@ -76,11 +94,34 @@ export function FilterBar({
         <Chip active={filters.brand === null} onClick={() => onChange({ ...filters, brand: null })}>
           Todas
         </Chip>
-        {brands.map((brand) => (
-          <Chip key={brand} active={filters.brand === brand} onClick={() => onChange({ ...filters, brand })}>
+        {/* Solo las marcas frecuentes caben como chips; con cientos de marcas el resto
+            se elige en el desplegable, que siempre las lista todas. */}
+        {topBrands.map((brand) => (
+          <Chip
+            key={brand}
+            active={filters.brand === brand}
+            onClick={() => onChange({ ...filters, brand })}
+          >
             {brand}
           </Chip>
         ))}
+        {brands.length > topBrands.length && (
+          <select
+            value={filters.brand && !topBrands.includes(filters.brand) ? filters.brand : ""}
+            onChange={(event) =>
+              onChange({ ...filters, brand: event.target.value || null })
+            }
+            aria-label="Todas las marcas"
+            className="h-7 rounded-full border border-border bg-background px-2.5 text-xs text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <option value="">Otra marca…</option>
+            {brands.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

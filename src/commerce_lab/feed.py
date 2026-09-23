@@ -119,6 +119,7 @@ def build_feed(
     for product_id in sorted(grouped):
         group = sorted(grouped[product_id], key=lambda item: item.id)
         brand = _single(group, "brand", product_id)
+        image_url = _single(group, "image_url", product_id)
         title = _single(group, "product_title", product_id) or f"{brand} {product_id}"
         description = _single(group, "product_description", product_id) or (
             f"{brand} disponible en {len(group)} configuraciones."
@@ -161,7 +162,7 @@ def build_feed(
             "media": [
                 {
                     "type": "image",
-                    "url": f"{origin}/assets/products/{product_id}.jpg",
+                    "url": image_url or f"{origin}/assets/products/{product_id}.jpg",
                     "alt_text": title,
                 }
             ],

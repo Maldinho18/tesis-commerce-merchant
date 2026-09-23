@@ -49,7 +49,7 @@ export function ProductCard({
       onClick={() => onOpen(product)}
       className="group cursor-pointer gap-0 overflow-hidden p-0 transition-shadow hover:shadow-md"
     >
-      <div className="relative aspect-4/3 bg-secondary/40">
+      <div className="relative aspect-[4/3] overflow-hidden bg-secondary/40">
         <ProductImage
           src={product.media[0]?.url}
           alt={product.media[0]?.alt_text ?? product.title}

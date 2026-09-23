@@ -98,6 +98,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   monitors: "Monitores",
   keyboards: "Teclados",
   smartphones: "Celulares",
+  tablets: "Tabletas",
 }
 
 export const AVAILABILITY_LABELS: Record<string, string> = {
