@@ -133,3 +133,13 @@ export function thumbnail(url: string | undefined, width: number): string | unde
   if (!url) return undefined
   return url.includes("width=") ? url.replace(/width=\d+/, `width=${width}`) : url
 }
+
+/**
+ * Variantes ordenadas por precio ascendente, que en la práctica es el orden de capacidad.
+ * El feed las publica ordenadas por id, y así "1 TB" quedaba antes de "256 GB".
+ */
+export function orderedVariants(product: FeedProduct): FeedVariant[] {
+  return [...product.variants].sort(
+    (left, right) => left.price.amount - right.price.amount || left.id.localeCompare(right.id)
+  )
+}

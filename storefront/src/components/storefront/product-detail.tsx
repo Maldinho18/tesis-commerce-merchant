@@ -9,6 +9,7 @@ import {
   brandOf,
   categoriesOf,
   formatMoney,
+  orderedVariants,
   thumbnail,
   type FeedProduct,
   type FeedVariant,
@@ -45,11 +46,12 @@ export function ProductDetail({
   product: FeedProduct
   onBack: () => void
 }) {
-  const [selectedId, setSelectedId] = useState(product.variants[0]?.id ?? "")
+  const variants = orderedVariants(product)
+  const [selectedId, setSelectedId] = useState(variants[0]?.id ?? "")
   const [tab, setTab] = useState<Tab>("descripcion")
 
   const selected: FeedVariant | undefined =
-    product.variants.find((variant) => variant.id === selectedId) ?? product.variants[0]
+    variants.find((variant) => variant.id === selectedId) ?? variants[0]
   if (!selected) return null
 
   const brand = brandOf(product)
@@ -123,7 +125,7 @@ export function ProductDetail({
                   {product.variants.length} configuraciones
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.variants.map((variant) => {
+                  {variants.map((variant) => {
                     const active = variant.id === selected.id
                     const label =
                       variant.variant_options
