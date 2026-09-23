@@ -48,7 +48,7 @@ export function ProductImage({ src, alt, seed, category, brand, className }: Pro
       >
         <Icon className="size-10" strokeWidth={1.25} />
         {brand && (
-          <span className="text-[0.7rem] font-medium tracking-wide uppercase">{brand}</span>
+          <span className="text-xs font-medium tracking-wide uppercase">{brand}</span>
         )}
       </div>
     )

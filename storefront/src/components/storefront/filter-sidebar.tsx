@@ -24,11 +24,11 @@ function Section({
         aria-expanded={open}
         className="flex w-full items-center justify-between py-3.5 text-left"
       >
-        <span className="text-[0.8rem] font-medium">{title}</span>
+        <span className="text-sm font-medium">{title}</span>
         {open ? (
-          <Minus className="size-4 text-gray-500" aria-hidden />
+          <Minus className="size-4 text-muted-foreground" aria-hidden />
         ) : (
-          <Plus className="size-4 text-gray-500" aria-hidden />
+          <Plus className="size-4 text-muted-foreground" aria-hidden />
         )}
       </button>
       {open && <div className="pb-4">{children}</div>}
@@ -56,7 +56,7 @@ function Check({
       <span
         className={cn(
           "grid size-4 shrink-0 place-items-center rounded-[3px] border transition-colors",
-          active ? "border-foreground bg-foreground" : "border-gray-300 bg-background"
+          active ? "border-foreground bg-foreground" : "border-border bg-background"
         )}
         aria-hidden
       >
@@ -66,7 +66,7 @@ function Check({
           </svg>
         )}
       </span>
-      <span className={cn("truncate", active ? "text-foreground" : "text-gray-600")}>
+      <span className={cn(active ? "text-foreground" : "text-muted-foreground")}>
         {children}
       </span>
     </button>

@@ -129,7 +129,7 @@ export default function App() {
       ) : (
         <>
       <nav
-          className="mx-auto w-full max-w-7xl px-6 pt-6 text-xs text-gray-500"
+          className="mx-auto w-full max-w-7xl px-6 pt-6 text-xs text-muted-foreground"
           aria-label="Ruta"
         >
           <ol className="flex flex-wrap items-center gap-1.5">
@@ -182,7 +182,7 @@ export default function App() {
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-muted-foreground">
                       Mostrando{" "}
                       {visible.length === 0
                         ? 0
@@ -286,14 +286,14 @@ export default function App() {
       <footer className="bg-gray-900 text-gray-300">
         <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
-            <p className="text-base font-bold text-primary-foreground">TESIS COMMERCE</p>
-            <p className="mt-2 max-w-md text-xs leading-relaxed">
-              Vitrina de solo consulta. El catálogo lo sirve el comercio y es el mismo que consume
-              el agente comprador por ACP; la compra nunca ocurre por aquí.
+            <p className="text-sm font-semibold text-background">Tesis Commerce</p>
+            <p className="mt-3 max-w-sm text-xs leading-relaxed">
+              Catálogo sintético para la tesis. El comercio lo sirve y es el mismo que consume el
+              agente comprador por ACP. La compra no ocurre aquí.
             </p>
           </div>
           <div>
-            <p className="text-xs font-semibold tracking-wide text-primary-foreground uppercase">
+            <p className="text-xs font-medium text-background">
               Categorías
             </p>
             <ul className="mt-3 space-y-1.5 text-xs">
@@ -302,7 +302,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => applyFilters({ ...filters, category: value })}
-                    className="hover:text-primary-foreground"
+                    className="transition-colors hover:text-background"
                   >
                     {CATEGORY_LABELS[value] ?? value}
                   </button>
@@ -311,7 +311,7 @@ export default function App() {
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold tracking-wide text-primary-foreground uppercase">
+            <p className="text-xs font-medium text-background">
               Procedencia
             </p>
             <ul className="mt-3 space-y-1.5 text-xs">

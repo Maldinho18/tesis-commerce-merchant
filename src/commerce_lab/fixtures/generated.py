@@ -187,18 +187,14 @@ def _image_path(entity: str) -> str | None:
 
 
 def _description(product: dict[str, Any], brand: str, variants: int) -> str:
-    kind = product.get("kind") or "Producto"
+    """Una línea que aporte algo: marca, año y capacidades. Sin relleno."""
+    parts = [f"{product.get('kind') or 'Producto'} {brand}"]
     released = product.get("released")
-    parts = [f"{kind} {brand}."]
-    if released:
-        parts.append(f"Lanzado en {released[:4]}.")
-    parts.append(
-        "Disponible en una configuración."
-        if variants == 1
-        else f"Disponible en {variants} configuraciones."
-    )
-    parts.append("Ficha sintética para el laboratorio de la tesis.")
-    return " ".join(parts)[:2000]
+    if released and released[:4].isdigit():
+        parts.append(f"de {released[:4]}")
+    if variants > 1:
+        parts.append(f"en {variants} capacidades")
+    return " ".join(parts) + "."
 
 
 # Antes de este año no se inventan capacidades modernas: un teléfono de 2005 con 512 GB es

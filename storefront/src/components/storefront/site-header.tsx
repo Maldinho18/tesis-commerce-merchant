@@ -27,12 +27,12 @@ export function SiteHeader({
       <div className="mx-auto flex w-full max-w-7xl items-center gap-8 px-6 py-4">
         <a href="/" className="flex shrink-0 items-center gap-2.5">
           <Store className="size-5 text-primary" strokeWidth={2} />
-          <span className="text-[0.95rem] font-semibold tracking-tight">Tesis Commerce</span>
+          <span className="text-sm font-semibold tracking-tight">Tesis Commerce</span>
         </a>
 
         <div className="relative min-w-0 max-w-xl flex-1">
           <Search
-            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-gray-400"
+            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <input
@@ -41,14 +41,14 @@ export function SiteHeader({
             onChange={(event) => onQuery(event.target.value)}
             placeholder="Buscar productos y marcas"
             aria-label="Buscar en el catálogo"
-            className="h-10 w-full rounded-full bg-muted pr-9 pl-10 text-sm outline-none transition-colors placeholder:text-gray-400 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-foreground/10"
+            className="h-10 w-full rounded-full bg-muted pr-9 pl-10 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-foreground/10"
           />
           {query && (
             <button
               type="button"
               onClick={() => onQuery("")}
               aria-label="Limpiar búsqueda"
-              className="absolute top-1/2 right-3.5 -translate-y-1/2 text-gray-400 transition-colors hover:text-foreground"
+              className="absolute top-1/2 right-3.5 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
             >
               <X className="size-4" />
             </button>
@@ -56,10 +56,10 @@ export function SiteHeader({
         </div>
 
         <div className="ml-auto hidden items-center gap-4 lg:flex">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             {productCount.toLocaleString("es-CO")} productos
           </span>
-          <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[0.7rem] font-medium text-accent">
+          <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
             Solo consulta
           </span>
         </div>
@@ -100,7 +100,7 @@ function CategoryLink({
         "shrink-0 rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors",
         active
           ? "bg-foreground font-medium text-background"
-          : "text-gray-600 hover:bg-muted hover:text-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
       {children}
