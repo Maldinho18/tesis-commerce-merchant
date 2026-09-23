@@ -26,7 +26,7 @@ MIGRATIONS = (
     "010_webhook_delivery.sql",
     "011_request_observability.sql",
 )
-FIXTURE_VERSION = "p0-catalog-v7"
+FIXTURE_VERSION = "p0-catalog-v8"
 PRODUCER = "preparation.db-seed"
 ARTIFACT_PATH = ROOT / "artifacts" / "preparation" / "database-smoke.json"
 

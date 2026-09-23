@@ -131,3 +131,64 @@ página de origen de cada archivo.
 | `OViPhone14.jpg` | iPhone 14 | iGeeksBlog | BY-SA 4.0 | https://commons.wikimedia.org/w/index.php?curid=123445894 |
 | `OVSamsungGalaxyS23Ultra.png` | Samsung Galaxy S23 Ultra | PantheraLeo1359531 | BY 4.0 | https://commons.wikimedia.org/w/index.php?curid=130828210 |
 | `OVSamsungGalaxyA25.jpg` | Samsung Galaxy A25 | Captainmorlypogi1959 | BY-SA 4.0 | https://commons.wikimedia.org/w/index.php?curid=145394664 |
+
+## Renders de fabricante
+
+Imágenes de producto publicadas por los fabricantes. No son de licencia libre:
+se usan aquí con fines académicos y deben citarse como tales en la tesis.
+
+| Archivo | Producto | Origen |
+| --- | --- | --- |
+| `Q100348826.jpg` | OnePlus 8T | render del fabricante |
+| `Q106044016.jpg` | Samsung Galaxy A52 | render del fabricante |
+| `Q106629718.jpg` | Samsung Galaxy A52 5G | render del fabricante |
+| `Q108044294.jpg` | Samsung Galaxy A22 5G | render del fabricante |
+| `Q108541666.jpg` | iPhone 13 mini | render del fabricante |
+| `Q109264698.jpg` | Samsung Galaxy M32 | render del fabricante |
+| `Q109341356.jpg` | Samsung Galaxy A52s 5G | render del fabricante |
+| `Q109908096.jpg` | Samsung Galaxy A03 | render del fabricante |
+| `Q109908100.jpg` | Samsung Galaxy A13 5G | render del fabricante |
+| `Q110461772.jpg` | Samsung Galaxy M12 | render del fabricante |
+| `Q111088113.jpg` | Samsung Galaxy A23 | render del fabricante |
+| `Q111094451.jpg` | Sony Xperia 1 IV | render del fabricante |
+| `Q111281190.jpg` | Samsung Galaxy A73 5G | render del fabricante |
+| `Q111281459.jpg` | Samsung Galaxy A33 5G | render del fabricante |
+| `Q111550463.jpg` | Samsung Galaxy M53 5G | render del fabricante |
+| `Q111754633.jpg` | Samsung Galaxy S22 Ultra | render del fabricante |
+| `Q112159052.jpg` | Samsung Galaxy M13 | render del fabricante |
+| `Q116629964.jpg` | Samsung Galaxy S23+ | render del fabricante |
+| `Q117154490.jpg` | Samsung Galaxy A54 5G | render del fabricante |
+| `Q117154514.jpg` | Samsung Galaxy A34 5G | render del fabricante |
+| `Q118586112.jpg` | Samsung Galaxy S23 | render del fabricante |
+| `Q118593938.jpg` | Samsung Galaxy S22+ | render del fabricante |
+| `Q118593984.jpg` | Samsung Galaxy S22 | render del fabricante |
+| `Q124339427.jpg` | Samsung Galaxy A25 5G | render del fabricante |
+| `Q124653339.jpg` | iPhone 15 Plus | render del fabricante |
+| `Q124813406.jpg` | Samsung Galaxy A55 5G | render del fabricante |
+| `Q124813453.jpg` | Samsung Galaxy A35 5G | render del fabricante |
+| `Q124974572.jpg` | Samsung Galaxy A05 | render del fabricante |
+| `Q125029543.jpg` | Samsung Galaxy A05s | render del fabricante |
+| `Q125178718.jpg` | iPhone 15 Pro Max | render del fabricante |
+| `Q129176356.jpg` | Moto G54 5G | render del fabricante |
+| `Q131291786.jpg` | Samsung Galaxy A16 | render del fabricante |
+| `Q133270095.jpg` | Samsung Galaxy A36 5G | render del fabricante |
+| `Q137828933.jpg` | Samsung Galaxy S26 | render del fabricante |
+| `Q16599646.jpg` | Samsung Galaxy A06 5G | render del fabricante |
+| `Q30898021.jpg` | Samsung Galaxy A26 5G | render del fabricante |
+| `Q51885191.jpg` | Xperia XZ2 Premium | render del fabricante |
+| `Q60021939.jpg` | Samsung Galaxy S10 | render del fabricante |
+| `Q61913556.jpg` | Sony Xperia 1 | render del fabricante |
+| `Q64889429.jpg` | Samsung Galaxy A40 | render del fabricante |
+| `Q65059301.jpg` | Samsung Galaxy A70 | render del fabricante |
+| `Q65062493.jpg` | Samsung Galaxy A10 | render del fabricante |
+| `Q66688566.jpg` | Samsung Galaxy S10+ | render del fabricante |
+| `Q67876968.jpg` | Samsung Galaxy A90 5G | render del fabricante |
+| `Q68025803.jpg` | Samsung Galaxy A30 | render del fabricante |
+| `Q90413128.jpg` | Samsung Galaxy A11 | render del fabricante |
+| `Q97189547.jpg` | OnePlus Nord | render del fabricante |
+| `Q97223461.jpg` | Samsung Galaxy A31 | render del fabricante |
+| `Q97223473.jpg` | Samsung Galaxy A41 | render del fabricante |
+| `Q98078754.jpg` | Samsung Galaxy A21s | render del fabricante |
+| `Q98148411.jpg` | OnePlus 8 Pro | render del fabricante |
+| `Q98148416.jpg` | Samsung Galaxy M21 | render del fabricante |
+| `Q99887992.jpg` | Samsung Galaxy M51 | render del fabricante |
