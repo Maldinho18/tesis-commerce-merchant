@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = json.loads((ROOT / "vendor/acp/2026-04-17/schema.feed.json").read_text(encoding="utf-8"))
 REGISTRY = Registry().with_resource(str(BUNDLE["$id"]), Resource.from_contents(BUNDLE))
 
+# El origen se fija en la prueba para que el export no dependa de ACP_API_BASE_URL del entorno.
+ORIGIN = "https://merchant.example.test"
+PRODUCT_COUNT = 14
+VARIANT_COUNT = 34
+
 
 def validate(definition: str, value: object) -> None:
     Draft202012Validator(
@@ -28,26 +33,30 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
     monkeypatch.setattr("commerce_lab.feed._read_offers", lambda run_id: fresh_p0_offers())
     first = tmp_path / "first"
     second = tmp_path / "second"
-    summary = export_feed(first)
-    export_feed(second)
-    assert summary["product_count"] == summary["variant_count"] == 10
+    summary = export_feed(first, base_url=ORIGIN)
+    export_feed(second, base_url=ORIGIN)
+    assert summary["product_count"] == PRODUCT_COUNT
+    assert summary["variant_count"] == VARIANT_COUNT
     for name in ("metadata.json", "products.jsonl"):
         assert (first / name).read_bytes() == (second / name).read_bytes()
     metadata = json.loads((first / "metadata.json").read_text(encoding="utf-8"))
     validate("FeedMetadata", metadata)
     assert metadata == {
-        "id": "feed_p0_headphones",
+        "id": "feed_p0_tech",
         "target_country": "CO",
         "updated_at": "2026-09-10T14:00:00Z",
     }
     lines = (first / "products.jsonl").read_text(encoding="utf-8").splitlines()
-    assert len(lines) == 10
+    assert len(lines) == PRODUCT_COUNT
     products = [json.loads(line) for line in lines]
     assert [product["id"] for product in products] == sorted(product["id"] for product in products)
-    assert len({product["id"] for product in products}) == 10
+    assert len({product["id"] for product in products}) == PRODUCT_COUNT
     variants = [variant for product in products for variant in product["variants"]]
-    assert len(variants) == len({variant["id"] for variant in variants}) == 10
+    assert len(variants) == len({variant["id"] for variant in variants}) == VARIANT_COUNT
     assert {variant["id"] for variant in variants} == {offer.id for offer in fresh_p0_offers()}
+    # El catálogo P0 agrupa configuraciones bajo un mismo producto; sin esto el filtro de
+    # opciones del agente no tendría nada que discriminar.
+    assert max(len(product["variants"]) for product in products) > 1
     for product in products:
         validate("Product", product)
         assert product["title"] and product["description"]["plain"] and product["url"]
@@ -57,38 +66,68 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
             assert media["type"] == "image"
             parsed_url = urlparse(media["url"])
             assert parsed_url.scheme == "https" and parsed_url.netloc == "merchant.example.test"
-            assert media["url"] == (
-                f"https://merchant.example.test/assets/products/{product['id']}.jpg"
-            )
+            assert media["url"] == f"{ORIGIN}/assets/products/{product['id']}.jpg"
             assert media["alt_text"].strip()
-        assert len(product["variants"]) == 1
-        variant = product["variants"][0]
-        for definition, value in (
-            ("Variant", variant),
-            ("Price", variant["price"]),
-            ("Availability", variant["availability"]),
-        ):
-            validate(definition, value)
-        assert variant["price"]["currency"] == "USD"
-        assert variant["price"]["amount"] >= 0
+        assert len(product["variants"]) >= 1
+        variant_ids = [variant["id"] for variant in product["variants"]]
+        assert variant_ids == sorted(variant_ids)
+        for variant in product["variants"]:
+            for definition, value in (
+                ("Variant", variant),
+                ("Price", variant["price"]),
+                ("Availability", variant["availability"]),
+            ):
+                validate(definition, value)
+            assert variant["price"]["currency"] == "COP"
+            assert variant["price"]["amount"] >= 0
+            for option in variant["variant_options"]:
+                validate("VariantOption", option)
+            names = [option["name"] for option in variant["variant_options"]]
+            assert len(names) == len(set(names))
         assert "run_id" not in json.dumps(product)
         assert "token" not in json.dumps(product).lower()
     status = {variant["id"]: variant["availability"] for variant in variants}
-    assert status["SON-03"] == {"available": True, "status": "limited_stock"}
-    assert status["SON-07"] == {"available": False, "status": "out_of_stock"}
+    assert status["ASUS-G16-32-5070TI-2TB"] == {"available": True, "status": "limited_stock"}
+    assert status["SON-XM6-BLU"] == {"available": False, "status": "out_of_stock"}
     assert {item["status"] for item in status.values()} == {
         "in_stock",
         "limited_stock",
         "out_of_stock",
     }
-    assert all(offer.pricing.currency == "usd" for offer in fresh_p0_offers())
+    assert all(offer.pricing.currency == "cop" for offer in fresh_p0_offers())
+
+
+def test_feed_groups_configurations_of_one_product_under_shared_metadata() -> None:
+    _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
+    zephyrus = next(
+        product for product in products if product["id"] == "prod-asus-rog-zephyrus-g16"
+    )
+    variants = cast(list[dict[str, Any]], zephyrus["variants"])
+    assert len(variants) == 4
+    assert zephyrus["title"] == "ASUS ROG Zephyrus G16 (2025)"
+    # Cada variante publica su configuración como opciones; es lo que el agente filtra.
+    options = {
+        variant["id"]: {option["name"]: option["value"] for option in variant["variant_options"]}
+        for variant in variants
+    }
+    assert options["ASUS-G16-32-5070TI-2TB"]["RAM"] == "32 GB"
+    assert options["ASUS-G16-32-5070TI-2TB"]["GPU"] == "RTX 5070 Ti"
+    assert options["ASUS-G16-32-5070TI-2TB"]["Almacenamiento"] == "2 TB"
+    assert options["ASUS-G16-16-5060-1TB"]["GPU"] == "RTX 5060"
+    assert {variant["price"]["amount"] for variant in variants} == {
+        8_999_000_00,
+        11_499_000_00,
+        13_999_000_00,
+        16_999_000_00,
+    }
 
 
 def test_feed_price_is_item_only_and_checkout_must_add_shipping() -> None:
-    _, products = build_feed(fresh_p0_offers())
-    sonora = next(product for product in products if product["id"] == "prod-son-01")
-    variant = cast(list[dict[str, Any]], sonora["variants"])[0]
-    assert variant["price"] == {"amount": 72_000, "currency": "USD"}
-    offer = next(offer for offer in fresh_p0_offers() if offer.id == "SON-01")
-    assert offer.pricing.shipping_total_minor == 2_000
-    assert offer.pricing.total_minor == 74_000
+    _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
+    keychron = next(product for product in products if product["id"] == "prod-keychron-q3-max")
+    variants = cast(list[dict[str, Any]], keychron["variants"])
+    variant = next(item for item in variants if item["id"] == "KEY-Q3MAX-RED")
+    assert variant["price"] == {"amount": 899_000_00, "currency": "COP"}
+    offer = next(offer for offer in fresh_p0_offers() if offer.id == "KEY-Q3MAX-RED")
+    assert offer.pricing.shipping_total_minor == 25_000_00
+    assert offer.pricing.total_minor == 924_000_00

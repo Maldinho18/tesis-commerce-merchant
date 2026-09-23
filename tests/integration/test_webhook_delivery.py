@@ -37,7 +37,7 @@ def _ready_checkout(actor: str) -> tuple[TestClient, dict[str, str], str, str, s
     created = client.post(
         "/checkout_sessions",
         headers={**headers, "Idempotency-Key": "create"},
-        json={"line_items": [{"id": "ALT-01"}], "currency": "usd", "capabilities": {}},
+        json={"line_items": [{"id": "APL-APP3"}], "currency": "cop", "capabilities": {}},
     )
     checkout_id = str(created.json()["id"])
     updated = client.post(
@@ -369,7 +369,7 @@ def test_completion_rolls_back_when_outbox_insert_fails(
     with psycopg.connect(database_url()) as connection:
         before = connection.execute(
             "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
-            "WHERE run_id = %s AND offer_id = 'ALT-01'",
+            "WHERE run_id = %s AND offer_id = 'APL-APP3'",
             (run_id,),
         ).fetchone()
 
@@ -395,7 +395,7 @@ def test_completion_rolls_back_when_outbox_insert_fails(
     with psycopg.connect(database_url()) as connection:
         after = connection.execute(
             "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
-            "WHERE run_id = %s AND offer_id = 'ALT-01'",
+            "WHERE run_id = %s AND offer_id = 'APL-APP3'",
             (run_id,),
         ).fetchone()
         state = connection.execute(

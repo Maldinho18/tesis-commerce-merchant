@@ -46,7 +46,7 @@ def synthetic_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("commerce_lab.checkout.confirm_payment", confirm_payment)
 
 
-def _client(actor: str, offer_id: str = "ALT-01") -> tuple[TestClient, dict[str, str], str, str]:
+def _client(actor: str, offer_id: str = "APL-APP3") -> tuple[TestClient, dict[str, str], str, str]:
     episode = seed(actor_id=actor, variant="B0")
     run_id = str(episode["run_id"])
     token = issue_lab_session(run_id, actor)
@@ -60,7 +60,7 @@ def _client(actor: str, offer_id: str = "ALT-01") -> tuple[TestClient, dict[str,
         headers={**headers, "Idempotency-Key": "create"},
         json={
             "line_items": [{"id": offer_id}],
-            "currency": "usd",
+            "currency": "cop",
             "capabilities": {},
         },
     )
@@ -171,7 +171,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
             """
             SELECT revision, snapshot
             FROM catalog_offers
-            WHERE run_id = %s AND offer_id = 'ALT-01'
+            WHERE run_id = %s AND offer_id = 'APL-APP3'
             """,
             (run_id,),
         ).fetchone()
@@ -274,9 +274,9 @@ def test_complete_sandbox_outcomes_are_deterministic(outcome: str, status: int, 
             ).fetchone() == (0,)
             assert connection.execute(
                 "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
-                "WHERE run_id = %s AND offer_id = 'ALT-01'",
+                "WHERE run_id = %s AND offer_id = 'APL-APP3'",
                 (run_id,),
-            ).fetchone() == ("10",)
+            ).fetchone() == ("15",)
             stored_attempt = connection.execute(
                 "SELECT result_snapshot::text FROM checkout_completion_attempts "
                 "WHERE checkout_id = %s",
@@ -326,7 +326,7 @@ def test_expired_checkout_completion_does_not_create_order_or_decrement_stock() 
     with psycopg.connect(database_url()) as connection:
         before = connection.execute(
             """SELECT snapshot ->> 'available_quantity' FROM catalog_offers
-               WHERE run_id = %s AND offer_id = 'ALT-01'""",
+               WHERE run_id = %s AND offer_id = 'APL-APP3'""",
             (run_id,),
         ).fetchone()
         with connection.transaction():
@@ -344,7 +344,7 @@ def test_expired_checkout_completion_does_not_create_order_or_decrement_stock() 
     with psycopg.connect(database_url()) as connection:
         after = connection.execute(
             """SELECT snapshot ->> 'available_quantity' FROM catalog_offers
-               WHERE run_id = %s AND offer_id = 'ALT-01'""",
+               WHERE run_id = %s AND offer_id = 'APL-APP3'""",
             (run_id,),
         ).fetchone()
         orders = connection.execute(
@@ -388,13 +388,13 @@ def test_complete_rejects_unsupported_fields_and_conflicting_key() -> None:
 
 def test_last_unit_completion_serializes_to_one_order() -> None:
     migrate()
-    client, headers, first_id, _ = _client("complete-last-unit", offer_id="SON-03")
+    client, headers, first_id, _ = _client("complete-last-unit", offer_id="ASUS-G16-32-5070TI-2TB")
     second = client.post(
         "/checkout_sessions",
         headers={**headers, "Idempotency-Key": "create-second"},
         json={
-            "line_items": [{"id": "SON-03"}],
-            "currency": "usd",
+            "line_items": [{"id": "ASUS-G16-32-5070TI-2TB"}],
+            "currency": "cop",
             "capabilities": {},
         },
     )

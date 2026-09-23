@@ -9,20 +9,15 @@ def test_fixture_manifest_is_deterministic_and_complete() -> None:
     assert first_offers == second_offers
     assert first_hash == second_hash
     assert first_manifest == second_manifest
-    assert first_manifest["offer_count"] == 10
+    assert first_manifest["offer_count"] == 34
     assert len(first_hash) == 64
-    assert [offer["id"] for offer in first_offers] == [
-        "ALT-01",
-        "ALT-02",
-        "ALT-03",
-        "SON-01",
-        "SON-02",
-        "SON-03",
-        "SON-04",
-        "SON-05",
-        "SON-06",
-        "SON-07",
-    ]
+    identifiers = [offer["id"] for offer in first_offers]
+    assert len(identifiers) == len(set(identifiers)) == 34
+    # El snapshot se siembra en orden estable; de eso depende que verify() sea reproducible.
+    assert identifiers == sorted(identifiers)
+    assert identifiers[0] == "APL-APP3"
+    assert identifiers[-1] == "SON-XM6-PLT"
+    assert len({offer["product_id"] for offer in first_offers}) == 14
 
 
 def test_migration_sha256_normalizes_line_endings_but_detects_content_changes(tmp_path) -> None:

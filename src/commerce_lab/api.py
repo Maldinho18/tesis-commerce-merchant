@@ -386,6 +386,15 @@ def order_permalink(order_id: str) -> HTMLResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
     snapshot = row[0]
     line = snapshot.get("title", "")
+    currency = str(snapshot.get("currency", "cop")).upper()
+
+    def money(minor: object) -> str:
+        """Los montos se guardan en unidades menores; el permalink es para una persona."""
+        if not isinstance(minor, int):
+            return escape(str(minor))
+        units, cents = divmod(minor, 100)
+        return f"$ {units:,.0f}".replace(",", ".") + f",{cents:02d} {currency}"
+
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>Order {escape(snapshot["order_number"])}</title></head>
 <body>
@@ -393,10 +402,10 @@ def order_permalink(order_id: str) -> HTMLResponse:
 <p>Status: {escape(snapshot["status"])}</p>
 <p>Product: {escape(line)}</p>
 <p>Quantity: {snapshot["quantity"]}</p>
-<p>Unit price: {snapshot["unit_price"]}</p>
-<p>Subtotal: {snapshot["subtotal"]}</p>
-<p>Shipping: {snapshot["shipping_total"]}</p>
-<p>Total: {snapshot["total"]}</p>
+<p>Unit price: {money(snapshot["unit_price"])}</p>
+<p>Subtotal: {money(snapshot["subtotal"])}</p>
+<p>Shipping: {money(snapshot["shipping_total"])}</p>
+<p>Total: {money(snapshot["total"])}</p>
 <p>Fulfillment: shipping / pending</p>
 </body></html>"""
     return HTMLResponse(content=html)

@@ -40,30 +40,29 @@ def checkout_payload() -> dict[str, object]:
     }
 
 
-def test_usd_uses_integer_minor_units_and_shipping_once() -> None:
-    assert Money(currency="usd", amount_minor=72_000).amount_minor == 72_000
-    assert sum_minor_amounts(72_000, 2_000) == 74_000
-    assert [offer.pricing.total_minor for offer in P0_OFFERS] == [
-        62_000,
-        67_500,
-        71_500,
-        74_000,
-        78_000,
-        82_000,
-        66_000,
-        98_000,
-        73_000,
-        73_000,
-    ]
+def test_cop_uses_integer_minor_units_and_shipping_once() -> None:
+    # COP tiene exponente 2, así que 8.999.000 pesos son 899.900.000 centavos enteros.
+    assert Money(currency="cop", amount_minor=8_999_000_00).amount_minor == 899_900_000
+    assert sum_minor_amounts(899_000_00, 25_000_00) == 924_000_00
+    # El envío se suma exactamente una vez en cada oferta del catálogo.
+    for offer in P0_OFFERS:
+        assert offer.pricing.total_minor == (
+            offer.pricing.items_total_minor + offer.pricing.shipping_total_minor
+        )
+        assert offer.pricing.tax_included is True
+    keychron = next(offer for offer in P0_OFFERS if offer.id == "KEY-Q3MAX-RED")
+    assert keychron.pricing.items_total_minor == 899_000_00
+    assert keychron.pricing.shipping_total_minor == 25_000_00
+    assert keychron.pricing.total_minor == 924_000_00
     with pytest.raises(ValidationError):
         Pricing.model_validate({**P0_OFFERS[0].pricing.model_dump(), "total_minor": 1})
 
 
 def test_money_rejects_fractional_foreign_and_overflow_values() -> None:
     with pytest.raises(ValidationError):
-        Money(currency="usd", amount_minor=0.1)  # type: ignore[arg-type]
+        Money(currency="cop", amount_minor=0.1)  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
-        Money(currency="USD", amount_minor=100)
+        Money(currency="COP", amount_minor=100)
     with pytest.raises(ValueError, match="safe integer"):
         sum_minor_amounts(MAX_SAFE_INTEGER, 1)
 
@@ -149,23 +148,41 @@ def test_legacy_offer_snapshot_derives_new_non_authoritative_fields() -> None:
     assert offer.attributes == {}
 
 
-def test_fixture_has_exactly_two_admissible_sonora_offers() -> None:
+def test_fixture_has_exactly_two_admissible_asus_configurations() -> None:
     admissible = [
         offer.id
         for offer in P0_OFFERS
-        if offer.brand == "Sonora"
+        if offer.brand == "ASUS"
         and offer.condition == "new"
-        and offer.pricing.total_minor <= 80_000
+        and offer.pricing.total_minor <= 12_000_000_00
         and offer.delivery_days <= 5
         and offer.available_quantity > 0
     ]
-    assert admissible == ["SON-01", "SON-02"]
+    assert admissible == ["ASUS-G16-16-5060-1TB", "ASUS-G16-32-5070-1TB"]
     assert all(offer.sku == offer.id for offer in P0_OFFERS)
-    assert all(offer.attributes == {"color": offer.color} for offer in P0_OFFERS)
 
 
-def test_all_ten_p0_products_have_explicit_valid_internal_status() -> None:
-    assert len(P0_OFFERS) == len({offer.product_id for offer in P0_OFFERS}) == 10
+def test_variant_attributes_carry_the_configuration_that_distinguishes_siblings() -> None:
+    zephyrus = [offer for offer in P0_OFFERS if offer.product_id == "prod-asus-rog-zephyrus-g16"]
+    assert len(zephyrus) == 4
+    # Las variantes del mismo producto comparten los campos de nivel producto...
+    assert len({offer.product_title for offer in zephyrus}) == 1
+    assert len({offer.product_description for offer in zephyrus}) == 1
+    assert len({offer.brand for offer in zephyrus}) == 1
+    # ...y se distinguen por sus atributos, que son los que el agente filtra.
+    assert {offer.attributes["gpu"] for offer in zephyrus} == {
+        "RTX 5060",
+        "RTX 5070",
+        "RTX 5070 Ti",
+        "RTX 5080",
+    }
+    assert all("ram" in offer.attributes and "storage" in offer.attributes for offer in zephyrus)
+
+
+def test_every_p0_product_has_explicit_valid_internal_status() -> None:
+    assert len(P0_OFFERS) == 34
+    assert len({offer.product_id for offer in P0_OFFERS}) == 14
+    assert len({offer.id for offer in P0_OFFERS}) == len(P0_OFFERS)
     assert {offer.product_status for offer in P0_OFFERS} == {"active"}
     assert all("product_status" in offer.model_dump() for offer in P0_OFFERS)
     with pytest.raises(ValidationError):

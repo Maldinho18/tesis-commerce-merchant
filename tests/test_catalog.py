@@ -14,19 +14,33 @@ def reader() -> CatalogReader:
     return CatalogReader(fresh_p0_offers(), ScenarioClock(FIXTURE_NOW))
 
 
-def test_catalog_exposes_all_ten_variants() -> None:
+def test_catalog_exposes_every_variant_of_a_category() -> None:
     result = reader().search({"category": "headphones"})
+    # Incluye la variante agotada: la disponibilidad se comunica, no se oculta del catálogo.
     assert [offer.id for offer in result.data.offers] == [
-        "ALT-01",
-        "ALT-02",
-        "ALT-03",
-        "SON-01",
-        "SON-02",
-        "SON-03",
-        "SON-04",
-        "SON-05",
-        "SON-06",
-        "SON-07",
+        "APL-APP3",
+        "SEN-MOM4-BLK",
+        "SEN-MOM4-WHT",
+        "SON-XM6-BLK",
+        "SON-XM6-BLU",
+        "SON-XM6-PLT",
+    ]
+
+
+def test_catalog_exposes_every_configuration_of_one_product() -> None:
+    result = reader().search({"category": "laptops", "brand": "ASUS"})
+    assert [offer.id for offer in result.data.offers] == [
+        "ASUS-G16-16-5060-1TB",
+        "ASUS-G16-32-5070-1TB",
+        "ASUS-G16-32-5070TI-2TB",
+        "ASUS-G16-32-5080-2TB",
+    ]
+    assert {offer.product_id for offer in result.data.offers} == {"prod-asus-rog-zephyrus-g16"}
+    assert [offer.attributes["gpu"] for offer in result.data.offers] == [
+        "RTX 5060",
+        "RTX 5070",
+        "RTX 5070 Ti",
+        "RTX 5080",
     ]
 
 
@@ -37,7 +51,7 @@ def test_catalog_rejects_invented_identity_or_approval_fields() -> None:
     with pytest.raises(ValidationError):
         catalog.get(
             {
-                "offer_id": "SON-01",
+                "offer_id": "SON-XM6-BLK",
                 "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
                 "approved_by_user": True,
             }
@@ -50,7 +64,7 @@ def test_catalog_returns_expired_offer_error_at_boundary() -> None:
     clock.advance_seconds(15 * 60)
     result = catalog.get(
         {
-            "offer_id": "SON-01",
+            "offer_id": "SON-XM6-BLK",
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
@@ -65,14 +79,14 @@ def test_catalog_paginates_stably_and_isolates_caller_mutation() -> None:
     first.data.offers[0].pricing.total_minor = 1
     original = catalog.get(
         {
-            "offer_id": "ALT-01",
+            "offer_id": "APL-APP3",
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
     assert isinstance(original, Success)
-    assert original.data.pricing.total_minor == 62_000
+    assert original.data.pricing.total_minor == 1_124_000_00
     second = catalog.search({"category": "headphones", "limit": 2, "offset": 2})
-    assert [offer.id for offer in second.data.offers] == ["ALT-03", "SON-01"]
+    assert [offer.id for offer in second.data.offers] == ["SEN-MOM4-WHT", "SON-XM6-BLK"]
 
 
 def test_catalog_accepts_and_searches_a_product_from_an_unrelated_category() -> None:

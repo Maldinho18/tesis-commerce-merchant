@@ -138,7 +138,7 @@ def test_invalid_bearer_gets_server_request_id_without_changing_auth_body(monkey
         },
         json={
             "line_items": [{"id": "SON-01"}],
-            "currency": "usd",
+            "currency": "cop",
             "capabilities": {"payment": {"handlers": []}},
         },
     )
@@ -208,7 +208,7 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert len(response.json()["data"]["offers"]) == 10
+    assert len(response.json()["data"]["offers"]) == 6
     assert response.headers["X-Request-Id"] == context.request_id
     assert injected.status_code == 422
 
@@ -294,7 +294,7 @@ def test_raise_commerce_failure_keeps_request_id_and_adds_retry_after() -> None:
             "/checkout_sessions",
             {
                 "line_items": [{"id": "SON-01"}],
-                "currency": "usd",
+                "currency": "cop",
                 "capabilities": {"payment": {"handlers": []}},
             },
             201,

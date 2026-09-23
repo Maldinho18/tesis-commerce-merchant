@@ -29,7 +29,8 @@ class StrictModel(BaseModel):
 
 
 class Money(StrictModel):
-    currency: str = Field(pattern=r"^usd$")
+    # COP tiene exponente 2 en ISO 4217, así que los montos siguen siendo centavos enteros.
+    currency: str = Field(pattern=r"^cop$")
     amount_minor: MinorAmount
 
 
