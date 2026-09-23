@@ -121,8 +121,8 @@ def test_low_stock_allows_checkout_without_decrement_and_zero_stock_rejects(tmp_
     out = _create(client, headers, "SON-07", "p0-empty")
     missing = _create(client, headers, "MISSING-01", "p0-missing")
     assert low_stock.status_code == 201
-    assert out.status_code == 409 and out.json()["detail"]["code"] == "OUT_OF_STOCK"
-    assert missing.status_code == 404 and missing.json()["detail"]["code"] == "OFFER_NOT_FOUND"
+    assert out.status_code == 409 and out.json()["detail"]["code"] == "out_of_stock"
+    assert missing.status_code == 404 and missing.json()["detail"]["code"] == "invalid_item"
     with psycopg.connect(database_url()) as connection:
         stored = connection.execute(
             "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "

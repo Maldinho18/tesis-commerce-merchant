@@ -13,6 +13,7 @@ from commerce_lab.api import app
 from commerce_lab.context import authenticate_lab_session, issue_lab_session
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
+from commerce_lab.request_observability import hash_idempotency_key
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_DB_INTEGRATION") != "1",
@@ -66,6 +67,158 @@ def _create(client: TestClient, headers: dict[str, str]) -> str:
     return str(response.json()["id"])
 
 
+def _observation(request_id: str) -> tuple[Any, ...]:
+    with psycopg.connect(database_url()) as connection:
+        row = connection.execute(
+            """SELECT request_id, run_id::text, actor_id, operation, result, http_status,
+                      latency_ms, checkout_id, order_id, idempotency_sha256, error_code
+               FROM request_observations WHERE request_id = %s""",
+            (request_id,),
+        ).fetchone()
+    assert row is not None
+    return row
+
+
+def test_request_observability_covers_checkout_http_boundaries() -> None:
+    migrate()
+    client, headers = _client("observability-http")
+    run_id = authenticate_lab_session(headers["Authorization"].split(" ", 1)[1]).run_id
+
+    created = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-create"},
+        json=_body(),
+    )
+    checkout_id = created.json()["id"]
+    read = client.get(
+        f"/checkout_sessions/{checkout_id}",
+        headers={**headers, "Idempotency-Key": "ignored-on-get"},
+    )
+    updated = client.post(
+        f"/checkout_sessions/{checkout_id}",
+        headers={**headers, "Idempotency-Key": "observe-update"},
+        json=_selection(checkout_id),
+    )
+    missing_item = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-missing"},
+        json=_body("MISSING-01"),
+    )
+    out_of_stock = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": "observe-stock"},
+        json=_body("SON-07"),
+    )
+    missing_version = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": headers["Authorization"],
+            "Idempotency-Key": "observe-version",
+        },
+        json=_body(),
+    )
+    unsupported_version = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": headers["Authorization"],
+            "API-Version": "2025-09-29",
+            "Idempotency-Key": "observe-unsupported",
+        },
+        json=_body(),
+    )
+    invalid_bearer = client.post(
+        "/checkout_sessions",
+        headers={
+            "Authorization": "Bearer invalid",
+            "API-Version": "2026-04-17",
+            "Idempotency-Key": "observe-auth",
+        },
+        json=_body(),
+    )
+
+    assert [
+        created.status_code,
+        read.status_code,
+        updated.status_code,
+        missing_item.status_code,
+        out_of_stock.status_code,
+        missing_version.status_code,
+        unsupported_version.status_code,
+        invalid_bearer.status_code,
+    ] == [201, 200, 200, 404, 409, 400, 400, 401]
+
+    create_row = _observation(created.headers["Request-Id"])
+    assert create_row[1:6] == (run_id, "observability-http", "create", "success", 201)
+    assert create_row[6] >= 0
+    assert create_row[7:] == (
+        checkout_id,
+        None,
+        hash_idempotency_key("observe-create"),
+        None,
+    )
+
+    get_row = _observation(read.headers["Request-Id"])
+    assert get_row[1:6] == (run_id, "observability-http", "get", "success", 200)
+    assert get_row[7:] == (checkout_id, None, None, None)
+
+    update_row = _observation(updated.headers["Request-Id"])
+    assert update_row[1:6] == (run_id, "observability-http", "update", "success", 200)
+    assert update_row[7:] == (
+        checkout_id,
+        None,
+        hash_idempotency_key("observe-update"),
+        None,
+    )
+
+    for response, expected_status, expected_code in (
+        (missing_item, 404, "invalid_item"),
+        (out_of_stock, 409, "out_of_stock"),
+    ):
+        row = _observation(response.headers["Request-Id"])
+        assert row[1:6] == (
+            run_id,
+            "observability-http",
+            "create",
+            "error",
+            expected_status,
+        )
+        assert row[7] is row[8] is None
+        assert row[10] == expected_code
+
+    for response, expected_code in (
+        (missing_version, "missing_api_version"),
+        (unsupported_version, "unsupported_api_version"),
+    ):
+        row = _observation(response.headers["Request-Id"])
+        assert row[1:5] == (None, None, "create", "error")
+        assert row[5] == 400
+        assert row[10] == expected_code
+
+    auth_row = _observation(invalid_bearer.headers["Request-Id"])
+    assert auth_row[1:6] == (None, None, "create", "error", 401)
+    assert auth_row[9] == hash_idempotency_key("observe-auth")
+    assert auth_row[10] is None
+
+    with psycopg.connect(database_url()) as connection:
+        columns = {
+            row[0]
+            for row in connection.execute(
+                """SELECT column_name FROM information_schema.columns
+                   WHERE table_schema = 'public' AND table_name = 'request_observations'"""
+            ).fetchall()
+        }
+    assert not {
+        "authorization",
+        "session",
+        "idempotency_key",
+        "request_body",
+        "response_body",
+        "payment_data",
+        "token",
+        "webhook_secret",
+    }.intersection(columns)
+
+
 def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None:
     migrate()
     client, headers = _client("acp-round-trip")
@@ -89,6 +242,38 @@ def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None
     CHECKOUT_VALIDATOR.validate(get.json())
     assert get.json() == create.json()
     assert get.headers["Request-Id"] != create.headers["Request-Id"]
+
+
+@pytest.mark.parametrize(
+    ("offer_id", "http_status", "public_code"),
+    [
+        ("MISSING-01", 404, "invalid_item"),
+        ("SON-07", 409, "out_of_stock"),
+    ],
+)
+def test_acp_create_exposes_public_item_errors_without_creating_checkout(
+    offer_id: str, http_status: int, public_code: str
+) -> None:
+    migrate()
+    client, headers = _client(f"acp-public-{public_code}")
+    run_id = authenticate_lab_session(headers["Authorization"].split(" ", 1)[1]).run_id
+
+    response = client.post(
+        "/checkout_sessions",
+        headers={**headers, "Idempotency-Key": f"create-{public_code}"},
+        json=_body(offer_id),
+    )
+
+    assert response.status_code == http_status
+    assert response.json()["detail"]["code"] == public_code
+    assert response.headers["Request-Id"]
+    assert "id" not in response.json()
+    assert "order" not in response.json()
+    with psycopg.connect(database_url()) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM checkout_sessions WHERE run_id = %s",
+            (run_id,),
+        ).fetchone() == (0,)
 
 
 def test_acp_create_http_accepts_empty_and_legacy_capabilities_but_rejects_invented() -> None:
@@ -123,7 +308,9 @@ def test_acp_create_replays_same_checkout_and_rejects_conflicting_content() -> N
     assert first.status_code == replay.status_code == 201
     assert first.json()["id"] == replay.json()["id"]
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
+    assert conflict.headers["Request-Id"]
+    assert conflict.json()["detail"].get("id") is None
 
 
 def test_acp_fails_closed_on_protocol_headers_and_unsupported_fields() -> None:
@@ -189,7 +376,7 @@ def test_acp_update_get_replay_conflict_and_authoritative_revision() -> None:
     assert first.json()["updated_at"] == "2026-09-10T14:01:00Z"
     assert first.json()["status"] == "not_ready_for_payment"
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
     with psycopg.connect(database_url()) as connection:
         row = connection.execute(
             """SELECT revision, status, snapshot FROM checkout_sessions
@@ -226,7 +413,10 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
         )
     path = f"/checkout_sessions/{checkout_id}/cancel"
     request_headers = {**headers, "Idempotency-Key": "cancel-key"}
-    first = client.post(path, headers=request_headers)
+    first = client.post(
+        path,
+        headers={**request_headers, "Request-Id": "attacker-controlled"},
+    )
     replay = client.post(path, headers=request_headers, json={})
     conflict = client.post(
         path, headers=request_headers, json={"intent_trace": {"reason_code": "other"}}
@@ -237,6 +427,9 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
         "/checkout_sessions", headers={**headers, "Idempotency-Key": "create-key"}, json=_body()
     )
     assert first.status_code == replay.status_code == current.status_code == 200
+    assert first.headers["Request-Id"] != "attacker-controlled"
+    assert first.headers["Request-Id"]
+    assert replay.headers["Request-Id"] != first.headers["Request-Id"]
     CHECKOUT_VALIDATOR.validate(first.json())
     assert first.json() == replay.json() == current.json()
     assert first.json()["status"] == "canceled"
@@ -245,7 +438,7 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     assert create_replay.json()["id"] == checkout_id
     assert create_replay.json()["status"] == "not_ready_for_payment"
     assert conflict.status_code == 422
-    assert conflict.json()["detail"]["code"] == "IDEMPOTENCY_CONFLICT"
+    assert conflict.json()["detail"]["code"] == "idempotency_conflict"
     assert second.status_code == 405
     assert second.json()["detail"]["code"] == "CHECKOUT_NOT_CANCELABLE"
     with psycopg.connect(database_url()) as connection:
@@ -264,7 +457,8 @@ def test_acp_cancel_get_replay_and_second_cancel_is_405() -> None:
     assert [event[0] for event in events] == ["checkout.canceled", "checkout.cancel_replayed"]
     assert all(event[1]["checkout_id"] == checkout_id for event in events)
     assert all(event[1]["actor_id"] == "acp-cancel-cycle" for event in events)
-    assert all(event[1]["request_id"] for event in events)
+    assert events[0][1]["request_id"] == first.headers["Request-Id"]
+    assert events[1][1]["request_id"] == replay.headers["Request-Id"]
 
 
 def test_acp_lifecycle_rejects_missing_headers_foreign_ids_and_terminal_update() -> None:
@@ -367,7 +561,9 @@ def test_acp_update_reports_in_flight_as_http_409() -> None:
             json=_selection(checkout_id),
         )
         assert response.status_code == 409
-        assert response.json()["detail"]["code"] == "IDEMPOTENCY_IN_FLIGHT"
+        assert response.json()["detail"]["code"] == "idempotency_in_flight"
+        assert response.headers["Retry-After"] == "1"
+        assert response.headers["Request-Id"]
 
 
 def test_acp_expired_checkout_cannot_be_updated_but_can_be_canceled() -> None:

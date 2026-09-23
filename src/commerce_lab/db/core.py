@@ -24,6 +24,7 @@ MIGRATIONS = (
     "008_checkout_payment_capability.sql",
     "009_checkout_completion.sql",
     "010_webhook_delivery.sql",
+    "011_request_observability.sql",
 )
 FIXTURE_VERSION = "p0-catalog-v1"
 PRODUCER = "preparation.db-seed"
@@ -298,6 +299,8 @@ def check_database_ready() -> None:
                          IS NOT NULL AS webhook_deliveries,
                        to_regclass('public.webhook_delivery_attempts')
                          IS NOT NULL AS webhook_delivery_attempts,
+                       to_regclass('public.request_observations')
+                         IS NOT NULL AS request_observations,
                        to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations
                 """
             ).fetchone()
