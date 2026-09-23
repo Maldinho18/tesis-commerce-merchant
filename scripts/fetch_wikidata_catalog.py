@@ -31,11 +31,16 @@ QID: Final = re.compile(r"^Q\d+$")
 # Clases de Wikidata que dan modelos de producto con imagen. Se usa "modelo de smartphone"
 # y no "modelo de celular": la segunda arrastra plegables de los 2000 que no tienen lugar en
 # una tienda actual.
-FAMILIES: Final[tuple[tuple[str, str, str], ...]] = (
-    ("Q19723451", "smartphones", "Teléfono"),
-    ("Q73343954", "laptops", "Portátil"),
-    ("Q3962", "laptops", "Portátil"),
-    ("Q155972", "tablets", "Tableta"),
+FAMILIES: Final[tuple[tuple[str, str, str], ...]] = (("Q19723451", "smartphones", "Teléfono"),)
+
+# El catálogo replica el surtido de una cadena como Best Buy: no vende Xiaomi, Huawei, Oppo
+# ni vivo. La marca se compara ya normalizada.
+STORE_BRANDS: Final[frozenset[str]] = frozenset(
+    {"apple", "samsung", "google", "motorola", "oneplus", "tcl", "sony", "nokia"}
+)
+# Series que la cadena efectivamente ofrece hoy.
+STORE_SERIES: Final = re.compile(
+    r"(iphone|galaxy|pixel|moto\s*g|motorola\s*edge|razr|oneplus|nord|xperia)", re.I
 )
 
 # Un producto entra al catálogo si su fecha de lanzamiento es reciente o si su nombre
@@ -52,6 +57,31 @@ MODERN_SERIES: Final = re.compile(
     )""",
     re.I | re.X,
 )
+
+
+_CORPORATE: Final = re.compile(
+    r"\s*(Inc\.|Corporation|Electronics|Group|Co\., Ltd\.|Mobile Communications"
+    r"|Technologies|LLC|Mobility).*$"
+)
+_TITLE_BRANDS: Final[dict[str, str]] = {
+    "iphone": "Apple",
+    "galaxy": "Samsung",
+    "pixel": "Google",
+    "moto": "Motorola",
+    "razr": "Motorola",
+    "nord": "OnePlus",
+    "xperia": "Sony",
+}
+
+
+def _normalized_brand(brand: str | None, label: str) -> str:
+    """Nombre comercial de la marca; Wikidata devuelve razones sociales o nada."""
+    if brand:
+        cleaned = _CORPORATE.sub("", brand).strip()
+        if cleaned:
+            return cleaned
+    head = label.split()[0].casefold()
+    return _TITLE_BRANDS.get(head, label.split()[0])
 
 
 def _is_modern(label: str, released: str | None) -> bool:
@@ -71,7 +101,7 @@ SELECT ?item ?itemLabel (SAMPLE(?brandLabel) AS ?brand) (MIN(?date) AS ?released
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 GROUP BY ?item ?itemLabel
-LIMIT 4000
+LIMIT 1500
 """
 
 
@@ -79,11 +109,27 @@ def _sparql(query: str) -> list[dict[str, Any]]:
     url = f"{ENDPOINT}?{urllib.parse.urlencode({'query': query})}"
     request = urllib.request.Request(
         url,
-        headers={"Accept": "application/sparql-results+json", "User-Agent": USER_AGENT},
+        headers={
+            "Accept": "application/sparql-results+json",
+            "User-Agent": USER_AGENT,
+            # Sin esto la respuesta llega comprimida y `read()` puede cortarla a la mitad.
+            "Accept-Encoding": "identity",
+        },
     )
-    with urllib.request.urlopen(request, timeout=180) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-    return payload["results"]["bindings"]
+    # Wikidata corta la respuesta cuando limita al cliente; se reintenta con espera.
+    last_error: Exception | None = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(request, timeout=300) as response:
+                body = response.read()
+            payload = json.loads(body.decode("utf-8"))
+            return payload["results"]["bindings"]
+        except (json.JSONDecodeError, OSError) as error:
+            last_error = error
+            wait = 10 * (attempt + 1)
+            print(f"    respuesta incompleta, reintento en {wait}s", flush=True)
+            time.sleep(wait)
+    raise RuntimeError("Wikidata no devolvió una respuesta completa") from last_error
 
 
 def _value(row: dict[str, Any], key: str) -> str | None:
@@ -130,10 +176,13 @@ def collect() -> list[dict[str, Any]]:
             released_year = released[:10] if released else None
             if not _is_modern(label, released_year):
                 continue
+            normalized = _normalized_brand(brand, label)
+            if normalized.casefold() not in STORE_BRANDS or not STORE_SERIES.search(label):
+                continue
             seen[entity] = {
                 "entity": entity,
                 "title": label,
-                "brand": brand,
+                "brand": normalized,
                 "category": category,
                 "kind": kind,
                 "released": released_year,

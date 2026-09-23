@@ -1,369 +1,9 @@
 {
   "license": "Datos: CC0. Imágenes: licencias libres por archivo, ver image_file.",
-  "product_count": 213,
+  "product_count": 108,
   "products": [
     {
-      "brand": "Medion",
-      "category": "laptops",
-      "entity": "Q113572994",
-      "image_file": "Schoßrechner Medion Akoya S6445 MD61280 20220821 HOF01354.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2019-01-01",
-      "title": "Medion Akoya S6445"
-    },
-    {
-      "brand": "Google",
-      "category": "laptops",
-      "entity": "Q42530222",
-      "image_file": "Google Pixelbook.jpg",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2017-10-30",
-      "title": "Pixelbook"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q29654296",
-      "image_file": "SurfaceLaptop.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2017-06-15",
-      "title": "Surface Laptop"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651764",
-      "image_file": "System76 product addw1.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2019-08-08",
-      "title": "System76 Adder WS 1"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651762",
-      "image_file": "System76 product addw3.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2023-01-01",
-      "title": "System76 Adder WS 3"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651761",
-      "image_file": "System76 product addw4.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2024-01-01",
-      "title": "System76 Adder WS 4"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651736",
-      "image_file": "System76 product addw5.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2025-01-01",
-      "title": "System76 Adder WS 5"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651737",
-      "image_file": "System76 product bonw16.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2025-04-01",
-      "title": "System76 Bonobo WS 16"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651767",
-      "image_file": "System76 product darp10.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2024-05-30",
-      "title": "System76 Darter Pro 10"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651738",
-      "image_file": "System76 product darp10.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2025-08-18",
-      "title": "System76 Darter Pro 11"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651811",
-      "image_file": "System76 darp5 photo from service manual.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2019-01-01",
-      "title": "System76 Darter Pro 5"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651770",
-      "image_file": "System76 product darp7.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2021-01-01",
-      "title": "System76 Darter Pro 7"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651769",
-      "image_file": "System76 product darp8.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2022-01-01",
-      "title": "System76 Darter Pro 8"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651813",
-      "image_file": "System76 galp3 photo from service manual.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2017-01-01",
-      "title": "System76 Galago Pro 3"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651772",
-      "image_file": "System76 product galp5.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2020-11-01",
-      "title": "System76 Galago Pro 5"
-    },
-    {
-      "brand": "Clevo",
-      "category": "laptops",
-      "entity": "Q135651783",
-      "image_file": "System76 product lemp9.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2020-04-01",
-      "title": "System76 Lemur Pro 9"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651816",
-      "image_file": "System76 oryp5 photo from service manual.png",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2019-01-01",
-      "title": "System76 Oryx Pro 5"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651796",
-      "image_file": "System76 product oryp6.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2020-06-01",
-      "title": "System76 Oryx Pro 6"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135036985",
-      "image_file": "System76 product pang12.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2023-01-01",
-      "title": "System76 Pangolin 12"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651797",
-      "image_file": "System76 product pang14.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2024-01-01",
-      "title": "System76 Pangolin 14"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651752",
-      "image_file": "System76 product pang15.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2024-12-17",
-      "title": "System76 Pangolin 15"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651802",
-      "image_file": "System76 product serw12.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2020-06-01",
-      "title": "System76 Serval WS 12"
-    },
-    {
-      "brand": null,
-      "category": "laptops",
-      "entity": "Q135651753",
-      "image_file": "System76 product serw14.webp",
-      "is_vector": false,
-      "kind": "Portátil",
-      "released": "2025-05-01",
-      "title": "System76 Serval WS 14"
-    },
-    {
-      "brand": "ASUS",
-      "category": "smartphones",
-      "entity": "Q55230221",
-      "image_file": "Asus ROG Phone 2 20201101 T1049.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "ASUS ROG Phone"
-    },
-    {
-      "brand": "ASUS",
-      "category": "smartphones",
-      "entity": "Q48913646",
-      "image_file": "ZenFone 6 Mockup.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "ASUS ZenFone 6"
-    },
-    {
-      "brand": "ASUS",
-      "category": "smartphones",
-      "entity": "Q61057444",
-      "image_file": "華碩ZenFone6.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Asus ZenFone 6 (2014)"
-    },
-    {
-      "brand": null,
-      "category": "smartphones",
-      "entity": "Q98762009",
-      "image_file": "ASUS Zenfone-7.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Asus ZenFone 7"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q30326193",
-      "image_file": "Huawei Honor 8 Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-04-01",
-      "title": "Huawei Honor 8 Pro"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q57393039",
-      "image_file": "Huawei Mate 20 Pro (LYA-L09) Backside.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Mate 20 Pro"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q96274284",
-      "image_file": "Huawei Mate 40 White back.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Mate 40"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q100773701",
-      "image_file": "Huawei Mate 40 RS.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Huawei Mate 40 RS Porsche Design"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q122046850",
-      "image_file": "ALN-AL80.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2023-09-01",
-      "title": "Huawei Mate 60"
-    },
-    {
-      "brand": "Huawei",
-      "category": "smartphones",
-      "entity": "Q131345481",
-      "image_file": "PLU-AL10.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2024-11-26",
-      "title": "Huawei Mate 70"
-    },
-    {
-      "brand": null,
-      "category": "smartphones",
-      "entity": "Q137382448",
-      "image_file": "HUAWEI Mate 80 Pro Max 001.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2025-11-25",
-      "title": "Huawei Mate 80"
-    },
-    {
-      "brand": "LG Electronics",
-      "category": "smartphones",
-      "entity": "Q99440161",
-      "image_file": "LG 윙(LG Wing), 인기 아이돌 슈퍼엠(SuperM) 뮤직비디오 ‘씬스틸러’로 등장 (50464041023).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-10-06",
-      "title": "LG Wing"
-    },
-    {
-      "brand": "Meizu",
-      "category": "smartphones",
-      "entity": "Q109264770",
-      "image_file": "Meizu 18 Front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2021-03-03",
-      "title": "Meizu 18"
-    },
-    {
-      "brand": null,
+      "brand": "Motorola",
       "category": "smartphones",
       "entity": "Q129176356",
       "image_file": "Moto G54 5G.jpg",
@@ -371,36 +11,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "Moto G54 5G"
-    },
-    {
-      "brand": null,
-      "category": "smartphones",
-      "entity": "Q65241342",
-      "image_file": "Nokia 4-2 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-02-24",
-      "title": "Nokia 4.2"
-    },
-    {
-      "brand": null,
-      "category": "smartphones",
-      "entity": "Q53233711",
-      "image_file": "Nokia 7 Plus.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-02-25",
-      "title": "Nokia 7 Plus"
-    },
-    {
-      "brand": "Guangdong Oplus Holdings Co., Ltd.",
-      "category": "smartphones",
-      "entity": "Q125510258",
-      "image_file": "OnePlus Ace 3 Black.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus 12R"
     },
     {
       "brand": "OnePlus",
@@ -423,7 +33,7 @@
       "title": "OnePlus 7 Pro"
     },
     {
-      "brand": null,
+      "brand": "OnePlus",
       "category": "smartphones",
       "entity": "Q98148411",
       "image_file": "OnePlus 8 Pro.jpg",
@@ -453,7 +63,7 @@
       "title": "OnePlus 9 Pro"
     },
     {
-      "brand": null,
+      "brand": "OnePlus",
       "category": "smartphones",
       "entity": "Q97189547",
       "image_file": "Oneplus Nord 2.jpg",
@@ -463,437 +73,7 @@
       "title": "OnePlus Nord"
     },
     {
-      "brand": null,
-      "category": "smartphones",
-      "entity": "Q106348638",
-      "image_file": "OPPO find x3 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Oppo Find X3"
-    },
-    {
-      "brand": "Oppo",
-      "category": "smartphones",
-      "entity": "Q124485887",
-      "image_file": "OPPO Find X7（2024年2月20日）.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Oppo Find X7"
-    },
-    {
-      "brand": "Oppo",
-      "category": "smartphones",
-      "entity": "Q131349208",
-      "image_file": "OPPO Find X8 - About Phone (November 1, 2024).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Oppo Find X8"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q98959915",
-      "image_file": "Plasma Mobile on Xiaomi POCO X3 NFC.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "POCO X3"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q117280924",
-      "image_file": "Poco X3 Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "POCO X3 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q110159605",
-      "image_file": "HK MK 旺角 Mongkok 彌敦道 601 Nathan Road 創興廣場 Chong Hing Square shop 小米之家 旗艦店 XiaoMi Store December 2021 SS2 01.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Poco F3"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q106390929",
-      "image_file": "Front of POCO F4.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Poco F4"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q123736832",
-      "image_file": "POCO M5 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Poco M5"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q60199034",
-      "image_file": "Xiaomi Poco F1 on Wikipedia.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-08-01",
-      "title": "Pocophone F1"
-    },
-    {
-      "brand": "ASUS",
-      "category": "smartphones",
-      "entity": "Q113327891",
-      "image_file": "ROG Phone 6 display model.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2022-07-13",
-      "title": "ROG Phone 6"
-    },
-    {
-      "brand": "Realme",
-      "category": "smartphones",
-      "entity": "Q102279550",
-      "image_file": "Realme7mistwhite.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Realme 7"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q109264718",
-      "image_file": "HK MK 旺角 Mongkok 彌敦道 601 Nathan Road 創興廣場 Chong Hing Square shop 小米之家 旗艦店 XiaoMi Store December 2021 SS2 08.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 10"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q113043450",
-      "image_file": "HK MK 旺角 Mongkok 小米手機店 Xiaomi basement shop September 2023 Red12S 04.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 10 5G"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q113130752",
-      "image_file": "Front of Redmi 10C.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 10C"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q119574824",
-      "image_file": "Redmi 12 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 12"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q65325147",
-      "image_file": "Redmi 13 Product photography 05.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 13"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q135838518",
-      "image_file": "Redmi 15 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 15"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q139254331",
-      "image_file": "Redmi 15C front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 15C"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q56272051",
-      "image_file": "Redmi 6A Blue 13вікі.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-06-01",
-      "title": "Redmi 6A"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q97305464",
-      "image_file": "Back of Redmi 9 sample in China 20210307.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 9"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q97162239",
-      "image_file": "HK MK 旺角 Mongkok 彌敦道 601 Nathan Road 創興廣場 Chong Hing Square shop 小米之家 旗艦店 XiaoMi Store December 2021 SS2 06.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi 9A"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q94987913",
-      "image_file": "Redmi K20 Pro 正面息屏照.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi K20 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q85004354",
-      "image_file": "Radmi K30 正面照.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi K30"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q94988341",
-      "image_file": "The reverse side of Redmi K30 Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-05-01",
-      "title": "Redmi K30 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q109342450",
-      "image_file": "Redmi K30 Ultra.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi K30 Ultra"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q104859286",
-      "image_file": "The back of Redmi K40.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2021-03-01",
-      "title": "Redmi K40"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q111521463",
-      "image_file": "Redmi K50.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi K50"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q115916201",
-      "image_file": "Redmi K60 Screen.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi K60"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q105763874",
-      "image_file": "Redmi note 10s gdf.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2021-03-04",
-      "title": "Redmi Note 10"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q109264525",
-      "image_file": "HK WTS 黃大仙 Wong Tai Sin 龍翔道 Lung Cheung Road 龍翔中心商場 Temple Mall North September 2021 SS2 21.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 10 5G"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q109264526",
-      "image_file": "Xiaomi Redmi Note 10 Pro (Global) front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 10 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q110879371",
-      "image_file": "XiaomiRedmiNote11.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2022-02-01",
-      "title": "Redmi Note 11"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q112075188",
-      "image_file": "Redmi Note 11 Pro front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 11 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q115071578",
-      "image_file": "Redmi Note 12 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 12"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q27504636",
-      "image_file": "Xiaomi Redmi Note 4 Front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2016-01-01",
-      "title": "Redmi Note 4"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q48936585",
-      "image_file": "XiaomiRedmiNote5front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-02-01",
-      "title": "Redmi Note 5"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q47007022",
-      "image_file": "Xiaomi-Redmi-Note-5A-sxmo.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-11-01",
-      "title": "Redmi Note 5A"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q73171196",
-      "image_file": "Redmi Note 8-0607.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-01-01",
-      "title": "Redmi Note 8"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q68163697",
-      "image_file": "Redmi Note8 Pro.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-08-29",
-      "title": "Redmi Note 8 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q85796390",
-      "image_file": "Redmi Note 9.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 9"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q122356231",
-      "image_file": "HK SKD TKO 將軍澳 Tseung Kwan O 坑口 Hang Hau 東港城 East Point City mall shop 小米 Xiaomi electronic products June 2021 SS2 03.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Redmi Note 9T"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q125449394",
-      "image_file": "Redmi Turbo 3 - 2024-09-27 02.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2024-04-10",
-      "title": "Redmi Turbo 3"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q64550623",
-      "image_file": "Redmi katrina.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-11-01",
-      "title": "Redmi Y1"
-    },
-    {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q109908096",
       "image_file": "Samsung Galaxy A03 2022.jpg",
@@ -903,7 +83,7 @@
       "title": "Samsung Galaxy A03"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124974572",
       "image_file": "Samsung Galaxy A05s 2024.jpg",
@@ -913,7 +93,7 @@
       "title": "Samsung Galaxy A05"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q125029543",
       "image_file": "Samsung Galaxy A05s 2024 (1) (cropped).jpg",
@@ -923,7 +103,7 @@
       "title": "Samsung Galaxy A05s"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q16599646",
       "image_file": "Samsung Galaxy A06 5G 2025.jpg",
@@ -933,7 +113,7 @@
       "title": "Samsung Galaxy A06 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q65062493",
       "image_file": "GalaxyA10.png",
@@ -943,7 +123,7 @@
       "title": "Samsung Galaxy A10"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q108266001",
       "image_file": "GalaxyA10.png",
@@ -953,7 +133,7 @@
       "title": "Samsung Galaxy A10e"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q90413128",
       "image_file": "Galaxy A11 vector.png",
@@ -963,7 +143,7 @@
       "title": "Samsung Galaxy A11"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q104772244",
       "image_file": "Galaxy A12 front and Back.png",
@@ -973,7 +153,7 @@
       "title": "Samsung Galaxy A12"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q109908100",
       "image_file": "Samsung Galaxy A13.jpg",
@@ -983,7 +163,7 @@
       "title": "Samsung Galaxy A13 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q131291786",
       "image_file": "Samsung Galaxy A16 5G 2025 (cropped).jpg",
@@ -993,7 +173,7 @@
       "title": "Samsung Galaxy A16"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q98078754",
       "image_file": "20200903 삼성 갤럭시 A21.jpg",
@@ -1003,7 +183,7 @@
       "title": "Samsung Galaxy A21s"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q108044294",
       "image_file": "Samsung A22 5G.jpg",
@@ -1013,7 +193,7 @@
       "title": "Samsung Galaxy A22 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111088113",
       "image_file": "Samsung Galaxy A23.jpg",
@@ -1023,7 +203,7 @@
       "title": "Samsung Galaxy A23"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q117801782",
       "image_file": "삼성 갤럭시 A24 (cropped).jpg",
@@ -1033,7 +213,7 @@
       "title": "Samsung Galaxy A24"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124339427",
       "image_file": "Samsung Galaxy A25 5G 2024 (1) (cropped).jpg",
@@ -1043,7 +223,7 @@
       "title": "Samsung Galaxy A25 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q30898021",
       "image_file": "Samsung Galaxy A26 5G 2025.jpg",
@@ -1053,7 +233,7 @@
       "title": "Samsung Galaxy A26 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q68025803",
       "image_file": "Samsung Galaxy A30.jpg",
@@ -1063,7 +243,7 @@
       "title": "Samsung Galaxy A30"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q97223461",
       "image_file": "GalaxyA31.png",
@@ -1073,7 +253,7 @@
       "title": "Samsung Galaxy A31"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111281459",
       "image_file": "Samsung Galaxy A33 5G.jpg",
@@ -1083,7 +263,7 @@
       "title": "Samsung Galaxy A33 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q117154514",
       "image_file": "삼성 갤럭시 A34 (cropped).jpg",
@@ -1093,7 +273,7 @@
       "title": "Samsung Galaxy A34 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124813453",
       "image_file": "Samsung Galaxy A35 5G 2024 (1).jpg",
@@ -1103,7 +283,7 @@
       "title": "Samsung Galaxy A35 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q133270095",
       "image_file": "Samsung Galaxy A36 5G 2025.jpg",
@@ -1113,7 +293,7 @@
       "title": "Samsung Galaxy A36 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q64889429",
       "image_file": "Samsung Galaxy A40 (cropped2).png",
@@ -1123,7 +303,7 @@
       "title": "Samsung Galaxy A40"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q97223473",
       "image_file": "GalaxyA41.png",
@@ -1133,7 +313,7 @@
       "title": "Samsung Galaxy A41"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q64819686",
       "image_file": "Samsung Galaxy A50 screen.jpg",
@@ -1143,7 +323,7 @@
       "title": "Samsung Galaxy A50"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q106044016",
       "image_file": "Samsung-Galaxy-A52-Awesome-White.jpg",
@@ -1153,7 +333,7 @@
       "title": "Samsung Galaxy A52"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q106629718",
       "image_file": "HK 香港仔 Aberdeen 東勝道 Tung Sing Road shop Sun Mobile Telecom Digital Store March 2022 SS2 02.jpg",
@@ -1163,7 +343,7 @@
       "title": "Samsung Galaxy A52 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q109341356",
       "image_file": "Samsung-Galaxy-A52-White.jpg",
@@ -1173,7 +353,7 @@
       "title": "Samsung Galaxy A52s 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111280037",
       "image_file": "SamsungGalaxyA535G.png",
@@ -1183,7 +363,7 @@
       "title": "Samsung Galaxy A53 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q117154490",
       "image_file": "Back of the Samsung Galaxy A54 5G.jpg",
@@ -1193,7 +373,7 @@
       "title": "Samsung Galaxy A54 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124813406",
       "image_file": "Samsung Galaxy A55 5G 2024 (cropped).jpg",
@@ -1203,7 +383,7 @@
       "title": "Samsung Galaxy A55 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q133249205",
       "image_file": "Samsung Galaxy A56 5G 2025.jpg",
@@ -1213,7 +393,7 @@
       "title": "Samsung Galaxy A56 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q65059301",
       "image_file": "GalaxyA70Phone.png",
@@ -1223,7 +403,7 @@
       "title": "Samsung Galaxy A70"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111281190",
       "image_file": "Samsung Galaxy A73 5G (09-11-2022).jpg",
@@ -1233,7 +413,7 @@
       "title": "Samsung Galaxy A73 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q65033630",
       "image_file": "GalaxyA80Phone Transparent.png",
@@ -1243,7 +423,7 @@
       "title": "Samsung Galaxy A80"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q67876968",
       "image_file": "Galaxy A90 5G.png",
@@ -1253,7 +433,7 @@
       "title": "Samsung Galaxy A90 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q99532825",
       "image_file": "Galaxy m11.png",
@@ -1263,7 +443,7 @@
       "title": "Samsung Galaxy M11"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q110461772",
       "image_file": "Samsung Galaxy M12.jpg",
@@ -1273,7 +453,7 @@
       "title": "Samsung Galaxy M12"
     },
     {
-      "brand": "Samsung Group",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q112159052",
       "image_file": "Galaxym13.png",
@@ -1283,7 +463,7 @@
       "title": "Samsung Galaxy M13"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q98148416",
       "image_file": "M21 photo.png",
@@ -1293,7 +473,7 @@
       "title": "Samsung Galaxy M21"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q97349752",
       "image_file": "Samsung Galaxy M31.jpg",
@@ -1303,7 +483,7 @@
       "title": "Samsung Galaxy M31"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q109264698",
       "image_file": "Samsung Galaxy M32 (cropped).jpg",
@@ -1313,7 +493,7 @@
       "title": "Samsung Galaxy M32"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q130306896",
       "image_file": "Galaxy M35 front.jpg",
@@ -1323,7 +503,7 @@
       "title": "Samsung Galaxy M35 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q99887992",
       "image_file": "Galaxy m51 phone.jpg",
@@ -1333,7 +513,7 @@
       "title": "Samsung Galaxy M51"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111550463",
       "image_file": "Galaxy M53 5G.jpg",
@@ -1343,7 +523,7 @@
       "title": "Samsung Galaxy M53 5G"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q66209066",
       "image_file": "Samsung Galaxy Phone.jpg",
@@ -1353,7 +533,7 @@
       "title": "Samsung Galaxy Note 10"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q71620144",
       "image_file": "Samsung Galaxy Note 10+.png",
@@ -1363,7 +543,7 @@
       "title": "Samsung Galaxy Note 10+"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q60021939",
       "image_file": "Samsung Galaxy S10+.png",
@@ -1373,7 +553,7 @@
       "title": "Samsung Galaxy S10"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q66688566",
       "image_file": "Samsung Galaxy S10+.png",
@@ -1383,7 +563,7 @@
       "title": "Samsung Galaxy S10+"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q78585853",
       "image_file": "Galaxy S20.png",
@@ -1393,7 +573,7 @@
       "title": "Samsung Galaxy S20"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q84949463",
       "image_file": "Samsung Galaxy S20 Ultra.png",
@@ -1403,7 +583,7 @@
       "title": "Samsung Galaxy S20 Ultra"
     },
     {
-      "brand": "Samsung Group",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q84458425",
       "image_file": "SamsungGalaxyS20plus5G128G2020SMG9860TaiwanFrontInitial20200910.jpg",
@@ -1413,7 +593,7 @@
       "title": "Samsung Galaxy S20+"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q105176473",
       "image_file": "Galaxy S21 Ultra vector.png",
@@ -1423,7 +603,7 @@
       "title": "Samsung Galaxy S21 Ultra"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q118593984",
       "image_file": "SamsungGalaxyS22.png",
@@ -1433,7 +613,7 @@
       "title": "Samsung Galaxy S22"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q111754633",
       "image_file": "20220210 삼성 갤럭시s22 울트라.jpg",
@@ -1443,7 +623,7 @@
       "title": "Samsung Galaxy S22 Ultra"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q118593938",
       "image_file": "SamsungGalaxyS22+.png",
@@ -1453,7 +633,7 @@
       "title": "Samsung Galaxy S22+"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q118586112",
       "image_file": "Galaxy S23 (cropped).png",
@@ -1463,7 +643,7 @@
       "title": "Samsung Galaxy S23"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q116629964",
       "image_file": "Galaxy S23+.png",
@@ -1473,7 +653,7 @@
       "title": "Samsung Galaxy S23+"
     },
     {
-      "brand": null,
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124316718",
       "image_file": "Samsung Galaxy S24, Sperrbildschirm.JPG",
@@ -1483,7 +663,7 @@
       "title": "Samsung Galaxy S24"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q130384521",
       "image_file": "Samsung Galaxy S24 FE 2024 (cropped).jpg",
@@ -1493,7 +673,7 @@
       "title": "Samsung Galaxy S24 FE"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124316732",
       "image_file": "Samsung S24 Ultra Phone.png",
@@ -1503,7 +683,7 @@
       "title": "Samsung Galaxy S24 Ultra"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q124316763",
       "image_file": "Samsung Galaxy S24+.jpg",
@@ -1513,7 +693,7 @@
       "title": "Samsung Galaxy S24+"
     },
     {
-      "brand": null,
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q131860814",
       "image_file": "Galaxy S25 Black.png",
@@ -1523,7 +703,7 @@
       "title": "Samsung Galaxy S25"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q131860835",
       "image_file": "Samsung Galaxy S25 Ultra Titanium Silverblue.jpg",
@@ -1533,7 +713,7 @@
       "title": "Samsung Galaxy S25 Ultra"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q131860826",
       "image_file": "20250124 삼성 갤럭시 s25+.jpg",
@@ -1543,7 +723,7 @@
       "title": "Samsung Galaxy S25+"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q137828933",
       "image_file": "Galaxy S26.jpg",
@@ -1553,7 +733,7 @@
       "title": "Samsung Galaxy S26"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q28864618",
       "image_file": "Galaxy S.jpg",
@@ -1563,7 +743,7 @@
       "title": "Samsung Galaxy S8"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q84882182",
       "image_file": "Galaxy Z Flip 5G & Galaxy Z Fold2 5G.jpg",
@@ -1573,7 +753,7 @@
       "title": "Samsung Galaxy Z Flip"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q108057818",
       "image_file": "Galaxy Z Flip.jpg",
@@ -1583,7 +763,7 @@
       "title": "Samsung Galaxy Z Flip 3"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q113486834",
       "image_file": "Front of the Samsung Galaxy Z Flip 4.jpg",
@@ -1593,7 +773,7 @@
       "title": "Samsung Galaxy Z Flip 4"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q127328023",
       "image_file": "三星Galaxy Z Flip6.png",
@@ -1603,7 +783,7 @@
       "title": "Samsung Galaxy Z Flip 6"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q108051842",
       "image_file": "Galaxy Z Fold.jpg",
@@ -1613,7 +793,7 @@
       "title": "Samsung Galaxy Z Fold 3"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q113486831",
       "image_file": "Front of the Samsung Galaxy Z Fold 4.jpg",
@@ -1623,7 +803,7 @@
       "title": "Samsung Galaxy Z Fold 4"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q127328030",
       "image_file": "Samsung Galaxy Z Fold6.png",
@@ -1633,7 +813,7 @@
       "title": "Samsung Galaxy Z Fold 6"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q135280843",
       "image_file": "Samsung Galaxy Z Fold 7 Unfolded.jpg",
@@ -1643,7 +823,7 @@
       "title": "Samsung Galaxy Z Fold 7"
     },
     {
-      "brand": "Samsung Electronics",
+      "brand": "Samsung",
       "category": "smartphones",
       "entity": "Q140676695",
       "image_file": "Samsung Galaxy Z Fold8 and Fold8 Ultra.jpg",
@@ -1653,7 +833,7 @@
       "title": "Samsung Galaxy Z Fold 8"
     },
     {
-      "brand": "Sony Mobile Communications",
+      "brand": "Sony",
       "category": "smartphones",
       "entity": "Q61913556",
       "image_file": "Sony Xperia 1.png",
@@ -1663,7 +843,7 @@
       "title": "Sony Xperia 1"
     },
     {
-      "brand": "Sony Mobile Communications",
+      "brand": "Sony",
       "category": "smartphones",
       "entity": "Q86265338",
       "image_file": "Xperia 1 II.jpg",
@@ -1673,7 +853,7 @@
       "title": "Sony Xperia 1 II"
     },
     {
-      "brand": "Sony Mobile Communications",
+      "brand": "Sony",
       "category": "smartphones",
       "entity": "Q111094451",
       "image_file": "Sony Xperia 1 IV.jpg",
@@ -1683,7 +863,7 @@
       "title": "Sony Xperia 1 IV"
     },
     {
-      "brand": "Sony Mobile Communications",
+      "brand": "Sony",
       "category": "smartphones",
       "entity": "Q100286751",
       "image_file": "Sony Xperia 5 II.png",
@@ -1703,227 +883,7 @@
       "title": "Sony Xperia 5 IV"
     },
     {
-      "brand": "vivo",
-      "category": "smartphones",
-      "entity": "Q134959323",
-      "image_file": "Vivo V20 back.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Vivo V20"
-    },
-    {
-      "brand": "vivo",
-      "category": "smartphones",
-      "entity": "Q109264700",
-      "image_file": "Vivo V21 back.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Vivo V21"
-    },
-    {
-      "brand": "vivo",
-      "category": "smartphones",
-      "entity": "Q127872524",
-      "image_file": "Vivo X100.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Vivo X100"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q109264762",
-      "image_file": "HK MK 旺角 Mongkok 彌敦道 601 Nathan Road 創興廣場 Chong Hing Square shop 小米之家 旗艦店 XiaoMi Store December 2021 SS2 18.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2021-09-15",
-      "title": "Xiaomi 11T"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q110969178",
-      "image_file": "Xiaomi 12.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 12"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q123739856",
-      "image_file": "Xiaomi 12 Lite front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 12 Lite"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q55707710",
-      "image_file": "The back of Xiaomi 12SU.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 12S Ultra"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q115670608",
-      "image_file": "Xiaomi 13 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 13"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q64550581",
-      "image_file": "Xiaomi 13 Lite front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 13 Lite"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q133731268",
-      "image_file": "HK 中環 Central 德輔道中 Des Voeux Road 中環李錦記 Lee Kum Kee Central shop 中國移動 China Mobile Store smartphones September 2023 SS2 01.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 13 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q123644366",
-      "image_file": "Xiaomi 13T XIG04(アルパインブルー).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 13T"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q64549901",
-      "image_file": "Xiaomi 14T Pro and Xiaomi 14T at the Ayala Malls Central Bloc (2025-01-09).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi 14T"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q85433784",
-      "image_file": "Mi 10.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 10"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q97201913",
-      "image_file": "Xiaomi 10 Youth 5G.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 10 Lite"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q86258678",
-      "image_file": "MIUI 14 About Phone.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 10 Pro"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q98279800",
-      "image_file": "Xiaomi Mi 10 Ultra back.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-08-11",
-      "title": "Xiaomi Mi 10 Ultra"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q104531763",
-      "image_file": "Xiaomi Mi 11 front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-12-28",
-      "title": "Xiaomi Mi 11"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q107135797",
-      "image_file": "Mi 11 Lite camera lens group.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 11 Lite"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q106661429",
-      "image_file": "Mi 11 Ultra front.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 11 Ultra"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q124974570",
-      "image_file": "HK WC Wan Chai Road shop SmarTone Digital smartphone window display Xiaomi 11 model December 2021 SS2 02.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Xiaomi Mi 11i"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q54864577",
-      "image_file": "XiaomiMi8ProFront20190714.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-05-31",
-      "title": "Xiaomi Mi 8"
-    },
-    {
-      "brand": "Xiaomi",
-      "category": "smartphones",
-      "entity": "Q61721774",
-      "image_file": "Xiaomi MI 9 frontpanel.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-02-20",
-      "title": "Xiaomi Mi 9"
-    },
-    {
-      "brand": "Sony Mobile Communications",
+      "brand": "Sony",
       "category": "smartphones",
       "entity": "Q51885191",
       "image_file": "Xperia XZ2 Premium.png",
@@ -1933,17 +893,7 @@
       "title": "Xperia XZ2 Premium"
     },
     {
-      "brand": "Yandex",
-      "category": "smartphones",
-      "entity": "Q59354573",
-      "image_file": "Яндекс.телефон.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-12-05",
-      "title": "Yandex Smartphone"
-    },
-    {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q67216142",
       "image_file": "IPhone 11 Pro Midnight Green.svg",
@@ -1953,7 +903,7 @@
       "title": "iPhone 11 Pro"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q96608989",
       "image_file": "IPhone 12 Blue.svg",
@@ -1963,7 +913,7 @@
       "title": "iPhone 12"
     },
     {
-      "brand": null,
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q108541719",
       "image_file": "IPhone 13 Pro vector.svg",
@@ -1973,7 +923,7 @@
       "title": "iPhone 13 Pro"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q108541666",
       "image_file": "IPhone 13 Mini Grün Freigestellt.png",
@@ -1983,7 +933,7 @@
       "title": "iPhone 13 mini"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q113800722",
       "image_file": "IPhone 14 Pro vector.svg",
@@ -1993,7 +943,7 @@
       "title": "iPhone 14 Pro"
     },
     {
-      "brand": null,
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q113816991",
       "image_file": "IPhone 14 Pro vector.svg",
@@ -2003,7 +953,7 @@
       "title": "iPhone 14 Pro Max"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q121992935",
       "image_file": "IPhone 15 Vector.svg",
@@ -2013,7 +963,7 @@
       "title": "iPhone 15"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q124653339",
       "image_file": "IPhone 15 Plus.jpeg",
@@ -2023,7 +973,7 @@
       "title": "iPhone 15 Plus"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q122442399",
       "image_file": "IPhone 15 Pro Vector.svg",
@@ -2033,7 +983,7 @@
       "title": "iPhone 15 Pro"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q125178718",
       "image_file": "IPhone 15 pro max.png",
@@ -2043,7 +993,7 @@
       "title": "iPhone 15 Pro Max"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q130312645",
       "image_file": "IPhone 16 Plus Vector.svg",
@@ -2053,7 +1003,7 @@
       "title": "iPhone 16 Plus"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q130315105",
       "image_file": "IPhone 16 Pro Max Vector.svg",
@@ -2063,7 +1013,7 @@
       "title": "iPhone 16 Pro Max"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q132559447",
       "image_file": "IPhone 16e Vector.svg",
@@ -2073,7 +1023,7 @@
       "title": "iPhone 16e"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q136203050",
       "image_file": "IPhone 17 Pro Max Vector.svg",
@@ -2083,7 +1033,7 @@
       "title": "iPhone 17 Pro Max"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q138529589",
       "image_file": "IPhone 17e Vector.svg",
@@ -2093,7 +1043,7 @@
       "title": "iPhone 17e"
     },
     {
-      "brand": null,
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q140421681",
       "image_file": "IPhone 18 Pro Vector.svg",
@@ -2103,7 +1053,7 @@
       "title": "iPhone 18 Pro"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q26831164",
       "image_file": "IPhone 7 Jet Black.svg",
@@ -2113,7 +1063,7 @@
       "title": "iPhone 7"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q23309966",
       "image_file": "IPhone SE (1st generation) rose gold.svg",
@@ -2123,7 +1073,7 @@
       "title": "iPhone SE (1st generation)"
     },
     {
-      "brand": "Apple Inc.",
+      "brand": "Apple",
       "category": "smartphones",
       "entity": "Q26833946",
       "image_file": "IPhone 7 Plus Jet Black.svg",

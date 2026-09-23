@@ -50,10 +50,10 @@ def test_cop_uses_integer_minor_units_and_shipping_once() -> None:
             offer.pricing.items_total_minor + offer.pricing.shipping_total_minor
         )
         assert offer.pricing.tax_included is True
-    keychron = next(offer for offer in P0_OFFERS if offer.id == "KEY-Q3MAX-RED")
-    assert keychron.pricing.items_total_minor == 899_000_00
-    assert keychron.pricing.shipping_total_minor == 25_000_00
-    assert keychron.pricing.total_minor == 924_000_00
+    sample = next(offer for offer in P0_OFFERS if offer.id == "Q100286751-256GB")
+    assert sample.pricing.items_total_minor == 1_310_000_00
+    assert sample.pricing.shipping_total_minor == 25_000_00
+    assert sample.pricing.total_minor == 1_335_000_00
     with pytest.raises(ValidationError):
         Pricing.model_validate({**P0_OFFERS[0].pricing.model_dump(), "total_minor": 1})
 
@@ -109,7 +109,7 @@ def test_contract_requires_one_unit_revision_and_bounded_idempotency() -> None:
     ):
         with pytest.raises(ValidationError):
             CheckoutPrepareInput.model_validate({**base, **changed})
-    search = CatalogSearchInput(category="headphones")
+    search = CatalogSearchInput(category="smartphones")
     assert search.offset == 0 and search.limit == 20
 
 
@@ -148,42 +148,29 @@ def test_legacy_offer_snapshot_derives_new_non_authoritative_fields() -> None:
     assert offer.attributes == {}
 
 
-def test_fixture_has_exactly_two_admissible_zephyrus_configurations() -> None:
-    admissible = [
-        offer.id
-        for offer in P0_OFFERS
-        if offer.product_id == "prod-asus-rog-zephyrus-g16"
-        and offer.condition == "new"
-        and offer.pricing.total_minor <= 12_000_000_00
-        and offer.delivery_days <= 5
-        and offer.available_quantity > 0
-    ]
-    assert admissible == ["ASUS-G16-16-5060-1TB", "ASUS-G16-32-5070-1TB"]
-    assert all(offer.sku == offer.id for offer in P0_OFFERS)
-
-
 def test_variant_attributes_carry_the_configuration_that_distinguishes_siblings() -> None:
-    zephyrus = [offer for offer in P0_OFFERS if offer.product_id == "prod-asus-rog-zephyrus-g16"]
-    assert len(zephyrus) == 4
+    grouped = [offer for offer in P0_OFFERS if offer.product_id == "prod-q104772244"]
+    assert len(grouped) == 3
     # Las variantes del mismo producto comparten los campos de nivel producto...
-    assert len({offer.product_title for offer in zephyrus}) == 1
-    assert len({offer.product_description for offer in zephyrus}) == 1
-    assert len({offer.brand for offer in zephyrus}) == 1
+    assert len({offer.product_title for offer in grouped}) == 1
+    assert len({offer.product_description for offer in grouped}) == 1
+    assert len({offer.brand for offer in grouped}) == 1
     # ...y se distinguen por sus atributos, que son los que el agente filtra.
-    assert {offer.attributes["gpu"] for offer in zephyrus} == {
-        "RTX 5060",
-        "RTX 5070",
-        "RTX 5070 Ti",
-        "RTX 5080",
-    }
-    assert all("ram" in offer.attributes and "storage" in offer.attributes for offer in zephyrus)
+    assert {offer.attributes["storage"] for offer in grouped} == {"128 GB", "256 GB", "512 GB"}
+
+
+def test_every_product_carries_a_real_brand_and_image() -> None:
+    assert all(offer.brand for offer in P0_OFFERS)
+    # El fixture descarta lo que no tenga foto descargada; aquí no debe faltar ninguna.
+    assert all(offer.image_url for offer in P0_OFFERS)
+    assert {offer.category for offer in P0_OFFERS} == {"smartphones"}
 
 
 def test_every_p0_product_has_explicit_valid_internal_status() -> None:
     # El catálogo se recolecta de una fuente externa, así que se afirman escala mínima e
     # invariantes en vez de un conteo exacto. La cota es baja a propósito: se prefirió un
     # catálogo de productos vigentes antes que uno grande lleno de equipos descontinuados.
-    assert len({offer.product_id for offer in P0_OFFERS}) >= 150
+    assert len({offer.product_id for offer in P0_OFFERS}) >= 100
     assert len(P0_OFFERS) >= len({offer.product_id for offer in P0_OFFERS})
     assert len({offer.id for offer in P0_OFFERS}) == len(P0_OFFERS)
     assert {offer.product_status for offer in P0_OFFERS} == {"active"}

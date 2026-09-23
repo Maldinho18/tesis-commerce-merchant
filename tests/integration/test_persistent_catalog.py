@@ -30,14 +30,14 @@ def test_session_scopes_persistent_reads_and_records_evidence() -> None:
     context_a = authenticate_lab_session(token_a)
     context_b = authenticate_lab_session(token_b)
 
-    result_a = PersistentCatalogReader(context_a).search({"category": "headphones"})
+    result_a = PersistentCatalogReader(context_a).search({"category": "smartphones"})
     result_b = PersistentCatalogReader(context_b).get(
         {
-            "offer_id": "SEN-MOM4-BLK",
+            "offer_id": "Q100286751-256GB",
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
-    assert len(result_a.data.offers) == 6
+    assert len(result_a.data.offers) == 20
     assert result_b.ok is True
 
     with psycopg.connect(database_url()) as connection:
@@ -64,10 +64,10 @@ def test_real_http_routes_create_unique_request_contexts_concurrently() -> None:
         response = client.post(
             "/lab/catalog/search",
             headers={"Authorization": f"Bearer {token}"},
-            json={"category": "headphones"},
+            json={"category": "smartphones"},
         )
         assert response.status_code == 200
-        assert len(response.json()["data"]["offers"]) == 6
+        assert len(response.json()["data"]["offers"]) == 20
         return response.headers["X-Request-Id"]
 
     with ThreadPoolExecutor(max_workers=4) as pool:
@@ -80,6 +80,6 @@ def test_unknown_session_fails_closed() -> None:
     response = TestClient(app).post(
         "/lab/catalog/search",
         headers={"Authorization": "Bearer not-a-session"},
-        json={"category": "headphones"},
+        json={"category": "smartphones"},
     )
     assert response.status_code == 401

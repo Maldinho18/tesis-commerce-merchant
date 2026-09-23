@@ -17,7 +17,7 @@ REGISTRY = Registry().with_resource(str(BUNDLE["$id"]), Resource.from_contents(B
 ORIGIN = "https://merchant.example.test"
 # El catálogo se recolecta de una fuente externa: se afirma escala mínima e invariantes,
 # no literales que quedarían obsoletos en cada recolección.
-MIN_PRODUCTS = 150
+MIN_PRODUCTS = 100
 
 
 def validate(definition: str, value: object) -> None:
@@ -93,8 +93,8 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
         assert "run_id" not in json.dumps(product)
         assert "token" not in json.dumps(product).lower()
     status = {variant["id"]: variant["availability"] for variant in variants}
-    assert status["ASUS-G16-32-5070TI-2TB"] == {"available": True, "status": "limited_stock"}
-    assert status["SON-XM6-BLU"] == {"available": False, "status": "out_of_stock"}
+    assert status["Q106629718-128GB"] == {"available": True, "status": "limited_stock"}
+    assert status["Q108044294-512GB"] == {"available": False, "status": "out_of_stock"}
     assert {item["status"] for item in status.values()} == {
         "in_stock",
         "limited_stock",
@@ -105,35 +105,39 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
 
 def test_feed_groups_configurations_of_one_product_under_shared_metadata() -> None:
     _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
-    zephyrus = next(
-        product for product in products if product["id"] == "prod-asus-rog-zephyrus-g16"
-    )
-    variants = cast(list[dict[str, Any]], zephyrus["variants"])
-    assert len(variants) == 4
-    assert zephyrus["title"] == "ASUS ROG Zephyrus G16 (2025)"
+    grouped = next(product for product in products if product["id"] == "prod-q104772244")
+    variants = cast(list[dict[str, Any]], grouped["variants"])
+    assert [variant["id"] for variant in variants] == [
+        "Q104772244-128GB",
+        "Q104772244-256GB",
+        "Q104772244-512GB",
+    ]
     # Cada variante publica su configuración como opciones; es lo que el agente filtra.
     options = {
         variant["id"]: {option["name"]: option["value"] for option in variant["variant_options"]}
         for variant in variants
     }
-    assert options["ASUS-G16-32-5070TI-2TB"]["RAM"] == "32 GB"
-    assert options["ASUS-G16-32-5070TI-2TB"]["GPU"] == "RTX 5070 Ti"
-    assert options["ASUS-G16-32-5070TI-2TB"]["Almacenamiento"] == "2 TB"
-    assert options["ASUS-G16-16-5060-1TB"]["GPU"] == "RTX 5060"
-    assert {variant["price"]["amount"] for variant in variants} == {
-        8_999_000_00,
-        11_499_000_00,
-        13_999_000_00,
-        16_999_000_00,
-    }
+    assert options["Q104772244-128GB"]["Almacenamiento"] == "128 GB"
+    assert options["Q104772244-512GB"]["Almacenamiento"] == "512 GB"
+    # El nivel producto es común a todas las variantes.
+    assert len({variant["title"].rsplit(" ", 1)[0] for variant in variants}) == 1
 
 
-def test_feed_price_is_item_only_and_checkout_must_add_shipping() -> None:
+def test_feed_publishes_brand_in_its_own_taxonomy() -> None:
     _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
-    keychron = next(product for product in products if product["id"] == "prod-keychron-q3-max")
-    variants = cast(list[dict[str, Any]], keychron["variants"])
-    variant = next(item for item in variants if item["id"] == "KEY-Q3MAX-RED")
-    assert variant["price"] == {"amount": 899_000_00, "currency": "COP"}
-    offer = next(offer for offer in fresh_p0_offers() if offer.id == "KEY-Q3MAX-RED")
-    assert offer.pricing.shipping_total_minor == 25_000_00
-    assert offer.pricing.total_minor == 924_000_00
+    for product in products:
+        for variant in product["variants"]:
+            taxonomies = {row["taxonomy"]: row["value"] for row in variant["categories"]}
+            # El esquema ACP no tiene campo de marca; viaja como categoría con taxonomía propia.
+            assert taxonomies["merchant"] == "smartphones"
+            assert taxonomies["brand"]
+
+
+def test_every_product_has_an_image_served_by_the_merchant() -> None:
+    _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
+    # Una tarjeta sin foto se ve peor que un catálogo más corto: el fixture descarta los
+    # productos cuya imagen no se pudo descargar, así que aquí no debe faltar ninguna.
+    for product in products:
+        url = product["media"][0]["url"]
+        assert url.startswith(f"{ORIGIN}/assets/products/")
+        assert not url.endswith("/assets/products/{}.jpg".format(product["id"]))

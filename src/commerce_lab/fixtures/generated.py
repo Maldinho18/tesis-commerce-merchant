@@ -46,6 +46,12 @@ _TIER_RANGE: Final[dict[str, tuple[int, int]]] = {
     "tablet": (799_000_00, 3_499_000_00),
 }
 
+_CEILING: Final[dict[str, int]] = {
+    "smartphones": 8_499_000_00,
+    "tablets": 5_499_000_00,
+    "laptops": 15_999_000_00,
+}
+
 # Un equipo pierde valor cada año; sin fecha se asume una antigüedad media.
 _CATALOG_YEAR: Final = 2026
 _ASSUMED_AGE: Final = 3
@@ -100,6 +106,9 @@ def _price(entity: str, category: str, title: str, brand: str, released: str | N
     low, high = _TIER_RANGE[_tier(title, category)]
     spread = _digits(entity)[0] / 255
     amount = int((low + (high - low) * spread) * _residual(released) * _premium(brand))
+    # La prima de marca se apila sobre el rango de gama, así que se acota al techo real de
+    # la categoría: ningún teléfono de tienda pasa de ocho millones y medio.
+    amount = min(amount, _CEILING.get(category, 8_499_000_00))
     # Se redondea a decenas de miles de pesos para que se lea como un precio de tienda.
     return max((amount // 10_000_00) * 10_000_00, 199_000_00)
 
@@ -231,8 +240,11 @@ def _snapshot() -> list[dict[str, Any]]:
         return []
     document = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
     products: list[dict[str, Any]] = document.get("products", [])
-    # Las fotos van primero; el arte vectorial queda al final del catálogo.
-    return sorted(products, key=lambda row: (row["is_vector"], row["category"], row["entity"]))
+    # Un producto sin foto descargada no entra al catálogo: una tarjeta vacía se ve peor que
+    # un catálogo más corto. Las fotos se traen con scripts/fetch_product_images.py.
+    available = _downloaded_images()
+    with_image = [row for row in products if row["entity"] in available]
+    return sorted(with_image, key=lambda row: (row["category"], row["entity"]))
 
 
 def build_generated_offers(

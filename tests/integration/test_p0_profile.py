@@ -47,9 +47,9 @@ def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path)
     published = next(
         product["variants"][0]
         for product in products
-        if product["variants"][0]["id"] == "SEN-MOM4-BLK"
+        if product["variants"][0]["id"] == "Q100286751-256GB"
     )
-    assert published["price"] == {"amount": 1_249_000_00, "currency": "COP"}
+    assert published["price"] == {"amount": 1_310_000_00, "currency": "COP"}
 
     with psycopg.connect(database_url()) as connection, connection.transaction():
         row = connection.execute(
@@ -119,11 +119,11 @@ def test_low_stock_allows_checkout_without_decrement_and_zero_stock_rejects(tmp_
         )
         for variant in product["variants"]
     }
-    assert variants["ASUS-G16-32-5070TI-2TB"]["availability"]["status"] == "limited_stock"
-    assert variants["SON-XM6-BLU"]["availability"]["status"] == "out_of_stock"
+    assert variants["Q106629718-128GB"]["availability"]["status"] == "limited_stock"
+    assert variants["Q108044294-512GB"]["availability"]["status"] == "out_of_stock"
     client = TestClient(app)
-    low_stock = _create(client, headers, "ASUS-G16-32-5070TI-2TB", "p0-last-unit")
-    out = _create(client, headers, "SON-XM6-BLU", "p0-empty")
+    low_stock = _create(client, headers, "Q106629718-128GB", "p0-last-unit")
+    out = _create(client, headers, "Q108044294-512GB", "p0-empty")
     missing = _create(client, headers, "MISSING-01", "p0-missing")
     assert low_stock.status_code == 201
     assert out.status_code == 409 and out.json()["detail"]["code"] == "out_of_stock"
@@ -132,6 +132,6 @@ def test_low_stock_allows_checkout_without_decrement_and_zero_stock_rejects(tmp_
         stored = connection.execute(
             "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
             "WHERE run_id = %s AND offer_id = %s",
-            (run_id, "ASUS-G16-32-5070TI-2TB"),
+            (run_id, "Q106629718-128GB"),
         ).fetchone()
     assert stored == ("1",)

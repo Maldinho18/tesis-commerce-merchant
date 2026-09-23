@@ -121,7 +121,7 @@ def test_ready_fails_closed_when_database_is_unavailable(monkeypatch) -> None:
 
 
 def test_lab_catalog_requires_server_resolved_session() -> None:
-    response = TestClient(app).post("/lab/catalog/search", json={"category": "headphones"})
+    response = TestClient(app).post("/lab/catalog/search", json={"category": "smartphones"})
     assert response.status_code == 401
     assert "actor_id" not in response.text
 
@@ -200,15 +200,15 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
     app.dependency_overrides[persistent_catalog] = lambda: reader
     try:
         client = TestClient(app)
-        response = client.post("/lab/catalog/search", json={"category": "headphones"})
+        response = client.post("/lab/catalog/search", json={"category": "smartphones"})
         injected = client.post(
             "/lab/catalog/search",
-            json={"category": "headphones", "actor_id": "attacker"},
+            json={"category": "smartphones", "actor_id": "attacker"},
         )
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert len(response.json()["data"]["offers"]) == 6
+    assert len(response.json()["data"]["offers"]) == 20
     assert response.headers["X-Request-Id"] == context.request_id
     assert injected.status_code == 422
 
