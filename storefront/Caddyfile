@@ -8,6 +8,14 @@
 	root * /srv
 	encode gzip zstd
 
+	# El railway.json de la raiz del repositorio es compartido con el merchant y apunta el
+	# healthcheck a /health/ready. La vitrina responde esa misma ruta para que la plataforma
+	# la considere lista.
+	respond /health/ready 200 {
+		body "ok"
+		close
+	}
+
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 	header Cache-Control "no-cache"

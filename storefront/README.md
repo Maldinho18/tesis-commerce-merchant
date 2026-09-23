@@ -24,6 +24,17 @@ lectura del catálogo.
 
 ## Despliegue
 
-Servicio propio en Railway con `rootDirectory` en `storefront`, igual que la UI del agente vive
-en `ui/` dentro del repositorio del comprador. El `Dockerfile` compila con Vite y sirve el
-resultado con Caddy en `0.0.0.0:${PORT:-8080}`.
+Servicio propio en Railway sobre este mismo repositorio. El servicio se selecciona con la
+variable `RAILWAY_DOCKERFILE_PATH=storefront/Dockerfile`, así que **el contexto de build es la
+raíz del repositorio** y los `COPY` del Dockerfile llevan el prefijo `storefront/`. En local:
+
+```sh
+docker build -f storefront/Dockerfile .
+```
+
+Con esa variable el servicio sigue leyendo el `railway.json` de la raíz, que es el del merchant
+y apunta el healthcheck a `/health/ready`; por eso el Caddyfile responde esa ruta. La
+alternativa más limpia es fijar *Root Directory* en `storefront` desde el panel de Railway, que
+además haría que se leyera el `railway.json` de esta carpeta.
+
+El `Dockerfile` compila con Vite y sirve el resultado con Caddy en `0.0.0.0:${PORT:-8080}`.
