@@ -401,3 +401,29 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
     )
     assert observation.error_code == "missing_api_version"
     assert observation.run_id is observation.actor_id is None
+
+
+def test_storefront_catalog_is_public_read_only_and_never_cached(monkeypatch) -> None:
+    """La vitrina humana lee sin Bearer; el canal ACP sigue exigiéndolo."""
+    metadata = {"id": "feed_p0_tech", "target_country": "CO", "updated_at": "2026-09-10T14:00:00Z"}
+    products = [{"id": "prod-x", "title": "X", "variants": [{"id": "X-1", "title": "X 1"}]}]
+    monkeypatch.setattr("commerce_lab.api.current_feed", lambda **_: (metadata, products))
+
+    response = TestClient(app).get("/storefront/catalog")
+
+    assert response.status_code == 200
+    assert response.json() == {"metadata": metadata, "products": products}
+    # El inventario cambia con cada compra del agente: una respuesta cacheada mentiría.
+    assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_storefront_catalog_reports_unavailable_before_the_catalog_is_seeded(monkeypatch) -> None:
+    def unseeded(**_: object) -> tuple[dict[str, object], list[dict[str, object]]]:
+        raise ValueError("Seed a P0 merchant episode before serving the storefront")
+
+    monkeypatch.setattr("commerce_lab.api.current_feed", unseeded)
+
+    response = TestClient(app).get("/storefront/catalog")
+
+    assert response.status_code == 503
+    assert "seed" not in response.text.lower() or "Catalog" in response.text

@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     payment_provider_url: str = "http://127.0.0.1:4130"
     payment_merchant_bearer_token: SecretStr | None = None
     payment_merchant_id: str = "tesis_merchant"
+    # Origen exacto del storefront, habilitado en CORS solo para lectura del catálogo.
+    storefront_origin: str | None = None
 
     @field_validator("acp_api_base_url", "payment_provider_url")
     @classmethod
@@ -37,6 +39,25 @@ class Settings(BaseSettings):
             raise ValueError(
                 "Service base URL must use HTTPS outside localhost and contain no path"
             )
+        return value.rstrip("/")
+
+    @field_validator("storefront_origin")
+    @classmethod
+    def validate_storefront_origin(cls, value: str | None) -> str | None:
+        if value is None or value == "":
+            return None
+        parsed = urlparse(value)
+        local = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+        if (
+            parsed.scheme not in {"http", "https"}
+            or (not local and parsed.scheme != "https")
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+            or parsed.path not in {"", "/"}
+        ):
+            raise ValueError("Storefront origin must use HTTPS outside localhost")
         return value.rstrip("/")
 
     @field_validator("webhook_receiver_url")

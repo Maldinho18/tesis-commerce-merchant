@@ -1,0 +1,19 @@
+# Vitrina estatica: cualquier ruta desconocida cae en index.html; los assets llevan hash.
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	root * /srv
+	encode gzip zstd
+
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	header Cache-Control "no-cache"
+	header X-Content-Type-Options "nosniff"
+	header Referrer-Policy "no-referrer"
+
+	try_files {path} /index.html
+	file_server
+}
