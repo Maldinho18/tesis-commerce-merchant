@@ -72,3 +72,26 @@ export function budgetSteps(products: FeedProduct[]): number[] {
 
 /** Productos por página en la retícula. */
 export const PAGE_SIZE = 48
+
+export type SortKey = "relevance" | "price-asc" | "price-desc" | "name"
+
+export const SORT_LABELS: Record<SortKey, string> = {
+  relevance: "Relevancia",
+  "price-asc": "Precio: menor a mayor",
+  "price-desc": "Precio: mayor a menor",
+  name: "Nombre A-Z",
+}
+
+/** Orden estable: el desempate por id evita que dos productos del mismo precio bailen. */
+export function sortProducts(products: FeedProduct[], key: SortKey): FeedProduct[] {
+  if (key === "relevance") return products
+  const sorted = [...products]
+  sorted.sort((left, right) => {
+    if (key === "name") return left.title.localeCompare(right.title, "es")
+    const a = priceRange(left).min
+    const b = priceRange(right).min
+    const delta = key === "price-asc" ? a - b : b - a
+    return delta || left.id.localeCompare(right.id)
+  })
+  return sorted
+}

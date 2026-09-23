@@ -35,6 +35,8 @@ export function ProductImage({ src, alt, seed, category, brand, className }: Pro
   const [failed, setFailed] = useState(false)
 
   if (!src || failed) {
+    // El respaldo no compite con las fotos reales: fondo casi blanco y un tinte mínimo
+    // derivado del producto, solo para que dos tarjetas contiguas no se confundan.
     const tone = hue(seed)
     const Icon = CATEGORY_ICONS[category as keyof typeof CATEGORY_ICONS] ?? Package
     return (
@@ -42,13 +44,12 @@ export function ProductImage({ src, alt, seed, category, brand, className }: Pro
         role="img"
         aria-label={alt}
         className={cn("flex flex-col items-center justify-center gap-2", className)}
-        style={{
-          background: `linear-gradient(140deg, oklch(0.96 0.02 ${tone}), oklch(0.91 0.04 ${tone}))`,
-          color: `oklch(0.45 0.07 ${tone})`,
-        }}
+        style={{ background: `oklch(0.985 0.006 ${tone})`, color: `oklch(0.62 0.02 ${tone})` }}
       >
-        <Icon className="size-8 opacity-70" strokeWidth={1.5} />
-        {brand && <span className="text-xs font-medium tracking-wide">{brand}</span>}
+        <Icon className="size-10" strokeWidth={1.25} />
+        {brand && (
+          <span className="text-[0.7rem] font-medium tracking-wide uppercase">{brand}</span>
+        )}
       </div>
     )
   }
