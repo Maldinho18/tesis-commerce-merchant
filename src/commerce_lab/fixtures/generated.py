@@ -47,7 +47,7 @@ _TIER_RANGE: Final[dict[str, tuple[int, int]]] = {
 }
 
 _CEILING: Final[dict[str, int]] = {
-    "smartphones": 8_499_000_00,
+    "smartphones": 9_999_000_00,
     "tablets": 5_499_000_00,
     "laptops": 15_999_000_00,
 }
@@ -57,6 +57,8 @@ _CATALOG_YEAR: Final = 2026
 _ASSUMED_AGE: Final = 3
 _YEARLY_DECAY: Final = 0.16
 _MIN_RESIDUAL: Final = 0.34
+# Cuánto suma cada escalón de capacidad sobre el precio base del modelo.
+_STORAGE_STEP: Final = 0.11
 
 _FLAGSHIP = re.compile(r"\b(pro|ultra|max|fold|flip|plus)\b|\bs2[0-9]\b|\bmate\s*[456][0-9]", re.I)
 _ENTRY = re.compile(r"\b(lite|mini|neo|go|a0?[0-9]|m[0-2][0-9]|redmi\s*(9|1[0-3])a?)\b", re.I)
@@ -211,7 +213,10 @@ def _is_modern(released: str | None) -> bool:
 
 
 def _variant_specs(
-    entity: str, category: str, released: str | None
+    entity: str,
+    category: str,
+    released: str | None,
+    declared: list[str] | None = None,
 ) -> list[tuple[str, dict[str, str], str]]:
     """Devuelve (código, atributos, color) por variante.
 
@@ -220,6 +225,16 @@ def _variant_specs(
     sin contradecir el producto real.
     """
     d = _digits(entity)
+    if declared:
+        # El surtido curado declara las capacidades reales del modelo; no se inventan.
+        return [
+            (
+                storage.replace(" ", ""),
+                {"storage": storage},
+                _COLORS[(d[4] + index) % len(_COLORS)],
+            )
+            for index, storage in enumerate(declared)
+        ]
     storages = _STORAGE.get(category, _STORAGE["smartphones"])
     count = 1 + d[1] % 3
     start = d[2] % max(len(storages) - count + 1, 1)
@@ -260,7 +275,7 @@ def build_generated_offers(
         title = str(product["title"])[:200]
         d = _digits(entity)
         released = product.get("released")
-        specs = _variant_specs(entity, category, released)
+        specs = _variant_specs(entity, category, released, product.get("storage_options"))
         description = _description(product, brand, len(specs))
         image_path = _image_path(entity)
         base = _price(entity, category, title, brand, released)
@@ -269,8 +284,11 @@ def build_generated_offers(
         condition = "refurbished" if refurbished else "new"
 
         for index, (code, attributes, color) in enumerate(specs):
-            # Cada escalón de configuración sube el precio de forma estable.
-            item_minor = base + index * ((d[6] % 6 + 2) * 10_000_00)
+            # Cada escalón de capacidad sube un porcentaje del precio base, no una cifra
+            # fija: subir de 256 GB a 2 TB por sesenta mil pesos no se sostiene.
+            item_minor = base + int(base * _STORAGE_STEP * index)
+            # Se redondea también el escalón: una tienda no publica 8.769.000.
+            item_minor = (item_minor // 10_000_00) * 10_000_00
             if refurbished:
                 item_minor = int(item_minor * 0.75 // 10_000_00) * 10_000_00 or base
             shipping = 0 if item_minor >= 2_000_000_00 else _SHIP_STD

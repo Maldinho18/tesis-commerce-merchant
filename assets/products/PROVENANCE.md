@@ -300,3 +300,143 @@ página de origen de cada archivo.
 | `BBSonyXperia1VI.jpg` | Sony Xperia 1 VI | render del fabricante |
 | `BBSonyXperia10VI.jpg` | Sony Xperia 10 VI | render del fabricante |
 | `BBTCL50XL.jpg` | TCL 50 XL | render del fabricante |
+
+## Imágenes de Openverse
+
+Licencias Creative Commons que exigen atribución. Se conserva autor, licencia y
+página de origen de cada archivo.
+
+| Archivo | Producto | Origen |
+| --- | --- | --- |
+| `BBiPhone11.jpg` | iPhone 11 | render del fabricante |
+| `BBiPhone12mini.jpg` | iPhone 12 mini | render del fabricante |
+| `BBiPhone12Pro.jpg` | iPhone 12 Pro | render del fabricante |
+| `BBiPhone12ProMax.jpg` | iPhone 12 Pro Max | render del fabricante |
+| `BBiPhone13.jpg` | iPhone 13 | render del fabricante |
+| `BBiPhone13ProMax.jpg` | iPhone 13 Pro Max | render del fabricante |
+| `BBiPhone14Plus.jpg` | iPhone 14 Plus | render del fabricante |
+| `BBiPhoneAir.jpg` | iPhone Air | render del fabricante |
+| `BBiPhoneSE2022.jpg` | iPhone SE (2022) | render del fabricante |
+
+## Renders de fabricante
+
+Imágenes de producto publicadas por los fabricantes. No son de licencia libre:
+se usan aquí con fines académicos y deben citarse como tales en la tesis.
+
+| Archivo | Producto | Origen |
+| --- | --- | --- |
+| `BBGooglePixel7a.jpg` | Google Pixel 7a | render del fabricante |
+| `BBGooglePixel8.jpg` | Google Pixel 8 | render del fabricante |
+| `BBGooglePixel8Pro.jpg` | Google Pixel 8 Pro | render del fabricante |
+| `BBGooglePixel8a.jpg` | Google Pixel 8a | render del fabricante |
+| `BBGooglePixel9.jpg` | Google Pixel 9 | render del fabricante |
+| `BBGooglePixel9Pro.jpg` | Google Pixel 9 Pro | render del fabricante |
+| `BBGooglePixel9ProXL.jpg` | Google Pixel 9 Pro XL | render del fabricante |
+| `BBMotorolaEdge50Pro.jpg` | Motorola Edge 50 Pro | render del fabricante |
+| `BBMotorolaMotoGPower.jpg` | Motorola Moto G Power | render del fabricante |
+| `BBMotorolaRazr50Ultra.jpg` | Motorola Razr 50 Ultra | render del fabricante |
+| `BBOnePlus11.jpg` | OnePlus 11 | render del fabricante |
+| `BBOnePlus12.jpg` | OnePlus 12 | render del fabricante |
+| `BBSamsungGalaxyA15.jpg` | Samsung Galaxy A15 | render del fabricante |
+| `BBSamsungGalaxyA25.jpg` | Samsung Galaxy A25 | render del fabricante |
+| `BBSamsungGalaxyA35.jpg` | Samsung Galaxy A35 | render del fabricante |
+| `BBSamsungGalaxyA54.jpg` | Samsung Galaxy A54 | render del fabricante |
+| `BBSamsungGalaxyA55.jpg` | Samsung Galaxy A55 | render del fabricante |
+| `BBSamsungGalaxyS23Ultra.jpg` | Samsung Galaxy S23 Ultra | render del fabricante |
+| `BBSonyXperia10VI.jpg` | Sony Xperia 10 VI | render del fabricante |
+| `BBSonyXperia1VI.jpg` | Sony Xperia 1 VI | render del fabricante |
+| `BBTCL50XL.jpg` | TCL 50 XL | render del fabricante |
+| `BBiPhone11.jpg` | iPhone 11 | render del fabricante |
+| `BBiPhone12Pro.jpg` | iPhone 12 Pro | render del fabricante |
+| `BBiPhone12ProMax.jpg` | iPhone 12 Pro Max | render del fabricante |
+| `BBiPhone12mini.jpg` | iPhone 12 mini | render del fabricante |
+| `BBiPhone13.jpg` | iPhone 13 | render del fabricante |
+| `BBiPhone13ProMax.jpg` | iPhone 13 Pro Max | render del fabricante |
+| `BBiPhone14.jpg` | iPhone 14 | render del fabricante |
+| `BBiPhone14Plus.jpg` | iPhone 14 Plus | render del fabricante |
+| `BBiPhone16.jpg` | iPhone 16 | render del fabricante |
+| `BBiPhone16Pro.jpg` | iPhone 16 Pro | render del fabricante |
+| `BBiPhone17.jpg` | iPhone 17 | render del fabricante |
+| `BBiPhone17Pro.jpg` | iPhone 17 Pro | render del fabricante |
+| `BBiPhoneAir.jpg` | iPhone Air | render del fabricante |
+| `BBiPhoneSE2022.jpg` | iPhone SE (2022) | render del fabricante |
+| `Q100286751.jpg` | Sony Xperia 5 II | render del fabricante |
+| `Q100348826.jpg` | OnePlus 8T | render del fabricante |
+| `Q105176473.jpg` | Samsung Galaxy S21 Ultra | render del fabricante |
+| `Q106044016.jpg` | Samsung Galaxy A52 | render del fabricante |
+| `Q106629718.jpg` | Samsung Galaxy A52 5G | render del fabricante |
+| `Q108044294.jpg` | Samsung Galaxy A22 5G | render del fabricante |
+| `Q108541666.jpg` | iPhone 13 mini | render del fabricante |
+| `Q108541719.jpg` | iPhone 13 Pro | render del fabricante |
+| `Q109264698.jpg` | Samsung Galaxy M32 | render del fabricante |
+| `Q109341356.jpg` | Samsung Galaxy A52s 5G | render del fabricante |
+| `Q109908096.jpg` | Samsung Galaxy A03 | render del fabricante |
+| `Q109908100.jpg` | Samsung Galaxy A13 5G | render del fabricante |
+| `Q110461772.jpg` | Samsung Galaxy M12 | render del fabricante |
+| `Q110528997.jpg` | OnePlus 9 Pro | render del fabricante |
+| `Q111088113.jpg` | Samsung Galaxy A23 | render del fabricante |
+| `Q111094451.jpg` | Sony Xperia 1 IV | render del fabricante |
+| `Q111280037.jpg` | Samsung Galaxy A53 5G | render del fabricante |
+| `Q111281190.jpg` | Samsung Galaxy A73 5G | render del fabricante |
+| `Q111281459.jpg` | Samsung Galaxy A33 5G | render del fabricante |
+| `Q111550463.jpg` | Samsung Galaxy M53 5G | render del fabricante |
+| `Q111754633.jpg` | Samsung Galaxy S22 Ultra | render del fabricante |
+| `Q112159052.jpg` | Samsung Galaxy M13 | render del fabricante |
+| `Q113800722.jpg` | iPhone 14 Pro | render del fabricante |
+| `Q113816991.jpg` | iPhone 14 Pro Max | render del fabricante |
+| `Q116629964.jpg` | Samsung Galaxy S23+ | render del fabricante |
+| `Q117154490.jpg` | Samsung Galaxy A54 5G | render del fabricante |
+| `Q117154514.jpg` | Samsung Galaxy A34 5G | render del fabricante |
+| `Q118586112.jpg` | Samsung Galaxy S23 | render del fabricante |
+| `Q118593938.jpg` | Samsung Galaxy S22+ | render del fabricante |
+| `Q118593984.jpg` | Samsung Galaxy S22 | render del fabricante |
+| `Q121992935.jpg` | iPhone 15 | render del fabricante |
+| `Q122442399.jpg` | iPhone 15 Pro | render del fabricante |
+| `Q124339427.jpg` | Samsung Galaxy A25 5G | render del fabricante |
+| `Q124653339.jpg` | iPhone 15 Plus | render del fabricante |
+| `Q124813406.jpg` | Samsung Galaxy A55 5G | render del fabricante |
+| `Q124813453.jpg` | Samsung Galaxy A35 5G | render del fabricante |
+| `Q124974572.jpg` | Samsung Galaxy A05 | render del fabricante |
+| `Q125029543.jpg` | Samsung Galaxy A05s | render del fabricante |
+| `Q125178718.jpg` | iPhone 15 Pro Max | render del fabricante |
+| `Q129176356.jpg` | Moto G54 5G | render del fabricante |
+| `Q130306896.jpg` | Samsung Galaxy M35 5G | render del fabricante |
+| `Q130312645.jpg` | iPhone 16 Plus | render del fabricante |
+| `Q130315105.jpg` | iPhone 16 Pro Max | render del fabricante |
+| `Q130384521.jpg` | Samsung Galaxy S24 FE | render del fabricante |
+| `Q131291786.jpg` | Samsung Galaxy A16 | render del fabricante |
+| `Q132559447.jpg` | iPhone 16e | render del fabricante |
+| `Q133249205.jpg` | Samsung Galaxy A56 5G | render del fabricante |
+| `Q133270095.jpg` | Samsung Galaxy A36 5G | render del fabricante |
+| `Q136203050.jpg` | iPhone 17 Pro Max | render del fabricante |
+| `Q137828933.jpg` | Samsung Galaxy S26 | render del fabricante |
+| `Q138529589.jpg` | iPhone 17e | render del fabricante |
+| `Q16599646.jpg` | Samsung Galaxy A06 5G | render del fabricante |
+| `Q26831164.jpg` | iPhone 7 | render del fabricante |
+| `Q26833946.jpg` | iPhone 7 Plus | render del fabricante |
+| `Q28864618.jpg` | Samsung Galaxy S8 | render del fabricante |
+| `Q30898021.jpg` | Samsung Galaxy A26 5G | render del fabricante |
+| `Q51885191.jpg` | Xperia XZ2 Premium | render del fabricante |
+| `Q60021939.jpg` | Samsung Galaxy S10 | render del fabricante |
+| `Q61913556.jpg` | Sony Xperia 1 | render del fabricante |
+| `Q63858911.jpg` | OnePlus 7 | render del fabricante |
+| `Q64262423.jpg` | OnePlus 7 Pro | render del fabricante |
+| `Q64889429.jpg` | Samsung Galaxy A40 | render del fabricante |
+| `Q65059301.jpg` | Samsung Galaxy A70 | render del fabricante |
+| `Q65062493.jpg` | Samsung Galaxy A10 | render del fabricante |
+| `Q66688566.jpg` | Samsung Galaxy S10+ | render del fabricante |
+| `Q67216142.jpg` | iPhone 11 Pro | render del fabricante |
+| `Q67876968.jpg` | Samsung Galaxy A90 5G | render del fabricante |
+| `Q68025803.jpg` | Samsung Galaxy A30 | render del fabricante |
+| `Q78585853.jpg` | Samsung Galaxy S20 | render del fabricante |
+| `Q84458425.jpg` | Samsung Galaxy S20+ | render del fabricante |
+| `Q84882182.jpg` | Samsung Galaxy Z Flip | render del fabricante |
+| `Q90413128.jpg` | Samsung Galaxy A11 | render del fabricante |
+| `Q96608989.jpg` | iPhone 12 | render del fabricante |
+| `Q97189547.jpg` | OnePlus Nord | render del fabricante |
+| `Q97223461.jpg` | Samsung Galaxy A31 | render del fabricante |
+| `Q97223473.jpg` | Samsung Galaxy A41 | render del fabricante |
+| `Q98078754.jpg` | Samsung Galaxy A21s | render del fabricante |
+| `Q98148411.jpg` | OnePlus 8 Pro | render del fabricante |
+| `Q98148416.jpg` | Samsung Galaxy M21 | render del fabricante |
+| `Q99887992.jpg` | Samsung Galaxy M51 | render del fabricante |

@@ -38,50 +38,72 @@ LICENSES: Final = "by,by-sa,cc0,pdm"
 MIN_SIDE: Final = 400
 
 # Surtido de una cadena como Best Buy. No vende Xiaomi, Huawei, Oppo ni vivo.
-CATALOG: Final[tuple[tuple[str, str, str, int], ...]] = (
-    ("Apple", "iPhone 17 Pro Max", "2025-09-19", 2025),
-    ("Apple", "iPhone 17 Pro", "2025-09-19", 2025),
-    ("Apple", "iPhone 17", "2025-09-19", 2025),
-    ("Apple", "iPhone 16 Pro Max", "2024-09-20", 2024),
-    ("Apple", "iPhone 16 Pro", "2024-09-20", 2024),
-    ("Apple", "iPhone 16 Plus", "2024-09-20", 2024),
-    ("Apple", "iPhone 16", "2024-09-20", 2024),
-    ("Apple", "iPhone 15 Pro Max", "2023-09-22", 2023),
-    ("Apple", "iPhone 15 Pro", "2023-09-22", 2023),
-    ("Apple", "iPhone 15", "2023-09-22", 2023),
-    ("Apple", "iPhone 14", "2022-09-16", 2022),
-    ("Samsung", "Samsung Galaxy S25 Ultra", "2025-02-07", 2025),
-    ("Samsung", "Samsung Galaxy S25", "2025-02-07", 2025),
-    ("Samsung", "Samsung Galaxy S24 Ultra", "2024-01-31", 2024),
-    ("Samsung", "Samsung Galaxy S24", "2024-01-31", 2024),
-    ("Samsung", "Samsung Galaxy S23 Ultra", "2023-02-17", 2023),
-    ("Samsung", "Samsung Galaxy S23", "2023-02-17", 2023),
-    ("Samsung", "Samsung Galaxy Z Fold 6", "2024-07-24", 2024),
-    ("Samsung", "Samsung Galaxy Z Flip 6", "2024-07-24", 2024),
-    ("Samsung", "Samsung Galaxy Z Fold 5", "2023-08-11", 2023),
-    ("Samsung", "Samsung Galaxy Z Flip 5", "2023-08-11", 2023),
-    ("Samsung", "Samsung Galaxy A55", "2024-03-11", 2024),
-    ("Samsung", "Samsung Galaxy A54", "2023-03-24", 2023),
-    ("Samsung", "Samsung Galaxy A35", "2024-03-11", 2024),
-    ("Samsung", "Samsung Galaxy A25", "2023-12-15", 2023),
-    ("Samsung", "Samsung Galaxy A15", "2023-12-15", 2023),
-    ("Google", "Google Pixel 9 Pro XL", "2024-08-22", 2024),
-    ("Google", "Google Pixel 9 Pro", "2024-08-22", 2024),
-    ("Google", "Google Pixel 9", "2024-08-22", 2024),
-    ("Google", "Google Pixel 8 Pro", "2023-10-12", 2023),
-    ("Google", "Google Pixel 8", "2023-10-12", 2023),
-    ("Google", "Google Pixel 8a", "2024-05-14", 2024),
-    ("Google", "Google Pixel 7 Pro", "2022-10-13", 2022),
-    ("Google", "Google Pixel 7a", "2023-05-10", 2023),
-    ("OnePlus", "OnePlus 12", "2024-01-23", 2024),
-    ("OnePlus", "OnePlus 11", "2023-02-07", 2023),
-    ("OnePlus", "OnePlus Nord 4", "2024-07-16", 2024),
-    ("Motorola", "Motorola Edge 50 Pro", "2024-04-03", 2024),
-    ("Motorola", "Motorola Razr 50 Ultra", "2024-06-25", 2024),
-    ("Motorola", "Motorola Moto G Power", "2024-01-25", 2024),
-    ("Sony", "Sony Xperia 1 VI", "2024-05-17", 2024),
-    ("Sony", "Sony Xperia 10 VI", "2024-05-17", 2024),
-    ("TCL", "TCL 50 XL", "2024-04-01", 2024),
+# Surtido de una cadena como Best Buy. No vende Xiaomi, Huawei, Oppo ni vivo.
+# Cada entrada lleva las capacidades reales que Apple, Samsung o Google ofrecieron para ese
+# modelo; el generador solo inventa capacidades cuando no se declaran aquí.
+CATALOG: Final[tuple[tuple[str, str, str, tuple[str, ...]], ...]] = (
+    # iPhone, de la generación 11 a la 18.
+    ("Apple", "iPhone 11", "2019-09-20", ("64 GB", "128 GB", "256 GB")),
+    ("Apple", "iPhone 11 Pro", "2019-09-20", ("64 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 11 Pro Max", "2019-09-20", ("64 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 12 mini", "2020-11-13", ("64 GB", "128 GB", "256 GB")),
+    ("Apple", "iPhone 12", "2020-10-23", ("64 GB", "128 GB", "256 GB")),
+    ("Apple", "iPhone 12 Pro", "2020-10-23", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 12 Pro Max", "2020-11-13", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 13 mini", "2021-09-24", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 13", "2021-09-24", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 13 Pro", "2021-09-24", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 13 Pro Max", "2021-09-24", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 14", "2022-09-16", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 14 Plus", "2022-10-07", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 14 Pro", "2022-09-16", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 14 Pro Max", "2022-09-16", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 15", "2023-09-22", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 15 Plus", "2023-09-22", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 15 Pro", "2023-09-22", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 15 Pro Max", "2023-09-22", ("256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 16e", "2025-02-28", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 16", "2024-09-20", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 16 Plus", "2024-09-20", ("128 GB", "256 GB", "512 GB")),
+    ("Apple", "iPhone 16 Pro", "2024-09-20", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 16 Pro Max", "2024-09-20", ("256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 17", "2025-09-19", ("256 GB", "512 GB")),
+    ("Apple", "iPhone 17 Pro", "2025-09-19", ("256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 17 Pro Max", "2025-09-19", ("256 GB", "512 GB", "1 TB", "2 TB")),
+    ("Apple", "iPhone Air", "2025-09-19", ("256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 18", "2026-09-18", ("256 GB", "512 GB")),
+    ("Apple", "iPhone 18 Pro", "2026-09-18", ("256 GB", "512 GB", "1 TB")),
+    ("Apple", "iPhone 18 Pro Max", "2026-09-18", ("256 GB", "512 GB", "1 TB", "2 TB")),
+    ("Apple", "iPhone SE (2022)", "2022-03-18", ("64 GB", "128 GB", "256 GB")),
+    # Resto del surtido.
+    ("Samsung", "Samsung Galaxy S25 Ultra", "2025-02-07", ("256 GB", "512 GB", "1 TB")),
+    ("Samsung", "Samsung Galaxy S25", "2025-02-07", ("128 GB", "256 GB", "512 GB")),
+    ("Samsung", "Samsung Galaxy S24 Ultra", "2024-01-31", ("256 GB", "512 GB", "1 TB")),
+    ("Samsung", "Samsung Galaxy S24", "2024-01-31", ("128 GB", "256 GB", "512 GB")),
+    ("Samsung", "Samsung Galaxy S23 Ultra", "2023-02-17", ("256 GB", "512 GB", "1 TB")),
+    ("Samsung", "Samsung Galaxy S23", "2023-02-17", ("128 GB", "256 GB")),
+    ("Samsung", "Samsung Galaxy Z Fold 6", "2024-07-24", ("256 GB", "512 GB", "1 TB")),
+    ("Samsung", "Samsung Galaxy Z Flip 6", "2024-07-24", ("256 GB", "512 GB")),
+    ("Samsung", "Samsung Galaxy A55", "2024-03-11", ("128 GB", "256 GB")),
+    ("Samsung", "Samsung Galaxy A54", "2023-03-24", ("128 GB", "256 GB")),
+    ("Samsung", "Samsung Galaxy A35", "2024-03-11", ("128 GB", "256 GB")),
+    ("Samsung", "Samsung Galaxy A25", "2023-12-15", ("128 GB", "256 GB")),
+    ("Samsung", "Samsung Galaxy A15", "2023-12-15", ("128 GB", "256 GB")),
+    ("Google", "Google Pixel 9 Pro XL", "2024-08-22", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Google", "Google Pixel 9 Pro", "2024-08-22", ("128 GB", "256 GB", "512 GB", "1 TB")),
+    ("Google", "Google Pixel 9", "2024-08-22", ("128 GB", "256 GB")),
+    ("Google", "Google Pixel 8 Pro", "2023-10-12", ("128 GB", "256 GB", "512 GB")),
+    ("Google", "Google Pixel 8", "2023-10-12", ("128 GB", "256 GB")),
+    ("Google", "Google Pixel 8a", "2024-05-14", ("128 GB", "256 GB")),
+    ("Google", "Google Pixel 7a", "2023-05-10", ("128 GB",)),
+    ("OnePlus", "OnePlus 12", "2024-01-23", ("256 GB", "512 GB")),
+    ("OnePlus", "OnePlus 11", "2023-02-07", ("128 GB", "256 GB")),
+    ("Motorola", "Motorola Edge 50 Pro", "2024-04-03", ("256 GB", "512 GB")),
+    ("Motorola", "Motorola Razr 50 Ultra", "2024-06-25", ("256 GB", "512 GB")),
+    ("Motorola", "Motorola Moto G Power", "2024-01-25", ("128 GB",)),
+    ("Sony", "Sony Xperia 1 VI", "2024-05-17", ("256 GB", "512 GB")),
+    ("Sony", "Sony Xperia 10 VI", "2024-05-17", ("128 GB",)),
+    ("TCL", "TCL 50 XL", "2024-04-01", ("128 GB", "256 GB")),
 )
 
 
@@ -129,14 +151,22 @@ def _best_image(model: str) -> dict[str, Any] | None:
 def main() -> None:
     document = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
     products: list[dict[str, Any]] = document["products"]
-    known = {_normalized(str(row["title"])) for row in products}
+    by_title = {_normalized(str(row["title"])): row for row in products}
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     added: list[dict[str, Any]] = []
+    updated = 0
     attribution: list[str] = []
     missed: list[str] = []
-    for index, (brand, model, released, _year) in enumerate(CATALOG, start=1):
-        if _normalized(model) in known:
+    for index, (brand, model, released, storages) in enumerate(CATALOG, start=1):
+        existing = by_title.get(_normalized(model))
+        if existing is not None:
+            # Ya está en el catálogo, pero probablemente sin capacidades declaradas: el
+            # snapshot de Wikidata no las trae y el generador las inventaría.
+            existing["storage_options"] = list(storages)
+            if released and not existing.get("released"):
+                existing["released"] = released
+            updated += 1
             continue
         payload = None
         for url in _render_urls(brand, model):
@@ -163,6 +193,7 @@ def main() -> None:
                 "released": released,
                 "image_file": f"{entity}{suffix}",
                 "is_vector": False,
+                "storage_options": list(storages),
             }
         )
         attribution.append(f"| `{entity}{suffix}` | {model} | render del fabricante |")
@@ -191,7 +222,16 @@ def main() -> None:
         with (OUT_DIR / "PROVENANCE.md").open("a", encoding="utf-8") as handle:
             handle.write("\n".join([*header, *attribution, ""]))
 
-    print(json.dumps({"agregados": len(added), "sin_foto": len(missed), "faltantes": missed}))
+    print(
+        json.dumps(
+            {
+                "agregados": len(added),
+                "actualizados": updated,
+                "sin_foto": len(missed),
+                "faltantes": missed,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

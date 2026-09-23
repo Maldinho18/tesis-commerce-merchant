@@ -1,6 +1,6 @@
 {
   "license": "Datos: CC0. Imágenes: licencias libres por archivo, ver image_file.",
-  "product_count": 134,
+  "product_count": 143,
   "products": [
     {
       "brand": "Google",
@@ -10,6 +10,9 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-05-10",
+      "storage_options": [
+        "128 GB"
+      ],
       "title": "Google Pixel 7a"
     },
     {
@@ -20,6 +23,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-10-12",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Google Pixel 8"
     },
     {
@@ -30,6 +37,11 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-10-12",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Google Pixel 8 Pro"
     },
     {
@@ -40,6 +52,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-05-14",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Google Pixel 8a"
     },
     {
@@ -50,6 +66,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-08-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Google Pixel 9"
     },
     {
@@ -60,6 +80,12 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-08-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Google Pixel 9 Pro"
     },
     {
@@ -70,6 +96,12 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-08-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Google Pixel 9 Pro XL"
     },
     {
@@ -80,6 +112,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-04-03",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Motorola Edge 50 Pro"
     },
     {
@@ -90,6 +126,9 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-01-25",
+      "storage_options": [
+        "128 GB"
+      ],
       "title": "Motorola Moto G Power"
     },
     {
@@ -100,6 +139,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-06-25",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Motorola Razr 50 Ultra"
     },
     {
@@ -110,6 +153,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-02-07",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "OnePlus 11"
     },
     {
@@ -120,6 +167,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-01-23",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "OnePlus 12"
     },
     {
@@ -130,6 +181,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-12-15",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy A15"
     },
     {
@@ -140,6 +195,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-12-15",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy A25"
     },
     {
@@ -150,6 +209,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-03-11",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy A35"
     },
     {
@@ -160,6 +223,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-03-24",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy A54"
     },
     {
@@ -170,6 +237,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-03-11",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy A55"
     },
     {
@@ -180,6 +251,11 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-02-17",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Samsung Galaxy S23 Ultra"
     },
     {
@@ -190,6 +266,9 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-05-17",
+      "storage_options": [
+        "128 GB"
+      ],
       "title": "Sony Xperia 10 VI"
     },
     {
@@ -200,6 +279,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-05-17",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Sony Xperia 1 VI"
     },
     {
@@ -210,7 +293,102 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-04-01",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "TCL 50 XL"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone11",
+      "image_file": "BBiPhone11.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-09-20",
+      "storage_options": [
+        "64 GB",
+        "128 GB",
+        "256 GB"
+      ],
+      "title": "iPhone 11"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone12Pro",
+      "image_file": "BBiPhone12Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-10-23",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
+      "title": "iPhone 12 Pro"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone12ProMax",
+      "image_file": "BBiPhone12ProMax.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-11-13",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
+      "title": "iPhone 12 Pro Max"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone12mini",
+      "image_file": "BBiPhone12mini.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-11-13",
+      "storage_options": [
+        "64 GB",
+        "128 GB",
+        "256 GB"
+      ],
+      "title": "iPhone 12 mini"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone13",
+      "image_file": "BBiPhone13.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2021-09-24",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
+      "title": "iPhone 13"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone13ProMax",
+      "image_file": "BBiPhone13ProMax.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2021-09-24",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
+      "title": "iPhone 13 Pro Max"
     },
     {
       "brand": "Apple",
@@ -220,7 +398,27 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2022-09-16",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 14"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone14Plus",
+      "image_file": "BBiPhone14Plus.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-10-07",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
+      "title": "iPhone 14 Plus"
     },
     {
       "brand": "Apple",
@@ -230,6 +428,11 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-09-20",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 16"
     },
     {
@@ -240,6 +443,12 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2024-09-20",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 16 Pro"
     },
     {
@@ -250,6 +459,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2025-09-19",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 17"
     },
     {
@@ -260,7 +473,42 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2025-09-19",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 17 Pro"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhoneAir",
+      "image_file": "BBiPhoneAir.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2025-09-19",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
+      "title": "iPhone Air"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhoneSE2022",
+      "image_file": "BBiPhoneSE2022.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-03-18",
+      "storage_options": [
+        "64 GB",
+        "128 GB",
+        "256 GB"
+      ],
+      "title": "iPhone SE (2022)"
     },
     {
       "brand": "Sony",
@@ -369,7 +617,12 @@
       "image_file": "IPhone 13 Mini Grün Freigestellt.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2021-09-24",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 13 mini"
     },
     {
@@ -377,9 +630,15 @@
       "category": "smartphones",
       "entity": "Q108541719",
       "image_file": "IPhone 13 Pro vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2021-09-24",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 13 Pro"
     },
     {
@@ -547,9 +806,15 @@
       "category": "smartphones",
       "entity": "Q113800722",
       "image_file": "IPhone 14 Pro vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2022-09-16",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 14 Pro"
     },
     {
@@ -557,9 +822,15 @@
       "category": "smartphones",
       "entity": "Q113816991",
       "image_file": "IPhone 14 Pro vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2022-09-16",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 14 Pro Max"
     },
     {
@@ -620,6 +891,10 @@
       "is_vector": false,
       "kind": "Teléfono",
       "released": "2023-02-17",
+      "storage_options": [
+        "128 GB",
+        "256 GB"
+      ],
       "title": "Samsung Galaxy S23"
     },
     {
@@ -647,9 +922,14 @@
       "category": "smartphones",
       "entity": "Q121992935",
       "image_file": "IPhone 15 Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2023-09-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 15"
     },
     {
@@ -657,9 +937,15 @@
       "category": "smartphones",
       "entity": "Q122442399",
       "image_file": "IPhone 15 Pro Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2023-09-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 15 Pro"
     },
     {
@@ -679,7 +965,12 @@
       "image_file": "Samsung S24 Ultra Phone.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-01-31",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Samsung Galaxy S24 Ultra"
     },
     {
@@ -689,7 +980,12 @@
       "image_file": "Samsung Galaxy S24+.jpg",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-01-31",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Samsung Galaxy S24+"
     },
     {
@@ -709,7 +1005,12 @@
       "image_file": "IPhone 15 Plus.jpeg",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2023-09-22",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 15 Plus"
     },
     {
@@ -759,7 +1060,12 @@
       "image_file": "IPhone 15 pro max.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2023-09-22",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 15 Pro Max"
     },
     {
@@ -769,7 +1075,11 @@
       "image_file": "三星Galaxy Z Flip6.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-07-24",
+      "storage_options": [
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Samsung Galaxy Z Flip 6"
     },
     {
@@ -779,7 +1089,12 @@
       "image_file": "Samsung Galaxy Z Fold6.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-07-24",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Samsung Galaxy Z Fold 6"
     },
     {
@@ -807,9 +1122,14 @@
       "category": "smartphones",
       "entity": "Q130312645",
       "image_file": "IPhone 16 Plus Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-09-20",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 16 Plus"
     },
     {
@@ -817,9 +1137,14 @@
       "category": "smartphones",
       "entity": "Q130315105",
       "image_file": "IPhone 16 Pro Max Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2024-09-20",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 16 Pro Max"
     },
     {
@@ -859,7 +1184,12 @@
       "image_file": "20250124 삼성 갤럭시 s25+.jpg",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2025-02-07",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "Samsung Galaxy S25+"
     },
     {
@@ -869,7 +1199,12 @@
       "image_file": "Samsung Galaxy S25 Ultra Titanium Silverblue.jpg",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2025-02-07",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "Samsung Galaxy S25 Ultra"
     },
     {
@@ -877,9 +1212,14 @@
       "category": "smartphones",
       "entity": "Q132559447",
       "image_file": "IPhone 16e Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
+      "released": "2025-02-28",
+      "storage_options": [
+        "128 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 16e"
     },
     {
@@ -917,9 +1257,15 @@
       "category": "smartphones",
       "entity": "Q136203050",
       "image_file": "IPhone 17 Pro Max Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": "2025-09-19",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB",
+        "2 TB"
+      ],
       "title": "iPhone 17 Pro Max"
     },
     {
@@ -937,7 +1283,7 @@
       "category": "smartphones",
       "entity": "Q138529589",
       "image_file": "IPhone 17e Vector.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": null,
       "title": "iPhone 17e"
@@ -950,6 +1296,11 @@
       "is_vector": true,
       "kind": "Teléfono",
       "released": "2026-01-01",
+      "storage_options": [
+        "256 GB",
+        "512 GB",
+        "1 TB"
+      ],
       "title": "iPhone 18 Pro"
     },
     {
@@ -987,7 +1338,7 @@
       "category": "smartphones",
       "entity": "Q26831164",
       "image_file": "IPhone 7 Jet Black.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": "2016-09-16",
       "title": "iPhone 7"
@@ -997,7 +1348,7 @@
       "category": "smartphones",
       "entity": "Q26833946",
       "image_file": "IPhone 7 Plus Jet Black.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": "2016-09-16",
       "title": "iPhone 7 Plus"
@@ -1147,9 +1498,14 @@
       "category": "smartphones",
       "entity": "Q67216142",
       "image_file": "IPhone 11 Pro Midnight Green.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": "2019-09-20",
+      "storage_options": [
+        "64 GB",
+        "256 GB",
+        "512 GB"
+      ],
       "title": "iPhone 11 Pro"
     },
     {
@@ -1247,9 +1603,14 @@
       "category": "smartphones",
       "entity": "Q96608989",
       "image_file": "IPhone 12 Blue.svg",
-      "is_vector": true,
+      "is_vector": false,
       "kind": "Teléfono",
       "released": "2020-10-23",
+      "storage_options": [
+        "64 GB",
+        "128 GB",
+        "256 GB"
+      ],
       "title": "iPhone 12"
     },
     {

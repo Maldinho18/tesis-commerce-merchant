@@ -78,13 +78,13 @@ def _download(url: str) -> bytes | None:
 
 
 def main() -> None:
-    products: list[dict[str, Any]] = json.loads(SNAPSHOT.read_text(encoding="utf-8"))["products"]
+    document = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+    products: list[dict[str, Any]] = document["products"]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     upgraded: list[str] = []
+    rescued = 0
     for index, product in enumerate(products, start=1):
-        if product.get("is_vector"):
-            continue
         entity = str(product["entity"])
         brand = str(product.get("brand") or "")
         title = str(product["title"])
@@ -100,6 +100,10 @@ def main() -> None:
         for existing in OUT_DIR.glob(f"{entity}.*"):
             existing.unlink()
         (OUT_DIR / f"{entity}.jpg").write_bytes(body)
+        if product.get("is_vector"):
+            # Tenía arte vectorial y ahora tiene fotografía: vuelve a ser publicable.
+            product["is_vector"] = False
+            rescued += 1
         upgraded.append(f"| `{entity}.jpg` | {title} | render del fabricante |")
         if index % 20 == 0:
             print(f"  [{index}/{len(products)}] mejoradas={len(upgraded)}", flush=True)
@@ -118,7 +122,14 @@ def main() -> None:
         ]
         with (OUT_DIR / "PROVENANCE.md").open("a", encoding="utf-8") as handle:
             handle.write("\n".join([*header, *upgraded, ""]))
-    print(json.dumps({"mejoradas": len(upgraded), "total": len(products)}))
+    SNAPSHOT.write_text(
+        json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {"mejoradas": len(upgraded), "rescatadas_de_vector": rescued, "total": len(products)}
+        )
+    )
 
 
 if __name__ == "__main__":

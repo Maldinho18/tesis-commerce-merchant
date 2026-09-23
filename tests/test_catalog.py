@@ -70,7 +70,7 @@ def test_catalog_paginates_stably_and_isolates_caller_mutation() -> None:
     first.data.offers[0].pricing.total_minor = 1
     original = catalog.get(
         {
-            "offer_id": "BBGooglePixel7a-256GB",
+            "offer_id": "BBGooglePixel7a-128GB",
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
@@ -79,7 +79,7 @@ def test_catalog_paginates_stably_and_isolates_caller_mutation() -> None:
     second = catalog.search({"category": "smartphones", "limit": 2, "offset": 2})
     assert [offer.id for offer in second.data.offers] == [
         "BBGooglePixel8-256GB",
-        "BBGooglePixel8-512GB",
+        "BBGooglePixel8Pro-128GB",
     ]
 
 
