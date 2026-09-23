@@ -1,7 +1,267 @@
 {
   "license": "Datos: CC0. Imágenes: licencias libres por archivo, ver image_file.",
-  "product_count": 108,
+  "product_count": 134,
   "products": [
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel7a",
+      "image_file": "BBGooglePixel7a.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-05-10",
+      "title": "Google Pixel 7a"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel8",
+      "image_file": "BBGooglePixel8.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-10-12",
+      "title": "Google Pixel 8"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel8Pro",
+      "image_file": "BBGooglePixel8Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-10-12",
+      "title": "Google Pixel 8 Pro"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel8a",
+      "image_file": "BBGooglePixel8a.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-05-14",
+      "title": "Google Pixel 8a"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel9",
+      "image_file": "BBGooglePixel9.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-08-22",
+      "title": "Google Pixel 9"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel9Pro",
+      "image_file": "BBGooglePixel9Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-08-22",
+      "title": "Google Pixel 9 Pro"
+    },
+    {
+      "brand": "Google",
+      "category": "smartphones",
+      "entity": "BBGooglePixel9ProXL",
+      "image_file": "BBGooglePixel9ProXL.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-08-22",
+      "title": "Google Pixel 9 Pro XL"
+    },
+    {
+      "brand": "Motorola",
+      "category": "smartphones",
+      "entity": "BBMotorolaEdge50Pro",
+      "image_file": "BBMotorolaEdge50Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-04-03",
+      "title": "Motorola Edge 50 Pro"
+    },
+    {
+      "brand": "Motorola",
+      "category": "smartphones",
+      "entity": "BBMotorolaMotoGPower",
+      "image_file": "BBMotorolaMotoGPower.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-01-25",
+      "title": "Motorola Moto G Power"
+    },
+    {
+      "brand": "Motorola",
+      "category": "smartphones",
+      "entity": "BBMotorolaRazr50Ultra",
+      "image_file": "BBMotorolaRazr50Ultra.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-06-25",
+      "title": "Motorola Razr 50 Ultra"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "BBOnePlus11",
+      "image_file": "BBOnePlus11.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-02-07",
+      "title": "OnePlus 11"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "BBOnePlus12",
+      "image_file": "BBOnePlus12.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-01-23",
+      "title": "OnePlus 12"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyA15",
+      "image_file": "BBSamsungGalaxyA15.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-12-15",
+      "title": "Samsung Galaxy A15"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyA25",
+      "image_file": "BBSamsungGalaxyA25.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-12-15",
+      "title": "Samsung Galaxy A25"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyA35",
+      "image_file": "BBSamsungGalaxyA35.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-03-11",
+      "title": "Samsung Galaxy A35"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyA54",
+      "image_file": "BBSamsungGalaxyA54.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-03-24",
+      "title": "Samsung Galaxy A54"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyA55",
+      "image_file": "BBSamsungGalaxyA55.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-03-11",
+      "title": "Samsung Galaxy A55"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "BBSamsungGalaxyS23Ultra",
+      "image_file": "BBSamsungGalaxyS23Ultra.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-02-17",
+      "title": "Samsung Galaxy S23 Ultra"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "BBSonyXperia10VI",
+      "image_file": "BBSonyXperia10VI.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-05-17",
+      "title": "Sony Xperia 10 VI"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "BBSonyXperia1VI",
+      "image_file": "BBSonyXperia1VI.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-05-17",
+      "title": "Sony Xperia 1 VI"
+    },
+    {
+      "brand": "TCL",
+      "category": "smartphones",
+      "entity": "BBTCL50XL",
+      "image_file": "BBTCL50XL.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-04-01",
+      "title": "TCL 50 XL"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone14",
+      "image_file": "BBiPhone14.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-09-16",
+      "title": "iPhone 14"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone16",
+      "image_file": "BBiPhone16.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-09-20",
+      "title": "iPhone 16"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone16Pro",
+      "image_file": "BBiPhone16Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-09-20",
+      "title": "iPhone 16 Pro"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone17",
+      "image_file": "BBiPhone17.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2025-09-19",
+      "title": "iPhone 17"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "BBiPhone17Pro",
+      "image_file": "BBiPhone17Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2025-09-19",
+      "title": "iPhone 17 Pro"
+    },
     {
       "brand": "Sony",
       "category": "smartphones",

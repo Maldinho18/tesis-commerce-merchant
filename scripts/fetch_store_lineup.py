@@ -1,4 +1,4 @@
-"""Amplía el catálogo con el surtido de una cadena, usando imágenes de Openverse.
+"""Amplía el catálogo con el surtido de una cadena, usando renders de producto.
 
 Wikidata solo expone una imagen designada por modelo y su cobertura deja fuera líneas
 enteras: no tiene ningún Google Pixel. Openverse agrega Flickr y otros bancos con licencia
@@ -25,6 +25,9 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any, Final
+
+from fetch_render_images import _download as _render_download
+from fetch_render_images import _urls as _render_urls
 
 ROOT: Final = Path(__file__).resolve().parents[1]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
@@ -135,24 +138,20 @@ def main() -> None:
     for index, (brand, model, released, _year) in enumerate(CATALOG, start=1):
         if _normalized(model) in known:
             continue
-        item = _best_image(model)
-        if item is None:
-            missed.append(model)
-            print(f"  [{index}/{len(CATALOG)}] sin foto  {model}", flush=True)
-            time.sleep(0.5)
-            continue
-
-        # El original puede pesar cientos de megabytes; Openverse sirve una miniatura
-        # dimensionada que es lo que necesita una vitrina.
-        source = str(item.get("thumbnail") or item.get("url") or "")
-        payload = _request(source, timeout=90)
+        payload = None
+        for url in _render_urls(brand, model):
+            payload = _render_download(url)
+            if payload is not None:
+                break
+            time.sleep(0.15)
         if payload is None:
             missed.append(model)
-            time.sleep(0.5)
+            print(f"  [{index}/{len(CATALOG)}] sin foto  {model}", flush=True)
+            time.sleep(0.2)
             continue
 
-        entity = "OV" + re.sub(r"[^A-Za-z0-9]", "", model)[:28]
-        suffix = ".png" if source.lower().endswith(".png") else ".jpg"
+        entity = "BB" + re.sub(r"[^A-Za-z0-9]", "", model)[:28]
+        suffix = ".jpg"
         (OUT_DIR / f"{entity}{suffix}").write_bytes(payload)
         added.append(
             {
@@ -166,11 +165,7 @@ def main() -> None:
                 "is_vector": False,
             }
         )
-        attribution.append(
-            f"| `{entity}{suffix}` | {model} | {item.get('creator') or 'desconocido'} "
-            f"| {str(item.get('license') or '').upper()} {item.get('license_version') or ''} "
-            f"| {item.get('foreign_landing_url') or source} |"
-        )
+        attribution.append(f"| `{entity}{suffix}` | {model} | render del fabricante |")
         print(f"  [{index}/{len(CATALOG)}] OK  {model}", flush=True)
         time.sleep(0.6)
 
@@ -190,8 +185,8 @@ def main() -> None:
             "Licencias Creative Commons que exigen atribución. Se conserva autor, licencia y",
             "página de origen de cada archivo.",
             "",
-            "| Archivo | Producto | Autor | Licencia | Origen |",
-            "| --- | --- | --- | --- | --- |",
+            "| Archivo | Producto | Origen |",
+            "| --- | --- | --- |",
         ]
         with (OUT_DIR / "PROVENANCE.md").open("a", encoding="utf-8") as handle:
             handle.write("\n".join([*header, *attribution, ""]))

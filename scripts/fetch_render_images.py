@@ -28,7 +28,9 @@ from typing import Any, Final
 ROOT: Final = Path(__file__).resolve().parents[1]
 SNAPSHOT: Final = ROOT / "src/commerce_lab/fixtures/catalog_snapshot.json"
 OUT_DIR: Final = ROOT / "assets/products"
-CDN: Final = "https://fdn2.gsmarena.com/vv/bigpic/{}.jpg"
+# El catálogo publica el render en dos rutas distintas según la antigüedad del modelo.
+CDN_BIG: Final = "https://fdn2.gsmarena.com/vv/bigpic/{slug}.jpg"
+CDN_PICS: Final = "https://fdn2.gsmarena.com/vv/pics/{brand}/{slug}-{n}.jpg"
 AGENT: Final = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/141.0 Safari/537.36"
@@ -51,6 +53,16 @@ def _slugs(brand: str, title: str) -> list[str]:
         if slug and slug not in seen:
             seen.append(slug)
     return seen
+
+
+def _urls(brand: str, title: str) -> list[str]:
+    folder = re.sub(r"[^a-z0-9]+", "", brand.lower()) or "misc"
+    out: list[str] = []
+    for slug in _slugs(brand, title):
+        out.append(CDN_BIG.format(slug=slug))
+        for n in (1, 2):
+            out.append(CDN_PICS.format(brand=folder, slug=slug, n=n))
+    return out
 
 
 def _download(url: str) -> bytes | None:
@@ -77,11 +89,11 @@ def main() -> None:
         brand = str(product.get("brand") or "")
         title = str(product["title"])
         body = None
-        for slug in _slugs(brand, title):
-            body = _download(CDN.format(slug))
+        for url in _urls(brand, title):
+            body = _download(url)
             if body is not None:
                 break
-            time.sleep(0.2)
+            time.sleep(0.15)
         if body is None:
             continue
         # Se reemplaza la foto anterior del producto, cualquiera fuese su extensión.
