@@ -38,12 +38,10 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
   JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
   ACP `2026-04-17`. Feed API incremental no está implementada.
 
-Los errores de `API-Version` usan los códigos P0 en minúsculas
-`missing_api_version` y `unsupported_api_version`, con `supported_versions`.
-Los errores comerciales internos conservan por ahora sus códigos tipados en
-mayúsculas (`OUT_OF_STOCK`, `OFFER_NOT_FOUND`, etc.) para no romper el cliente
-EC-03.6. Esta diferencia de casing con el perfil P0 se resolverá
-coordinadamente en EC-04B.
+Los errores públicos ACP usan códigos en minúsculas, incluidos
+`missing_api_version`, `unsupported_api_version` y `payment_declined`.
+Los códigos comerciales internos conservan sus nombres tipados en mayúsculas;
+la API los traduce al contrato público.
 
 La representación interna `Offer` es un snapshot de variante: `Offer.id` →
 `Variant.id`, `Offer.product_id` → `Product.id`, `Offer.name` → títulos,
@@ -89,7 +87,7 @@ Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009` y `010`;
+Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009`, `010` y `011`;
 `005`/`006`
 pertenecen al carril live/browser legado y no se ejecutan aquí. Los episodios
 históricos no se reescriben; la semilla nueva usa `p0-catalog-v1`.
