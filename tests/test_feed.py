@@ -17,7 +17,7 @@ REGISTRY = Registry().with_resource(str(BUNDLE["$id"]), Resource.from_contents(B
 ORIGIN = "https://merchant.example.test"
 # El catálogo se recolecta de una fuente externa: se afirma escala mínima e invariantes,
 # no literales que quedarían obsoletos en cada recolección.
-MIN_PRODUCTS = 100
+MIN_PRODUCTS = 80
 
 
 def validate(definition: str, value: object) -> None:
@@ -126,8 +126,9 @@ def test_feed_groups_configurations_of_one_product_under_shared_metadata() -> No
 def test_feed_publishes_brand_in_its_own_taxonomy() -> None:
     _, products = build_feed(fresh_p0_offers(), base_url=ORIGIN)
     for product in products:
-        for variant in product["variants"]:
-            taxonomies = {row["taxonomy"]: row["value"] for row in variant["categories"]}
+        for variant in cast(list[dict[str, Any]], product["variants"]):
+            rows = cast(list[dict[str, str]], variant["categories"])
+            taxonomies = {row["taxonomy"]: row["value"] for row in rows}
             # El esquema ACP no tiene campo de marca; viaja como categoría con taxonomía propia.
             assert taxonomies["merchant"] == "smartphones"
             assert taxonomies["brand"]
@@ -138,6 +139,8 @@ def test_every_product_has_an_image_served_by_the_merchant() -> None:
     # Una tarjeta sin foto se ve peor que un catálogo más corto: el fixture descarta los
     # productos cuya imagen no se pudo descargar, así que aquí no debe faltar ninguna.
     for product in products:
-        url = product["media"][0]["url"]
+        media = cast(list[dict[str, Any]], product["media"])
+        url = str(media[0]["url"])
         assert url.startswith(f"{ORIGIN}/assets/products/")
-        assert not url.endswith("/assets/products/{}.jpg".format(product["id"]))
+        # La ruta derivada del id es el respaldo; ningún producto debe caer en ella.
+        assert not url.endswith(f"/assets/products/{product['id']}.jpg")

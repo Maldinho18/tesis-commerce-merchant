@@ -243,8 +243,10 @@ def _snapshot() -> list[dict[str, Any]]:
     # Un producto sin foto descargada no entra al catálogo: una tarjeta vacía se ve peor que
     # un catálogo más corto. Las fotos se traen con scripts/fetch_product_images.py.
     available = _downloaded_images()
-    with_image = [row for row in products if row["entity"] in available]
-    return sorted(with_image, key=lambda row: (row["category"], row["entity"]))
+    # Se exigen dos cosas: foto descargada y que no sea arte vectorial. Los SVG de Wikipedia
+    # son siluetas de línea, no fotografías, y en una retícula de tienda se ven falsos.
+    usable = [row for row in products if row["entity"] in available and not row.get("is_vector")]
+    return sorted(usable, key=lambda row: (row["category"], row["entity"]))
 
 
 def build_generated_offers(

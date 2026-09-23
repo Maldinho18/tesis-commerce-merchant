@@ -9,13 +9,13 @@ def test_fixture_manifest_is_deterministic_and_complete() -> None:
     assert first_offers == second_offers
     assert first_hash == second_hash
     assert first_manifest == second_manifest
-    assert first_manifest["offer_count"] >= 100
+    assert first_manifest["offer_count"] >= 80
     assert len(first_hash) == 64
     identifiers = [offer["id"] for offer in first_offers]
     assert len(identifiers) == len(set(identifiers)) == first_manifest["offer_count"]
     # El snapshot se siembra en orden estable; de eso depende que verify() sea reproducible.
     assert identifiers == sorted(identifiers)
-    assert len({offer["product_id"] for offer in first_offers}) >= 100
+    assert len({offer["product_id"] for offer in first_offers}) >= 80
     # Anclajes estables del catálogo generado: última unidad y agotado.
     assert "Q106629718-128GB" in set(identifiers)
     assert "Q108044294-512GB" in set(identifiers)

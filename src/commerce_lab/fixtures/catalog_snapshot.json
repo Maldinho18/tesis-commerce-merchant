@@ -3,44 +3,14 @@
   "product_count": 108,
   "products": [
     {
-      "brand": "Motorola",
+      "brand": "Sony",
       "category": "smartphones",
-      "entity": "Q129176356",
-      "image_file": "Moto G54 5G.jpg",
+      "entity": "Q100286751",
+      "image_file": "Sony Xperia 5 II.png",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Moto G54 5G"
-    },
-    {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q63858911",
-      "image_file": "OnePlus 7 Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-05-16",
-      "title": "OnePlus 7"
-    },
-    {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q64262423",
-      "image_file": "OnePlus7Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus 7 Pro"
-    },
-    {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q98148411",
-      "image_file": "OnePlus 8 Pro.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus 8 Pro"
+      "title": "Sony Xperia 5 II"
     },
     {
       "brand": "OnePlus",
@@ -51,96 +21,6 @@
       "kind": "Teléfono",
       "released": null,
       "title": "OnePlus 8T"
-    },
-    {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q110528997",
-      "image_file": "OnePlus 9 Pro back.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus 9 Pro"
-    },
-    {
-      "brand": "OnePlus",
-      "category": "smartphones",
-      "entity": "Q97189547",
-      "image_file": "Oneplus Nord 2.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "OnePlus Nord"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q109908096",
-      "image_file": "Samsung Galaxy A03 2022.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A03"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q124974572",
-      "image_file": "Samsung Galaxy A05s 2024.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A05"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q125029543",
-      "image_file": "Samsung Galaxy A05s 2024 (1) (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A05s"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q16599646",
-      "image_file": "Samsung Galaxy A06 5G 2025.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A06 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q65062493",
-      "image_file": "GalaxyA10.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-03-01",
-      "title": "Samsung Galaxy A10"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q108266001",
-      "image_file": "GalaxyA10.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A10e"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q90413128",
-      "image_file": "Galaxy A11 vector.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A11"
     },
     {
       "brand": "Samsung",
@@ -155,172 +35,12 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q109908100",
-      "image_file": "Samsung Galaxy A13.jpg",
+      "entity": "Q105176473",
+      "image_file": "Galaxy S21 Ultra vector.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A13 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q131291786",
-      "image_file": "Samsung Galaxy A16 5G 2025 (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A16"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q98078754",
-      "image_file": "20200903 삼성 갤럭시 A21.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A21s"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q108044294",
-      "image_file": "Samsung A22 5G.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A22 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q111088113",
-      "image_file": "Samsung Galaxy A23.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A23"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q117801782",
-      "image_file": "삼성 갤럭시 A24 (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A24"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q124339427",
-      "image_file": "Samsung Galaxy A25 5G 2024 (1) (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A25 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q30898021",
-      "image_file": "Samsung Galaxy A26 5G 2025.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A26 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q68025803",
-      "image_file": "Samsung Galaxy A30.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A30"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q97223461",
-      "image_file": "GalaxyA31.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A31"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q111281459",
-      "image_file": "Samsung Galaxy A33 5G.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A33 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q117154514",
-      "image_file": "삼성 갤럭시 A34 (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A34 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q124813453",
-      "image_file": "Samsung Galaxy A35 5G 2024 (1).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2024-03-11",
-      "title": "Samsung Galaxy A35 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q133270095",
-      "image_file": "Samsung Galaxy A36 5G 2025.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A36 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q64889429",
-      "image_file": "Samsung Galaxy A40 (cropped2).png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A40"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q97223473",
-      "image_file": "GalaxyA41.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A41"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q64819686",
-      "image_file": "Samsung Galaxy A50 screen.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-03-01",
-      "title": "Samsung Galaxy A50"
+      "released": "2021-01-29",
+      "title": "Samsung Galaxy S21 Ultra"
     },
     {
       "brand": "Samsung",
@@ -345,142 +65,62 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q109341356",
-      "image_file": "Samsung-Galaxy-A52-White.jpg",
+      "entity": "Q108044294",
+      "image_file": "Samsung A22 5G.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A52s 5G"
+      "title": "Samsung Galaxy A22 5G"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q111280037",
-      "image_file": "SamsungGalaxyA535G.png",
+      "entity": "Q108051842",
+      "image_file": "Galaxy Z Fold.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A53 5G"
+      "title": "Samsung Galaxy Z Fold 3"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q117154490",
-      "image_file": "Back of the Samsung Galaxy A54 5G.jpg",
+      "entity": "Q108057818",
+      "image_file": "Galaxy Z Flip.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A54 5G"
+      "title": "Samsung Galaxy Z Flip 3"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q124813406",
-      "image_file": "Samsung Galaxy A55 5G 2024 (cropped).jpg",
+      "entity": "Q108266001",
+      "image_file": "GalaxyA10.png",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A55 5G"
+      "title": "Samsung Galaxy A10e"
     },
     {
-      "brand": "Samsung",
+      "brand": "Apple",
       "category": "smartphones",
-      "entity": "Q133249205",
-      "image_file": "Samsung Galaxy A56 5G 2025.jpg",
+      "entity": "Q108541666",
+      "image_file": "IPhone 13 Mini Grün Freigestellt.png",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A56 5G"
+      "title": "iPhone 13 mini"
     },
     {
-      "brand": "Samsung",
+      "brand": "Apple",
       "category": "smartphones",
-      "entity": "Q65059301",
-      "image_file": "GalaxyA70Phone.png",
-      "is_vector": false,
+      "entity": "Q108541719",
+      "image_file": "IPhone 13 Pro vector.svg",
+      "is_vector": true,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy A70"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q111281190",
-      "image_file": "Samsung Galaxy A73 5G (09-11-2022).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A73 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q65033630",
-      "image_file": "GalaxyA80Phone Transparent.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy A80"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q67876968",
-      "image_file": "Galaxy A90 5G.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-09-03",
-      "title": "Samsung Galaxy A90 5G"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q99532825",
-      "image_file": "Galaxy m11.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy M11"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q110461772",
-      "image_file": "Samsung Galaxy M12.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy M12"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q112159052",
-      "image_file": "Galaxym13.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy M13"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q98148416",
-      "image_file": "M21 photo.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-01-01",
-      "title": "Samsung Galaxy M21"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q97349752",
-      "image_file": "Samsung Galaxy M31.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-03-01",
-      "title": "Samsung Galaxy M31"
+      "title": "iPhone 13 Pro"
     },
     {
       "brand": "Samsung",
@@ -495,22 +135,102 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q130306896",
-      "image_file": "Galaxy M35 front.jpg",
+      "entity": "Q109341356",
+      "image_file": "Samsung-Galaxy-A52-White.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy M35 5G"
+      "title": "Samsung Galaxy A52s 5G"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q99887992",
-      "image_file": "Galaxy m51 phone.jpg",
+      "entity": "Q109908096",
+      "image_file": "Samsung Galaxy A03 2022.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy M51"
+      "title": "Samsung Galaxy A03"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q109908100",
+      "image_file": "Samsung Galaxy A13.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A13 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q110461772",
+      "image_file": "Samsung Galaxy M12.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy M12"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "Q110528997",
+      "image_file": "OnePlus 9 Pro back.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "OnePlus 9 Pro"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q111088113",
+      "image_file": "Samsung Galaxy A23.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A23"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "Q111094451",
+      "image_file": "Sony Xperia 1 IV.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Sony Xperia 1 IV"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q111280037",
+      "image_file": "SamsungGalaxyA535G.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A53 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q111281190",
+      "image_file": "Samsung Galaxy A73 5G (09-11-2022).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A73 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q111281459",
+      "image_file": "Samsung Galaxy A33 5G.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A33 5G"
     },
     {
       "brand": "Samsung",
@@ -525,96 +245,6 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q66209066",
-      "image_file": "Samsung Galaxy Phone.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy Note 10"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q71620144",
-      "image_file": "Samsung Galaxy Note 10+.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy Note 10+"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q60021939",
-      "image_file": "Samsung Galaxy S10+.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-03-08",
-      "title": "Samsung Galaxy S10"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q66688566",
-      "image_file": "Samsung Galaxy S10+.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy S10+"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q78585853",
-      "image_file": "Galaxy S20.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-03-06",
-      "title": "Samsung Galaxy S20"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q84949463",
-      "image_file": "Samsung Galaxy S20 Ultra.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy S20 Ultra"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q84458425",
-      "image_file": "SamsungGalaxyS20plus5G128G2020SMG9860TaiwanFrontInitial20200910.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-02-11",
-      "title": "Samsung Galaxy S20+"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q105176473",
-      "image_file": "Galaxy S21 Ultra vector.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2021-01-29",
-      "title": "Samsung Galaxy S21 Ultra"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q118593984",
-      "image_file": "SamsungGalaxyS22.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2022-02-25",
-      "title": "Samsung Galaxy S22"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
       "entity": "Q111754633",
       "image_file": "20220210 삼성 갤럭시s22 울트라.jpg",
       "is_vector": false,
@@ -625,22 +255,62 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q118593938",
-      "image_file": "SamsungGalaxyS22+.png",
+      "entity": "Q112159052",
+      "image_file": "Galaxym13.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": "2022-02-25",
-      "title": "Samsung Galaxy S22+"
+      "released": null,
+      "title": "Samsung Galaxy M13"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q118586112",
-      "image_file": "Galaxy S23 (cropped).png",
+      "entity": "Q113486831",
+      "image_file": "Front of the Samsung Galaxy Z Fold 4.jpg",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": "2023-02-17",
-      "title": "Samsung Galaxy S23"
+      "released": "2022-08-10",
+      "title": "Samsung Galaxy Z Fold 4"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q113486834",
+      "image_file": "Front of the Samsung Galaxy Z Flip 4.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-08-10",
+      "title": "Samsung Galaxy Z Flip 4"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q113800722",
+      "image_file": "IPhone 14 Pro vector.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "iPhone 14 Pro"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q113816991",
+      "image_file": "IPhone 14 Pro vector.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "iPhone 14 Pro Max"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "Q115518310",
+      "image_file": "Sony Xperia 5 IV.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Sony Xperia 5 IV"
     },
     {
       "brand": "Samsung",
@@ -655,22 +325,92 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
+      "entity": "Q117154490",
+      "image_file": "Back of the Samsung Galaxy A54 5G.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A54 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q117154514",
+      "image_file": "삼성 갤럭시 A34 (cropped).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A34 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q117801782",
+      "image_file": "삼성 갤럭시 A24 (cropped).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A24"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q118586112",
+      "image_file": "Galaxy S23 (cropped).png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2023-02-17",
+      "title": "Samsung Galaxy S23"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q118593938",
+      "image_file": "SamsungGalaxyS22+.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-02-25",
+      "title": "Samsung Galaxy S22+"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q118593984",
+      "image_file": "SamsungGalaxyS22.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2022-02-25",
+      "title": "Samsung Galaxy S22"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q121992935",
+      "image_file": "IPhone 15 Vector.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "iPhone 15"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q122442399",
+      "image_file": "IPhone 15 Pro Vector.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "iPhone 15 Pro"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
       "entity": "Q124316718",
       "image_file": "Samsung Galaxy S24, Sperrbildschirm.JPG",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
       "title": "Samsung Galaxy S24"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q130384521",
-      "image_file": "Samsung Galaxy S24 FE 2024 (cropped).jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy S24 FE"
     },
     {
       "brand": "Samsung",
@@ -695,82 +435,72 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q131860814",
-      "image_file": "Galaxy S25 Black.png",
+      "entity": "Q124339427",
+      "image_file": "Samsung Galaxy A25 5G 2024 (1) (cropped).jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy S25"
+      "title": "Samsung Galaxy A25 5G"
     },
     {
-      "brand": "Samsung",
+      "brand": "Apple",
       "category": "smartphones",
-      "entity": "Q131860835",
-      "image_file": "Samsung Galaxy S25 Ultra Titanium Silverblue.jpg",
+      "entity": "Q124653339",
+      "image_file": "IPhone 15 Plus.jpeg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy S25 Ultra"
+      "title": "iPhone 15 Plus"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q131860826",
-      "image_file": "20250124 삼성 갤럭시 s25+.jpg",
+      "entity": "Q124813406",
+      "image_file": "Samsung Galaxy A55 5G 2024 (cropped).jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy S25+"
+      "title": "Samsung Galaxy A55 5G"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q137828933",
-      "image_file": "Galaxy S26.jpg",
+      "entity": "Q124813453",
+      "image_file": "Samsung Galaxy A35 5G 2024 (1).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2024-03-11",
+      "title": "Samsung Galaxy A35 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q124974572",
+      "image_file": "Samsung Galaxy A05s 2024.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy S26"
+      "title": "Samsung Galaxy A05"
     },
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q28864618",
-      "image_file": "Galaxy S.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2017-04-21",
-      "title": "Samsung Galaxy S8"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q84882182",
-      "image_file": "Galaxy Z Flip 5G & Galaxy Z Fold2 5G.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2020-02-14",
-      "title": "Samsung Galaxy Z Flip"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q108057818",
-      "image_file": "Galaxy Z Flip.jpg",
+      "entity": "Q125029543",
+      "image_file": "Samsung Galaxy A05s 2024 (1) (cropped).jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy Z Flip 3"
+      "title": "Samsung Galaxy A05s"
     },
     {
-      "brand": "Samsung",
+      "brand": "Apple",
       "category": "smartphones",
-      "entity": "Q113486834",
-      "image_file": "Front of the Samsung Galaxy Z Flip 4.jpg",
+      "entity": "Q125178718",
+      "image_file": "IPhone 15 pro max.png",
       "is_vector": false,
       "kind": "Teléfono",
-      "released": "2022-08-10",
-      "title": "Samsung Galaxy Z Flip 4"
+      "released": null,
+      "title": "iPhone 15 Pro Max"
     },
     {
       "brand": "Samsung",
@@ -785,26 +515,6 @@
     {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q108051842",
-      "image_file": "Galaxy Z Fold.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy Z Fold 3"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q113486831",
-      "image_file": "Front of the Samsung Galaxy Z Fold 4.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2022-08-10",
-      "title": "Samsung Galaxy Z Fold 4"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
       "entity": "Q127328030",
       "image_file": "Samsung Galaxy Z Fold6.png",
       "is_vector": false,
@@ -813,184 +523,24 @@
       "title": "Samsung Galaxy Z Fold 6"
     },
     {
+      "brand": "Motorola",
+      "category": "smartphones",
+      "entity": "Q129176356",
+      "image_file": "Moto G54 5G.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Moto G54 5G"
+    },
+    {
       "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q135280843",
-      "image_file": "Samsung Galaxy Z Fold 7 Unfolded.jpg",
+      "entity": "Q130306896",
+      "image_file": "Galaxy M35 front.jpg",
       "is_vector": false,
       "kind": "Teléfono",
       "released": null,
-      "title": "Samsung Galaxy Z Fold 7"
-    },
-    {
-      "brand": "Samsung",
-      "category": "smartphones",
-      "entity": "Q140676695",
-      "image_file": "Samsung Galaxy Z Fold8 and Fold8 Ultra.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Samsung Galaxy Z Fold 8"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q61913556",
-      "image_file": "Sony Xperia 1.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2019-05-30",
-      "title": "Sony Xperia 1"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q86265338",
-      "image_file": "Xperia 1 II.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Sony Xperia 1 II"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q111094451",
-      "image_file": "Sony Xperia 1 IV.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Sony Xperia 1 IV"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q100286751",
-      "image_file": "Sony Xperia 5 II.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Sony Xperia 5 II"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q115518310",
-      "image_file": "Sony Xperia 5 IV.jpg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "Sony Xperia 5 IV"
-    },
-    {
-      "brand": "Sony",
-      "category": "smartphones",
-      "entity": "Q51885191",
-      "image_file": "Xperia XZ2 Premium.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": "2018-07-30",
-      "title": "Xperia XZ2 Premium"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q67216142",
-      "image_file": "IPhone 11 Pro Midnight Green.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": "2019-09-20",
-      "title": "iPhone 11 Pro"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q96608989",
-      "image_file": "IPhone 12 Blue.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": "2020-10-23",
-      "title": "iPhone 12"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q108541719",
-      "image_file": "IPhone 13 Pro vector.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 13 Pro"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q108541666",
-      "image_file": "IPhone 13 Mini Grün Freigestellt.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 13 mini"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q113800722",
-      "image_file": "IPhone 14 Pro vector.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 14 Pro"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q113816991",
-      "image_file": "IPhone 14 Pro vector.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 14 Pro Max"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q121992935",
-      "image_file": "IPhone 15 Vector.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 15"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q124653339",
-      "image_file": "IPhone 15 Plus.jpeg",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 15 Plus"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q122442399",
-      "image_file": "IPhone 15 Pro Vector.svg",
-      "is_vector": true,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 15 Pro"
-    },
-    {
-      "brand": "Apple",
-      "category": "smartphones",
-      "entity": "Q125178718",
-      "image_file": "IPhone 15 pro max.png",
-      "is_vector": false,
-      "kind": "Teléfono",
-      "released": null,
-      "title": "iPhone 15 Pro Max"
+      "title": "Samsung Galaxy M35 5G"
     },
     {
       "brand": "Apple",
@@ -1013,6 +563,56 @@
       "title": "iPhone 16 Pro Max"
     },
     {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q130384521",
+      "image_file": "Samsung Galaxy S24 FE 2024 (cropped).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S24 FE"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q131291786",
+      "image_file": "Samsung Galaxy A16 5G 2025 (cropped).jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A16"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q131860814",
+      "image_file": "Galaxy S25 Black.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S25"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q131860826",
+      "image_file": "20250124 삼성 갤럭시 s25+.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S25+"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q131860835",
+      "image_file": "Samsung Galaxy S25 Ultra Titanium Silverblue.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S25 Ultra"
+    },
+    {
       "brand": "Apple",
       "category": "smartphones",
       "entity": "Q132559447",
@@ -1023,6 +623,36 @@
       "title": "iPhone 16e"
     },
     {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q133249205",
+      "image_file": "Samsung Galaxy A56 5G 2025.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A56 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q133270095",
+      "image_file": "Samsung Galaxy A36 5G 2025.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A36 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q135280843",
+      "image_file": "Samsung Galaxy Z Fold 7 Unfolded.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy Z Fold 7"
+    },
+    {
       "brand": "Apple",
       "category": "smartphones",
       "entity": "Q136203050",
@@ -1031,6 +661,16 @@
       "kind": "Teléfono",
       "released": "2025-09-19",
       "title": "iPhone 17 Pro Max"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q137828933",
+      "image_file": "Galaxy S26.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S26"
     },
     {
       "brand": "Apple",
@@ -1053,14 +693,24 @@
       "title": "iPhone 18 Pro"
     },
     {
-      "brand": "Apple",
+      "brand": "Samsung",
       "category": "smartphones",
-      "entity": "Q26831164",
-      "image_file": "IPhone 7 Jet Black.svg",
-      "is_vector": true,
+      "entity": "Q140676695",
+      "image_file": "Samsung Galaxy Z Fold8 and Fold8 Ultra.jpg",
+      "is_vector": false,
       "kind": "Teléfono",
-      "released": "2016-09-16",
-      "title": "iPhone 7"
+      "released": null,
+      "title": "Samsung Galaxy Z Fold 8"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q16599646",
+      "image_file": "Samsung Galaxy A06 5G 2025.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A06 5G"
     },
     {
       "brand": "Apple",
@@ -1075,12 +725,362 @@
     {
       "brand": "Apple",
       "category": "smartphones",
+      "entity": "Q26831164",
+      "image_file": "IPhone 7 Jet Black.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": "2016-09-16",
+      "title": "iPhone 7"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
       "entity": "Q26833946",
       "image_file": "IPhone 7 Plus Jet Black.svg",
       "is_vector": true,
       "kind": "Teléfono",
       "released": "2016-09-16",
       "title": "iPhone 7 Plus"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q28864618",
+      "image_file": "Galaxy S.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2017-04-21",
+      "title": "Samsung Galaxy S8"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q30898021",
+      "image_file": "Samsung Galaxy A26 5G 2025.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A26 5G"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "Q51885191",
+      "image_file": "Xperia XZ2 Premium.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2018-07-30",
+      "title": "Xperia XZ2 Premium"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q60021939",
+      "image_file": "Samsung Galaxy S10+.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-03-08",
+      "title": "Samsung Galaxy S10"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "Q61913556",
+      "image_file": "Sony Xperia 1.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-05-30",
+      "title": "Sony Xperia 1"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "Q63858911",
+      "image_file": "OnePlus 7 Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-05-16",
+      "title": "OnePlus 7"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "Q64262423",
+      "image_file": "OnePlus7Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "OnePlus 7 Pro"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q64819686",
+      "image_file": "Samsung Galaxy A50 screen.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-03-01",
+      "title": "Samsung Galaxy A50"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q64889429",
+      "image_file": "Samsung Galaxy A40 (cropped2).png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A40"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q65033630",
+      "image_file": "GalaxyA80Phone Transparent.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A80"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q65059301",
+      "image_file": "GalaxyA70Phone.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A70"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q65062493",
+      "image_file": "GalaxyA10.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-03-01",
+      "title": "Samsung Galaxy A10"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q66209066",
+      "image_file": "Samsung Galaxy Phone.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy Note 10"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q66688566",
+      "image_file": "Samsung Galaxy S10+.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S10+"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q67216142",
+      "image_file": "IPhone 11 Pro Midnight Green.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": "2019-09-20",
+      "title": "iPhone 11 Pro"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q67876968",
+      "image_file": "Galaxy A90 5G.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2019-09-03",
+      "title": "Samsung Galaxy A90 5G"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q68025803",
+      "image_file": "Samsung Galaxy A30.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A30"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q71620144",
+      "image_file": "Samsung Galaxy Note 10+.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy Note 10+"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q78585853",
+      "image_file": "Galaxy S20.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-03-06",
+      "title": "Samsung Galaxy S20"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q84458425",
+      "image_file": "SamsungGalaxyS20plus5G128G2020SMG9860TaiwanFrontInitial20200910.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-02-11",
+      "title": "Samsung Galaxy S20+"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q84882182",
+      "image_file": "Galaxy Z Flip 5G & Galaxy Z Fold2 5G.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-02-14",
+      "title": "Samsung Galaxy Z Flip"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q84949463",
+      "image_file": "Samsung Galaxy S20 Ultra.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy S20 Ultra"
+    },
+    {
+      "brand": "Sony",
+      "category": "smartphones",
+      "entity": "Q86265338",
+      "image_file": "Xperia 1 II.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Sony Xperia 1 II"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q90413128",
+      "image_file": "Galaxy A11 vector.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A11"
+    },
+    {
+      "brand": "Apple",
+      "category": "smartphones",
+      "entity": "Q96608989",
+      "image_file": "IPhone 12 Blue.svg",
+      "is_vector": true,
+      "kind": "Teléfono",
+      "released": "2020-10-23",
+      "title": "iPhone 12"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "Q97189547",
+      "image_file": "Oneplus Nord 2.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "OnePlus Nord"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q97223461",
+      "image_file": "GalaxyA31.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A31"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q97223473",
+      "image_file": "GalaxyA41.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A41"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q97349752",
+      "image_file": "Samsung Galaxy M31.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-03-01",
+      "title": "Samsung Galaxy M31"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q98078754",
+      "image_file": "20200903 삼성 갤럭시 A21.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy A21s"
+    },
+    {
+      "brand": "OnePlus",
+      "category": "smartphones",
+      "entity": "Q98148411",
+      "image_file": "OnePlus 8 Pro.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "OnePlus 8 Pro"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q98148416",
+      "image_file": "M21 photo.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": "2020-01-01",
+      "title": "Samsung Galaxy M21"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q99532825",
+      "image_file": "Galaxy m11.png",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy M11"
+    },
+    {
+      "brand": "Samsung",
+      "category": "smartphones",
+      "entity": "Q99887992",
+      "image_file": "Galaxy m51 phone.jpg",
+      "is_vector": false,
+      "kind": "Teléfono",
+      "released": null,
+      "title": "Samsung Galaxy M51"
     }
   ],
   "source": "Wikidata (https://www.wikidata.org), imágenes de Wikimedia Commons"

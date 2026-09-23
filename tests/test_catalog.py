@@ -70,14 +70,17 @@ def test_catalog_paginates_stably_and_isolates_caller_mutation() -> None:
     first.data.offers[0].pricing.total_minor = 1
     original = catalog.get(
         {
-            "offer_id": "Q100348826-512GB",
+            "offer_id": "Q100286751-256GB",
             "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
         }
     )
     assert isinstance(original, Success)
-    assert original.data.pricing.total_minor == 1_045_000_00
+    assert original.data.pricing.total_minor == 1_335_000_00
     second = catalog.search({"category": "smartphones", "limit": 2, "offset": 2})
-    assert [offer.id for offer in second.data.offers] == ["Q100348826-512GB", "Q104772244-128GB"]
+    assert [offer.id for offer in second.data.offers] == [
+        "Q100348826-512GB",
+        "Q104772244-128GB",
+    ]
 
 
 def test_catalog_accepts_and_searches_a_product_from_an_unrelated_category() -> None:

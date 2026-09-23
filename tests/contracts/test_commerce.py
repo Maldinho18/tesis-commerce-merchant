@@ -170,7 +170,7 @@ def test_every_p0_product_has_explicit_valid_internal_status() -> None:
     # El catálogo se recolecta de una fuente externa, así que se afirman escala mínima e
     # invariantes en vez de un conteo exacto. La cota es baja a propósito: se prefirió un
     # catálogo de productos vigentes antes que uno grande lleno de equipos descontinuados.
-    assert len({offer.product_id for offer in P0_OFFERS}) >= 100
+    assert len({offer.product_id for offer in P0_OFFERS}) >= 80
     assert len(P0_OFFERS) >= len({offer.product_id for offer in P0_OFFERS})
     assert len({offer.id for offer in P0_OFFERS}) == len(P0_OFFERS)
     assert {offer.product_status for offer in P0_OFFERS} == {"active"}

@@ -116,3 +116,18 @@ original; la página del archivo en Commons documenta autoría y licencia exacta
 | `Q26831164.png` | iPhone 7 | `IPhone 7 Jet Black.svg` |
 | `Q23309966.png` | iPhone SE (1st generation) | `IPhone SE (1st generation) rose gold.svg` |
 | `Q26833946.png` | iPhone 7 Plus | `IPhone 7 Plus Jet Black.svg` |
+
+## Imágenes de Openverse
+
+Licencias Creative Commons que exigen atribución. Se conserva autor, licencia y
+página de origen de cada archivo.
+
+| Archivo | Producto | Autor | Licencia | Origen |
+| --- | --- | --- | --- | --- |
+| `OViPhone17Pro.jpg` | iPhone 17 Pro | AzureSaturn | CC0 1.0 | https://commons.wikimedia.org/w/index.php?curid=180565671 |
+| `OViPhone17.jpg` | iPhone 17 | Ahmad Ali Karim | CC0 1.0 | https://commons.wikimedia.org/w/index.php?curid=175251328 |
+| `OViPhone16Pro.jpg` | iPhone 16 Pro | メイド理世 | BY-SA 2.0 | https://commons.wikimedia.org/w/index.php?curid=157609167 |
+| `OViPhone16.jpg` | iPhone 16 | メイド理世 | BY-SA 2.0 | https://commons.wikimedia.org/w/index.php?curid=157609167 |
+| `OViPhone14.jpg` | iPhone 14 | iGeeksBlog | BY-SA 4.0 | https://commons.wikimedia.org/w/index.php?curid=123445894 |
+| `OVSamsungGalaxyS23Ultra.png` | Samsung Galaxy S23 Ultra | PantheraLeo1359531 | BY 4.0 | https://commons.wikimedia.org/w/index.php?curid=130828210 |
+| `OVSamsungGalaxyA25.jpg` | Samsung Galaxy A25 | Captainmorlypogi1959 | BY-SA 4.0 | https://commons.wikimedia.org/w/index.php?curid=145394664 |
