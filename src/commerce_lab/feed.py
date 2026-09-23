@@ -83,6 +83,14 @@ def _variant_options(offer: Offer) -> list[dict[str, str]]:
     ]
 
 
+def _absolute(image_url: object, origin: str, product_id: str) -> str:
+    if isinstance(image_url, str) and image_url:
+        if image_url.startswith(("http://", "https://")):
+            return image_url
+        return f"{origin}{image_url if image_url.startswith('/') else '/' + image_url}"
+    return f"{origin}/assets/products/{product_id}.jpg"
+
+
 def _single(group: list[Offer], field: str, product_id: str) -> object:
     """Las variantes de un producto deben coincidir en los campos de nivel producto."""
     distinct = {getattr(offer, field) for offer in group}
@@ -162,7 +170,9 @@ def build_feed(
             "media": [
                 {
                     "type": "image",
-                    "url": image_url or f"{origin}/assets/products/{product_id}.jpg",
+                    # `image_url` puede venir como ruta relativa del propio comercio o como
+                    # URL absoluta de un catálogo externo; ambas se publican absolutas.
+                    "url": _absolute(image_url, origin, product_id),
                     "alt_text": title,
                 }
             ],

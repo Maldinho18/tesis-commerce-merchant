@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Final
@@ -17,17 +18,6 @@ from typing import Any, Final
 from commerce_lab.contracts import DeliveryContext, Offer, Pricing
 
 SNAPSHOT_PATH: Final = Path(__file__).with_name("catalog_snapshot.json")
-
-# Rango de precio por categoría, en centavos de COP.
-_PRICE_RANGE: Final[dict[str, tuple[int, int]]] = {
-    "smartphones": (349_000_00, 7_499_000_00),
-    "laptops": (1_699_000_00, 15_999_000_00),
-    "tablets": (799_000_00, 5_499_000_00),
-}
-# Marcas que se posicionan en la mitad alta de su rango.
-_PREMIUM: Final[frozenset[str]] = frozenset(
-    {"Apple", "Apple Inc.", "Samsung Electronics", "Samsung Group", "Google", "Sony", "ASUS"}
-)
 
 _STORAGE: Final[dict[str, tuple[str, ...]]] = {
     "smartphones": ("128 GB", "256 GB", "512 GB"),
@@ -42,19 +32,76 @@ _SHIP_STD: Final = 25_000_00
 def _digits(entity: str) -> list[int]:
     """Doce enteros estables por producto; toda variación sintética sale de aquí."""
     raw = hashlib.sha256(entity.encode("utf-8")).digest()
-    return [byte for byte in raw[:12]]
+    return list(raw[:12])
 
 
-def _price(entity: str, category: str, brand: str | None, *, modern: bool) -> int:
-    low, high = _PRICE_RANGE.get(category, _PRICE_RANGE["smartphones"])
+# Precio de referencia del mercado colombiano por gama, en centavos de COP. El snapshot solo
+# trae productos vigentes, así que estos rangos corresponden a equipos que hoy se venden.
+_TIER_RANGE: Final[dict[str, tuple[int, int]]] = {
+    "flagship": (4_499_000_00, 8_299_000_00),
+    "mid": (1_249_000_00, 2_699_000_00),
+    "entry": (499_000_00, 1_149_000_00),
+    "laptop": (2_499_000_00, 6_999_000_00),
+    "laptop_premium": (5_999_000_00, 14_999_000_00),
+    "tablet": (799_000_00, 3_499_000_00),
+}
+
+# Un equipo pierde valor cada año; sin fecha se asume una antigüedad media.
+_CATALOG_YEAR: Final = 2026
+_ASSUMED_AGE: Final = 3
+_YEARLY_DECAY: Final = 0.16
+_MIN_RESIDUAL: Final = 0.34
+
+_FLAGSHIP = re.compile(r"\b(pro|ultra|max|fold|flip|plus)\b|\bs2[0-9]\b|\bmate\s*[456][0-9]", re.I)
+_ENTRY = re.compile(r"\b(lite|mini|neo|go|a0?[0-9]|m[0-2][0-9]|redmi\s*(9|1[0-3])a?)\b", re.I)
+_PREMIUM_LAPTOP = re.compile(
+    r"\b(rog|legion|thinkpad\s*x1|macbook\s*pro|blade|zephyrus|xps)\b", re.I
+)
+
+
+def _tier(title: str, category: str) -> str:
+    if category == "laptops":
+        return "laptop_premium" if _PREMIUM_LAPTOP.search(title) else "laptop"
+    if category == "tablets":
+        return "tablet"
+    if _FLAGSHIP.search(title):
+        return "flagship"
+    if _ENTRY.search(title):
+        return "entry"
+    return "mid"
+
+
+def _residual(released: str | None) -> float:
+    """Cuánto de su precio de lanzamiento conserva el equipo hoy."""
+    if released and released[:4].isdigit():
+        age = max(_CATALOG_YEAR - int(released[:4]), 0)
+    else:
+        age = _ASSUMED_AGE
+    return max(1.0 - _YEARLY_DECAY * age, _MIN_RESIDUAL)
+
+
+# Las marcas que sostienen precio conservan más valor que la media del mercado.
+_BRAND_PREMIUM: Final[dict[str, float]] = {
+    "apple": 2.0,
+    "samsung": 1.35,
+    "google": 1.3,
+    "sony": 1.25,
+    "asus": 1.15,
+    "lenovo": 1.1,
+}
+
+
+def _premium(brand: str) -> float:
+    head = brand.split()[0].casefold() if brand else ""
+    return _BRAND_PREMIUM.get(head, 1.0)
+
+
+def _price(entity: str, category: str, title: str, brand: str, released: str | None) -> int:
+    low, high = _TIER_RANGE[_tier(title, category)]
     spread = _digits(entity)[0] / 255
-    if not modern:
-        spread = spread / 3
-    elif brand in _PREMIUM:
-        spread = 0.5 + spread / 2
-    amount = low + int((high - low) * spread)
+    amount = int((low + (high - low) * spread) * _residual(released) * _premium(brand))
     # Se redondea a decenas de miles de pesos para que se lea como un precio de tienda.
-    return (amount // 10_000_00) * 10_000_00 or low
+    return max((amount // 10_000_00) * 10_000_00, 199_000_00)
 
 
 def _brand_of(product: dict[str, Any]) -> str:
@@ -65,13 +112,21 @@ def _brand_of(product: dict[str, Any]) -> str:
     return str(product["title"]).split()[0][:100]
 
 
-def _image_url(file_name: str) -> str:
-    from urllib.parse import quote
+_ASSETS_DIR: Final = Path(__file__).resolve().parents[3] / "assets/products"
 
-    return (
-        "https://commons.wikimedia.org/wiki/Special:FilePath/"
-        f"{quote(file_name.replace(' ', '_'))}?width=600"
-    )
+
+@lru_cache
+def _downloaded_images() -> dict[str, str]:
+    """Nombre de archivo servido por producto, para las fotos ya descargadas."""
+    if not _ASSETS_DIR.is_dir():
+        return {}
+    return {path.stem: path.name for path in _ASSETS_DIR.iterdir() if path.suffix != ".md"}
+
+
+def _image_path(entity: str) -> str | None:
+    """Ruta relativa al origen del comercio; el exportador le antepone el origen."""
+    name = _downloaded_images().get(entity)
+    return f"/assets/products/{name}" if name else None
 
 
 def _description(product: dict[str, Any], brand: str, variants: int) -> str:
@@ -110,8 +165,6 @@ def _variant_specs(
     sin contradecir el producto real.
     """
     d = _digits(entity)
-    if not _is_modern(released):
-        return [("STD", {}, _COLORS[d[4] % len(_COLORS)])]
     storages = _STORAGE.get(category, _STORAGE["smartphones"])
     count = 1 + d[1] % 3
     start = d[2] % max(len(storages) - count + 1, 1)
@@ -149,17 +202,17 @@ def build_generated_offers(
         released = product.get("released")
         specs = _variant_specs(entity, category, released)
         description = _description(product, brand, len(specs))
-        image_url = _image_url(str(product["image_file"]))
-        base = _price(entity, category, product.get("brand"), modern=_is_modern(released))
-        # Lo antiguo se ofrece casi siempre reacondicionado; lo reciente, rara vez.
-        refurbished = d[5] % 2 == 0 if not _is_modern(released) else d[5] % 8 == 0
+        image_path = _image_path(entity)
+        base = _price(entity, category, title, brand, released)
+        # Uno de cada ocho se ofrece reacondicionado, con el descuento habitual.
+        refurbished = d[5] % 8 == 0
         condition = "refurbished" if refurbished else "new"
 
         for index, (code, attributes, color) in enumerate(specs):
             # Cada escalón de configuración sube el precio de forma estable.
             item_minor = base + index * ((d[6] % 6 + 2) * 10_000_00)
             if refurbished:
-                item_minor = int(item_minor * 0.7 // 10_000_00) * 10_000_00 or base
+                item_minor = int(item_minor * 0.75 // 10_000_00) * 10_000_00 or base
             shipping = 0 if item_minor >= 2_000_000_00 else _SHIP_STD
             quantity = (d[7] + index * 3) % 14
             offers.append(
@@ -176,7 +229,7 @@ def build_generated_offers(
                     product_title=title,
                     product_description=description,
                     brand=brand,
-                    image_url=image_url,
+                    image_url=image_path,
                     color=color,
                     attributes=dict(attributes),
                     condition=condition,

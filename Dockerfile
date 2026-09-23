@@ -11,6 +11,8 @@ COPY src ./src
 RUN uv sync --frozen --no-dev
 
 COPY vendor ./vendor
+# Fotos de producto servidas por /assets; ver scripts/fetch_product_images.py.
+COPY assets ./assets
 COPY migrations ./migrations
 COPY scripts ./scripts
 

@@ -15,8 +15,9 @@ REGISTRY = Registry().with_resource(str(BUNDLE["$id"]), Resource.from_contents(B
 
 # El origen se fija en la prueba para que el export no dependa de ACP_API_BASE_URL del entorno.
 ORIGIN = "https://merchant.example.test"
-# El catálogo crece con el snapshot externo: se afirma escala e invariantes, no literales.
-MIN_PRODUCTS = 1_000
+# El catálogo se recolecta de una fuente externa: se afirma escala mínima e invariantes,
+# no literales que quedarían obsoletos en cada recolección.
+MIN_PRODUCTS = 150
 
 
 def validate(definition: str, value: object) -> None:
@@ -67,11 +68,11 @@ def test_feed_export_is_deterministic_schema_valid_and_has_unique_stable_ids(
             validate("Media", media)
             assert media["type"] == "image"
             parsed_url = urlparse(media["url"])
-            # El producto curado sirve su imagen desde el comercio; el tomado del catálogo
-            # externo trae la suya. En ambos casos tiene que ser HTTPS absoluto.
+            # La imagen siempre se publica como HTTPS absoluto. La sirve el propio comercio
+            # bajo /assets/products, ya sea la foto descargada o la ruta derivada del id.
             assert parsed_url.scheme == "https" and parsed_url.netloc
             if parsed_url.netloc == "merchant.example.test":
-                assert media["url"] == f"{ORIGIN}/assets/products/{product['id']}.jpg"
+                assert parsed_url.path.startswith("/assets/products/")
             assert media["alt_text"].strip()
         assert len(product["variants"]) >= 1
         variant_ids = [variant["id"] for variant in product["variants"]]

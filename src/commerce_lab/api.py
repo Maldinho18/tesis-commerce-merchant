@@ -1,5 +1,6 @@
 import logging
 from html import escape
+from pathlib import Path
 from time import perf_counter
 from typing import Annotated, Any, Never
 from uuid import uuid4
@@ -8,6 +9,7 @@ import psycopg
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -58,6 +60,14 @@ _PUBLIC_ERROR_CODES = {
     "OUT_OF_STOCK": "out_of_stock",
     "PAYMENT_DECLINED": "payment_declined",
 }
+
+
+# Fotos de producto descargadas una vez desde Wikimedia Commons (ver
+# scripts/fetch_product_images.py). Servirlas desde el comercio evita depender de un
+# tercero que limita las peticiones cuando la vitrina pide decenas a la vez.
+_ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+if _ASSETS_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=_ASSETS_DIR), name="assets")
 
 
 # El storefront es otro origen y solo lee. Sin credenciales y solo GET: nada del canal ACP,

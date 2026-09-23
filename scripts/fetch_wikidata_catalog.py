@@ -28,13 +28,37 @@ ENDPOINT: Final = "https://query.wikidata.org/sparql"
 USER_AGENT: Final = "TesisCommerceCatalog/1.0 (Uniandes thesis; academic use)"
 QID: Final = re.compile(r"^Q\d+$")
 
-# Clases de Wikidata que dan modelos de producto con imagen.
+# Clases de Wikidata que dan modelos de producto con imagen. Se usa "modelo de smartphone"
+# y no "modelo de celular": la segunda arrastra plegables de los 2000 que no tienen lugar en
+# una tienda actual.
 FAMILIES: Final[tuple[tuple[str, str, str], ...]] = (
-    ("Q19723444", "smartphones", "Teléfono"),
+    ("Q19723451", "smartphones", "Teléfono"),
     ("Q73343954", "laptops", "Portátil"),
     ("Q3962", "laptops", "Portátil"),
     ("Q155972", "tablets", "Tableta"),
 )
+
+# Un producto entra al catálogo si su fecha de lanzamiento es reciente o si su nombre
+# pertenece a una serie vigente. La segunda regla existe porque solo uno de cada seis
+# modelos trae fecha en Wikidata, y sin ella se perderían casi todos los equipos actuales.
+MODERN_FROM: Final = 2016
+MODERN_SERIES: Final = re.compile(
+    r"""(
+     iphone\s*(1[1-9]|se)| galaxy\s*(s(1[0-9]|2[0-9])|z\s*(fold|flip)|a[0-9]{2}|m[0-9]{2}
+      |note\s*(1[0-9]|2[0-9]))| pixel\s*([6-9]|1[0-9])| redmi\s*(note\s*)?(9|1[0-9]|k[0-9]{2})|
+     poco\s*[fxm][0-9]| (mi|xiaomi)\s*1[0-4]| oneplus\s*([7-9]|1[0-9]|nord)| mate\s*[2-6][0-9]|
+     moto\s*g[0-9]{2}| edge\s*[0-9]{2}| reno\s*[0-9]| find\s*x[0-9]| vivo\s*[xyv][0-9]{2}|
+     realme\s*([7-9]|1[0-9])| zenfone\s*[6-9]| rog\s*phone| xperia\s*(1|5|10)\s*i
+    )""",
+    re.I | re.X,
+)
+
+
+def _is_modern(label: str, released: str | None) -> bool:
+    if released and released[:4].isdigit():
+        return int(released[:4]) >= MODERN_FROM
+    return bool(MODERN_SERIES.search(label))
+
 
 QUERY: Final = """
 SELECT ?item ?itemLabel (SAMPLE(?brandLabel) AS ?brand) (MIN(?date) AS ?released)
@@ -102,13 +126,17 @@ def collect() -> list[dict[str, Any]]:
             if brand and QID.match(brand):
                 brand = None
             released = _value(row, "released")
+            released = _value(row, "released")
+            released_year = released[:10] if released else None
+            if not _is_modern(label, released_year):
+                continue
             seen[entity] = {
                 "entity": entity,
                 "title": label,
                 "brand": brand,
                 "category": category,
                 "kind": kind,
-                "released": released[:10] if released else None,
+                "released": released_year,
                 "image_file": file_name,
                 # Las fotos reales se prefieren sobre el arte vectorial al ordenar.
                 "is_vector": file_name.lower().endswith((".svg", ".svgz")),
