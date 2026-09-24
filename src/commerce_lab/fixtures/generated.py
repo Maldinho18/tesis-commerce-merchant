@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Final
 
 from commerce_lab.contracts import DeliveryContext, Offer, Pricing
+from commerce_lab.fixtures.specs import spec_attributes
 
 SNAPSHOT_PATH: Final = Path(__file__).with_name("catalog_snapshot.json")
 
@@ -272,6 +273,8 @@ def build_generated_offers(
         d = _digits(entity)
         released = product.get("released")
         specs = _variant_specs(entity, category, released, product.get("storage_options"))
+        # La ficha técnica es del modelo, así que la comparten todas sus variantes.
+        sheet = spec_attributes(title)
         description = _description(product, brand, len(specs))
         image_path = _image_path(entity)
         base = _price(entity, category, title, brand, released)
@@ -305,7 +308,7 @@ def build_generated_offers(
                     brand=brand,
                     image_url=image_path,
                     color=color,
-                    attributes=dict(attributes),
+                    attributes={**sheet, **attributes},
                     condition=condition,
                     availability="in_stock" if quantity > 0 else "out_of_stock",
                     available_quantity=quantity,
