@@ -1,17 +1,15 @@
 # Tesis Commerce Merchant
 
-Merchant experimental independiente para la tesis: FastAPI → adaptador ACP REST
-→ catálogo/checkout → PostgreSQL. El Buyer Agent, el LLM y el cliente HTTP ACP
-viven en otro repositorio. La extracción original procede de
-`Maldinho18/tesis-commerce-lab@e6a7cb5`; el perfil P0 activo reemplaza el
-benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
+Merchant independiente para la tesis: FastAPI → adaptador ACP REST → catálogo y
+checkout autoritativos en PostgreSQL. El Buyer Agent, el LLM y el cliente HTTP ACP
+viven en otro repositorio. El namespace Python sigue siendo `commerce_lab`.
 
 ## Perfil P0 implementado
 
-- Diez productos sintéticos reproducibles, cada uno con una variante estable:
-  `ALT-01` a `ALT-03` y `SON-01` a `SON-07`. `SON-03` tiene una unidad y
-  `SON-07` está agotada. Cada variante del feed usa exactamente el ID que
-  acepta `POST /checkout_sessions` en `line_items[].id`.
+- El surtido actual importado contiene más de 140 smartphones y más
+  de 300 variantes. La importación ocurre una sola vez; el catálogo persistente
+  del merchant conserva los cambios de precio e inventario entre reinicios.
+  Cada variante del feed usa el ID aceptado por `POST /checkout_sessions`.
 - Discovery público `GET /.well-known/acp.json`, ACP `2026-04-17`, transporte
   REST y solo servicio `checkout`. URL local predeterminada:
   `http://127.0.0.1:4120`. `ACP_API_BASE_URL` es configurable; fuera de
@@ -34,9 +32,9 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
   deterministas y errores temporales devuelven `503` sin efectos comerciales.
   La operación es idempotente y el permalink público `/orders/{order_id}`
   muestra únicamente datos sanitizados.
-- Product Feed **estático de reemplazo completo**: `metadata.json` y un Product
-  JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
-  ACP `2026-04-17`. Feed API incremental no está implementada.
+- `GET /feeds/current` publica una instantánea completa del Product Feed desde
+  PostgreSQL. Su forma `{metadata, products}` es una ruta de publicación propia,
+  no un endpoint normativo de ACP. Feed API incremental no está implementada.
 - Perfil AP2 v0.2 Human Present: `GET /checkout_sessions/{id}/ap2/checkout-jwt` emite un JWT ES256
   firmado por el merchant para un checkout `ready_for_payment` del mismo actor/episodio.
   `GET /.well-known/ap2/jwks.json` publica la clave verificadora. Configure
@@ -56,15 +54,15 @@ la API los traduce al contrato público.
 La representación interna `Offer` es un snapshot de variante: `Offer.id` →
 `Variant.id`, `Offer.product_id` → `Product.id`, `Offer.name` → títulos,
 `Offer.pricing.items_total_minor` → `Variant.price.amount`. Hay una variante
-por producto en P0. `Offer.product_status` guarda explícitamente `active` o
-`inactive` en el mismo snapshot autoritativo; los diez productos P0 son
-`active`, incluso el agotado. La disponibilidad de compra se comunica en
+por producto en los experimentos P0; el catálogo actual agrupa variantes.
+`Offer.product_status` guarda explícitamente `active` o `inactive` en el
+snapshot autoritativo. La disponibilidad de compra se comunica en
 `Variant.availability`. El esquema Product congelado no tiene campo `status`,
 por lo que no se inventa uno en el JSONL. Las URLs `merchant.example.test`
 son identificadores sintéticos, no páginas comerciales reales.
 
-**Moneda:** dominio interno, checkout y Discovery usan `usd`; el esquema Feed
-exige `USD` en `Price.currency`. La conversión de casing es explícita en el
+**Moneda:** dominio interno, checkout y Discovery usan `cop`; el esquema Feed
+usa `COP` en `Price.currency`. La conversión de casing es explícita en el
 exportador. Todos los importes son enteros de centavos; no hay `float`.
 El precio del feed es solo el ítem: el envío sintético determinista aparece
 separado en checkout. El impuesto está incluido en el precio del ítem; no hay
@@ -81,26 +79,32 @@ solo en `127.0.0.1:55433`; FastAPI solo en `127.0.0.1:4120`.
 uv sync --frozen
 docker compose up -d --wait postgres
 uv run python -m commerce_lab.db migrate
-uv run python -m commerce_lab.db seed
-uv run python -m commerce_lab.feed export --output-dir artifacts/feed/p0
+uv run python -m commerce_lab.managed_catalog import-current
 uv run uvicorn commerce_lab.api:app --host 127.0.0.1 --port 4120
 ```
 
-El exportador lee las ofertas de un episodio P0 en PostgreSQL. Por defecto
-elige el episodio P0 más reciente; `--run-id RUN_ID` fija uno para reproducción
-exacta. Nunca exporta el run ID ni el Bearer. Ordena por Product ID, usa UTF-8
-y una marca `updated_at` controlada por el snapshot. El feed completo sustituye
-el anterior; no se implementan `POST /feeds`, `PATCH /feeds/{id}/products` ni
-`GET /feeds/{id}/products`.
+`import-current` solo llena un merchant vacío; repetirlo no sobrescribe precios
+ni stock. Para editarlos use `uv run python -m commerce_lab.managed_catalog
+update-offer VARIANT_ID --price-minor 123450000 --stock 5`. Los importes son
+centavos de COP. `GET /feeds/current` refleja los cambios sin reexportar archivos;
+el checkout revalida el snapshot autoritativo. La ruta no implementa la API
+incremental de feeds de ACP.
+
+Por compatibilidad con las claves foráneas existentes de checkout, el catálogo
+administrado ocupa un contexto persistente `variant='merchant'` en las tablas
+actuales. No se recrea como episodio de prueba en cada arranque; los episodios
+experimentales siguen separados.
+
+El exportador `python -m commerce_lab.feed export` permanece para experimentos
+reproducibles con episodios P0; no participa en el flujo normal del merchant.
 
 Para probar checkout protegido,
 `uv run python -m commerce_lab.db issue-session RUN_ID ACTOR_ID` emite un Bearer
 sintético solo en consola local.
 No lo copie a Git, artefactos ni logs. No hay endpoint público para emitirlo.
-Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009`, `010` y `011`;
-`005`/`006`
-pertenecen al carril live/browser legado y no se ejecutan aquí. Los episodios
-históricos no se reescriben; la semilla nueva usa `p0-catalog-v1`.
+Las migraciones merchant son `001`, `002`, `003`, `004`, `007`, `008`, `009`, `010`, `011` y `012`;
+`005`/`006` pertenecen al carril live/browser legado y no se ejecutan aquí. Los
+episodios experimentales históricos no se reescriben.
 
 El outbox webhook usa `WEBHOOK_RECEIVER_URL` y `MERCHANT_WEBHOOK_SECRET` solo
 para el dispatcher local. La creación de una Order y su entrega `order_create`
@@ -136,9 +140,9 @@ El `Dockerfile` ejecuta `scripts/railway_bootstrap.py` antes de servir la API. E
 PostgreSQL dedicada y privada, configure `DATABASE_URL` para la base `tesis_lab`, y
 `BOOTSTRAP_ADMIN_DATABASE_URL` para la base administrativa inicial si `tesis_lab` aún no existe.
 `MERCHANT_ALLOW_REMOTE_DB=true` permite únicamente hosts `*.railway.internal`; en local sigue
-exigiéndose loopback. El bootstrap migra, siembra el episodio P0 cuando falta y registra el hash
-de `MERCHANT_AGENT_BEARER_TOKEN` sin imprimir el Bearer. Si hay más de un episodio P0 de
-preparación, falla en vez de escoger uno arbitrario.
+exigiéndose loopback. El bootstrap migra, importa el surtido solo si no existe un catálogo
+administrado y registra el hash de `MERCHANT_AGENT_BEARER_TOKEN` sin imprimir el Bearer. Reiniciar
+no restablece precios ni stock.
 
 Configure `ACP_API_BASE_URL` con el origen HTTPS público del merchant. El agente debe usar ese
 mismo origen como `MERCHANT_BASE_URL` y el mismo Bearer. `PAYMENT_PROVIDER_URL` y

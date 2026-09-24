@@ -67,7 +67,7 @@ class PersistentCatalogReader:
     def _load_reader(self, connection: psycopg.Connection[Any]) -> tuple[CatalogReader, str]:
         run = connection.execute(
             """
-            SELECT clock_at
+            SELECT CASE WHEN variant = 'merchant' THEN date_trunc('second', now()) ELSE clock_at END
             FROM experiment_runs
             WHERE run_id = %s AND actor_id = %s
             """,

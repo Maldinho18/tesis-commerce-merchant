@@ -1,12 +1,7 @@
-"""Arranque del merchant en Railway: migra, siembra una sola vez y publica la sesión del comprador.
+"""Prepare the merchant database and bind its agent credential to the managed catalog.
 
-Es idempotente: reiniciar el contenedor no duplica el catálogo ni las sesiones. El Bearer del
-comprador llega por `MERCHANT_AGENT_BEARER_TOKEN` y, igual que en `issue-session`, solo se guarda
-su sha256; el valor en claro nunca se persiste ni se imprime.
-
-La sesión se re-vincula al episodio P0 vigente en cada arranque. Sin eso, al subir
-`FIXTURE_VERSION` el Bearer seguiría apuntando al episodio anterior y el comercio respondería
-`invalid_item` para todo SKU nuevo.
+The curated assortment is imported only when the store is empty. Restarts never reset edits to
+price or inventory. Only a hash of the agent's Bearer credential is stored.
 """
 
 from __future__ import annotations
@@ -14,22 +9,16 @@ from __future__ import annotations
 import hashlib
 import os
 from datetime import UTC, datetime, timedelta
-from typing import Any
 from urllib.parse import urlparse
 
 import psycopg
 from psycopg import sql
 
 from commerce_lab.db import database_url
-from commerce_lab.db.core import FIXTURE_VERSION, migrate, seed
+from commerce_lab.db.core import migrate
+from commerce_lab.managed_catalog import import_current_catalog, managed_catalog_context
 
 SESSION_TTL_DAYS = 365
-
-P0_RUNS = """
-SELECT run_id, actor_id FROM experiment_runs
-WHERE fixture_version = %s AND variant = 'preparation'
-ORDER BY created_at, run_id LIMIT 2
-"""
 
 
 def _ensure_database() -> None:
@@ -48,31 +37,14 @@ def _ensure_database() -> None:
     print({"operation": "create-database", "database": target}, flush=True)
 
 
-def _first_run() -> tuple[Any, str] | None:
-    with psycopg.connect(database_url()) as connection:
-        rows = connection.execute(P0_RUNS, (FIXTURE_VERSION,)).fetchall()
-    return _single_p0_run(rows)
-
-
-def _single_p0_run(rows: list[tuple[Any, str]]) -> tuple[Any, str] | None:
-    if len(rows) > 1:
-        raise RuntimeError("Deployment database contains more than one P0 preparation episode")
-    return rows[0] if rows else None
-
-
 def main() -> None:
     _ensure_database()
     print(migrate(), flush=True)
-
-    episode = _first_run()
-    if episode is None:
-        print(seed(), flush=True)
-        episode = _first_run()
-    else:
-        print({"operation": "seed", "status": "already_seeded"}, flush=True)
-    if episode is None:
-        raise RuntimeError("El catálogo quedó sin episodio tras sembrar")
-    run_id, actor_id = episode
+    print({"operation": "catalog-import", **import_current_catalog()}, flush=True)
+    catalog = managed_catalog_context()
+    if catalog is None:
+        raise RuntimeError("Merchant catalog is unavailable")
+    run_id, actor_id = catalog
 
     token = os.environ.get("MERCHANT_AGENT_BEARER_TOKEN")
     if not token:

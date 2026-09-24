@@ -25,6 +25,7 @@ MIGRATIONS = (
     "009_checkout_completion.sql",
     "010_webhook_delivery.sql",
     "011_request_observability.sql",
+    "012_managed_catalog.sql",
 )
 FIXTURE_VERSION = "p0-catalog-v13"
 PRODUCER = "preparation.db-seed"

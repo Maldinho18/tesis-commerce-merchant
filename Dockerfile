@@ -17,5 +17,5 @@ COPY migrations ./migrations
 COPY scripts ./scripts
 
 ENV PATH="/app/.venv/bin:$PATH"
-# El arranque migra y siembra una sola vez antes de servir; ver scripts/railway_bootstrap.py.
+# El arranque migra e importa el surtido solo si aún no existe; ver scripts/railway_bootstrap.py.
 CMD ["sh", "-c", "python scripts/railway_bootstrap.py && uvicorn commerce_lab.api:app --host 0.0.0.0 --port ${PORT:-8080}"]

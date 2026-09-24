@@ -96,11 +96,7 @@ if _storefront_origin:
 
 @app.get("/storefront/catalog", include_in_schema=False)
 async def storefront_catalog() -> JSONResponse:
-    """Catálogo público de solo lectura para la vitrina humana.
-
-    Devuelve la misma proyección que consume el comprador por el feed ACP, leída en vivo,
-    de modo que el inventario que ve una persona ya refleja lo que compró el agente.
-    """
+    """Read-only catalog view for the human storefront."""
     try:
         metadata, products = await run_in_threadpool(
             current_feed, base_url=get_settings().acp_api_base_url
@@ -108,7 +104,23 @@ async def storefront_catalog() -> JSONResponse:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Catalog is not seeded yet.",
+            detail="Merchant catalog is unavailable.",
+        ) from None
+    return JSONResponse(
+        content={"metadata": metadata, "products": products},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.get("/feeds/current", include_in_schema=False)
+def published_product_feed() -> JSONResponse:
+    """Merchant publication of the ACP Product Feed; not an ACP checkout route."""
+    try:
+        metadata, products = current_feed(base_url=get_settings().acp_api_base_url)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Merchant catalog is unavailable.",
         ) from None
     return JSONResponse(
         content={"metadata": metadata, "products": products},

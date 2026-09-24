@@ -218,36 +218,27 @@ def _read_offers(run_id: str | None) -> list[Offer]:
     return [Offer.model_validate(row[0]) for row in rows]
 
 
-_PREPARATION_RUN = """
-SELECT run_id FROM experiment_runs
-WHERE fixture_version = %s AND variant = 'preparation'
-ORDER BY created_at DESC, run_id DESC LIMIT 1
-"""
-
-
 def current_feed(
     *, base_url: str | None = None
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
-    """Catálogo del episodio P0 vigente, en la misma forma que consume el comprador.
-
-    El storefront y el agente leen la misma proyección: un solo catálogo autoritativo
-    servido por dos canales. Lee de la base en cada llamada, así que el inventario que
-    ve una persona refleja las compras que ya hizo el agente.
-
-    Se ancla al episodio `preparation`, que es al que el bootstrap vincula el Bearer del
-    comprador. Sin ese filtro, un episodio sintético creado por otra prueba podría quedar
-    más reciente y la tienda mostraría un inventario distinto del que compra el agente.
-    """
+    """Publish the merchant-managed catalog for the storefront and buyer agents."""
     with psycopg.connect(database_url()) as connection, connection.transaction():
         connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-        selected = connection.execute(_PREPARATION_RUN, (FIXTURE_VERSION,)).fetchone()
+        selected = connection.execute(
+            "SELECT run_id FROM experiment_runs WHERE variant = 'merchant'"
+        ).fetchone()
         if selected is None:
-            raise ValueError("Seed a P0 merchant episode before serving the storefront")
+            raise ValueError("The merchant catalog has not been imported")
         rows = connection.execute(
-            "SELECT snapshot FROM catalog_offers WHERE run_id = %s ORDER BY offer_id",
+            "SELECT snapshot, updated_at FROM catalog_offers WHERE run_id = %s ORDER BY offer_id",
             (selected[0],),
         ).fetchall()
-    return build_feed([Offer.model_validate(row[0]) for row in rows], base_url=base_url)
+    metadata, products = build_feed(
+        [Offer.model_validate(row[0]) for row in rows], base_url=base_url
+    )
+    metadata["id"] = "feed_merchant_catalog"
+    metadata["updated_at"] = max(row[1] for row in rows).isoformat().replace("+00:00", "Z")
+    return metadata, products
 
 
 def export_feed(

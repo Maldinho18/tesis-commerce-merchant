@@ -14,6 +14,7 @@ from commerce_lab.checkout import CheckoutService
 from commerce_lab.context import issue_lab_session
 from commerce_lab.contracts import ExecutionContext
 from commerce_lab.db import database_url, migrate, seed
+from commerce_lab.db.core import MIGRATIONS
 from commerce_lab.fixtures import FIXTURE_EXPIRES_AT
 from commerce_lab.payment_client import PaymentProviderError
 
@@ -217,17 +218,7 @@ def test_complete_success_is_atomic_idempotent_and_schema_valid() -> None:
     assert "vt_" not in serialized
     rerun = migrate()
     assert rerun["applied"] == []
-    assert rerun["already_applied"] == [
-        "001_preparation.sql",
-        "002_snapshot_constraints.sql",
-        "003_execution_context.sql",
-        "004_checkout_sessions.sql",
-        "007_checkout_mutations.sql",
-        "008_checkout_payment_capability.sql",
-        "009_checkout_completion.sql",
-        "010_webhook_delivery.sql",
-        "011_request_observability.sql",
-    ]
+    assert rerun["already_applied"] == list(MIGRATIONS)
 
 
 @pytest.mark.parametrize(
