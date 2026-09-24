@@ -187,15 +187,51 @@ def _image_path(entity: str) -> str | None:
     return f"/assets/products/{name}" if name else None
 
 
-def _description(product: dict[str, Any], brand: str, variants: int) -> str:
-    """Una línea que aporte algo: marca, año y capacidades. Sin relleno."""
-    parts = [f"{product.get('kind') or 'Producto'} {brand}"]
+def _description(
+    product: dict[str, Any], brand: str, sheet: dict[str, str], storages: list[str]
+) -> str:
+    """Descripción compuesta de la ficha técnica del modelo.
+
+    Se intentó traerla de Wikipedia, que sería texto con fuente y licencia libre, pero
+    solo ocho de los 141 productos tienen artículo en español: los títulos comerciales no
+    coinciden con los nombres de artículo. Componerla de la ficha mantiene una sola voz,
+    un solo idioma, y que toda afirmación provenga de un dato ya curado.
+    """
+    kind = product.get("kind") or "Producto"
     released = product.get("released")
-    if released and released[:4].isdigit():
-        parts.append(f"de {released[:4]}")
-    if variants > 1:
-        parts.append(f"en {variants} capacidades")
-    return " ".join(parts) + "."
+    year = f" de {released[:4]}" if released and released[:4].isdigit() else ""
+    lines = [f"{kind} {brand}{year}."]
+
+    hardware = []
+    if sheet.get("screen"):
+        hardware.append(f"pantalla de {sheet['screen']}")
+    if sheet.get("chip"):
+        hardware.append(f"procesador {sheet['chip']}")
+    if sheet.get("ram"):
+        hardware.append(f"{sheet['ram']} de RAM")
+    if sheet.get("battery"):
+        hardware.append(f"batería de {sheet['battery']}")
+    if hardware:
+        # Solo la inicial: `capitalize` bajaría el resto y rompería "Apple A19 Pro".
+        sentence = _join(hardware)
+        lines.append(sentence[0].upper() + sentence[1:] + ".")
+
+    if len(storages) > 1:
+        lines.append(
+            f"Disponible en {len(storages)} capacidades, de {storages[0]} a {storages[-1]}."
+        )
+    elif storages:
+        lines.append(f"Disponible en {storages[0]}.")
+    if sheet.get("os"):
+        lines.append(f"Llega con {sheet['os']}.")
+    return " ".join(lines)[:2000]
+
+
+def _join(parts: list[str]) -> str:
+    """Enumeración en español: coma entre todos menos el último, que lleva "y"."""
+    if len(parts) == 1:
+        return parts[0]
+    return ", ".join(parts[:-1]) + " y " + parts[-1]
 
 
 # Antes de este año no se inventan capacidades modernas: un teléfono de 2005 con 512 GB es
@@ -275,7 +311,9 @@ def build_generated_offers(
         specs = _variant_specs(entity, category, released, product.get("storage_options"))
         # La ficha técnica es del modelo, así que la comparten todas sus variantes.
         sheet = spec_attributes(title)
-        description = _description(product, brand, len(specs))
+        description = _description(
+            product, brand, sheet, [attrs.get("storage", "") for _, attrs, _ in specs]
+        )
         image_path = _image_path(entity)
         base = _price(entity, category, title, brand, released)
         # Uno de cada ocho se ofrece reacondicionado, con el descuento habitual.
