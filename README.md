@@ -37,6 +37,16 @@ benchmark Sonora/COP. El namespace Python sigue siendo `commerce_lab`.
 - Product Feed **estático de reemplazo completo**: `metadata.json` y un Product
   JSON por línea en `products.jsonl`, validados contra `schema.feed.json` de
   ACP `2026-04-17`. Feed API incremental no está implementada.
+- Perfil AP2 v0.2 Human Present: `GET /checkout_sessions/{id}/ap2/checkout-jwt` emite un JWT ES256
+  firmado por el merchant para un checkout `ready_for_payment` del mismo actor/episodio.
+  `GET /.well-known/ap2/jwks.json` publica la clave verificadora. Configure
+  `MERCHANT_AP2_PRIVATE_KEY_PEM` con una clave EC P-256 privada (PEM, saltos de línea reales o
+  `\\n`); sin ella ambos endpoints fallan cerrado. El JWT dura cinco minutos y contiene la
+  instantánea ACP completa. Con `MERCHANT_AP2_REQUIRED=true` y
+  `MERCHANT_AP2_AGENT_JWK_JSON` fijada, `/complete` queda bloqueado y
+  `POST /checkout_sessions/{id}/ap2/complete` verifica Checkout Mandate, hash, instantánea y
+  revisión antes de completar. Devuelve un Checkout Receipt firmado. Las rutas `/ap2/*` son
+  puentes experimentales sobre ACP, no rutas estándar ACP ni conformidad AP2 integral.
 
 Los errores públicos ACP usan códigos en minúsculas, incluidos
 `missing_api_version`, `unsupported_api_version` y `payment_declined`.

@@ -251,7 +251,12 @@ class CheckoutService:
         )
 
     def complete(
-        self, checkout_id: str, payment_data: dict[str, Any], idempotency_key: str
+        self,
+        checkout_id: str,
+        payment_data: dict[str, Any],
+        idempotency_key: str,
+        *,
+        expected_revision: int | None = None,
     ) -> Success[CheckoutCompletionResult] | Failure:
         self.last_completion_replayed = False
         fingerprint = _sha256(_canonical({"payment_data": payment_data}))
@@ -294,7 +299,11 @@ class CheckoutService:
                 checkout = self._expire_if_needed(
                     connection, Checkout.model_validate(row[0]), scenario_at
                 )
-                if checkout.status == "expired":
+                if expected_revision is not None and checkout.revision != expected_revision:
+                    failure = _failure(
+                        "CHECKOUT_TERMS_CHANGED", "Checkout changed after AP2 authorization."
+                    )
+                elif checkout.status == "expired":
                     failure = _failure("CHECKOUT_EXPIRED", "Checkout has expired.")
                 elif checkout.status != "ready_for_payment":
                     failure = _failure(

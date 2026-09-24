@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     payment_provider_url: str = "http://127.0.0.1:4130"
     payment_merchant_bearer_token: SecretStr | None = None
     payment_merchant_id: str = "tesis_merchant"
+    merchant_ap2_private_key_pem: SecretStr | None = None
+    merchant_ap2_required: bool = False
+    merchant_ap2_agent_jwk_json: SecretStr | None = None
 
     @field_validator("acp_api_base_url", "payment_provider_url")
     @classmethod

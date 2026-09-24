@@ -7,13 +7,18 @@ from uuid import uuid4
 import psycopg
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
 from commerce_lab import __version__
 from commerce_lab.acp import (
     ACPCheckoutAdapter,
     ACPCheckoutCreateRequest,
+)
+from commerce_lab.ap2_checkout import (
+    AP2_VERSION,
+    MerchantCheckoutSigner,
+    configured_checkout_signer,
 )
 from commerce_lab.context import InvalidLabSession, authenticate_lab_session
 from commerce_lab.contracts import (
@@ -37,8 +42,15 @@ from commerce_lab.request_observability import (
     hash_idempotency_key,
     write_request_observation,
 )
+from commerce_lab.settings import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+class Ap2CompleteRequest(BaseModel):
+    checkout_mandate: str = Field(min_length=1, max_length=32_768)
+    payment_data: dict[str, Any]
+
 
 app = FastAPI(
     title="Commerce Lab",
@@ -133,6 +145,21 @@ def discovery() -> JSONResponse:
         content=discovery_document(),
         headers={"Cache-Control": "public, max-age=3600"},
     )
+
+
+def ap2_signer() -> MerchantCheckoutSigner:
+    try:
+        return configured_checkout_signer()
+    except (RuntimeError, ValueError) as error:
+        logger.error("AP2 checkout signing is unavailable: %s", type(error).__name__)
+        raise HTTPException(
+            status_code=503, detail="AP2 checkout signing is unavailable"
+        ) from error
+
+
+@app.get("/.well-known/ap2/jwks.json", include_in_schema=False)
+def ap2_jwks(signer: Annotated[MerchantCheckoutSigner, Depends(ap2_signer)]) -> JSONResponse:
+    return JSONResponse({"keys": [signer.jwk]}, headers={"Cache-Control": "public, max-age=300"})
 
 
 @app.get("/payment-handlers/tesis-sandbox/spec", include_in_schema=False)
@@ -340,6 +367,28 @@ def checkout_session_get(
     return result
 
 
+@app.get("/checkout_sessions/{checkout_id}/ap2/checkout-jwt")
+def checkout_session_ap2_jwt(
+    checkout_id: Identifier,
+    request: Request,
+    _: Annotated[None, Depends(require_acp_version)],
+    context: Annotated[ExecutionContext, Depends(trusted_context)],
+    checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
+    signer: Annotated[MerchantCheckoutSigner, Depends(ap2_signer)],
+) -> JSONResponse:
+    result = checkout.get_with_revision(checkout_id)
+    if isinstance(result, Failure):
+        _raise_commerce_failure(result, request=request)
+    snapshot, revision = result
+    if snapshot.get("status") != "ready_for_payment":
+        raise HTTPException(status_code=409, detail="Checkout is not ready for approval")
+    request.state.observation_checkout_id = checkout_id
+    return JSONResponse(
+        {"ap2_version": AP2_VERSION, "checkout_jwt": signer.sign(snapshot, revision=revision)},
+        headers={"Cache-Control": "no-store", "Request-Id": context.request_id},
+    )
+
+
 @app.post("/checkout_sessions/{checkout_id}/complete")
 def checkout_session_complete(
     checkout_id: Identifier,
@@ -351,6 +400,8 @@ def checkout_session_complete(
     checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> dict[str, object]:
+    if get_settings().merchant_ap2_required:
+        raise HTTPException(status_code=403, detail="AP2 checkout mandate is required")
     if not idempotency_key or len(idempotency_key) > 255:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -373,6 +424,59 @@ def checkout_session_complete(
     if isinstance(order, dict):
         request.state.observation_order_id = order.get("id")
     return result
+
+
+@app.post("/checkout_sessions/{checkout_id}/ap2/complete")
+def checkout_session_ap2_complete(
+    checkout_id: Identifier,
+    payload: Ap2CompleteRequest,
+    request: Request,
+    response: Response,
+    _: Annotated[None, Depends(require_acp_version)],
+    context: Annotated[ExecutionContext, Depends(trusted_context)],
+    checkout: Annotated[ACPCheckoutAdapter, Depends(acp_checkout)],
+    signer: Annotated[MerchantCheckoutSigner, Depends(ap2_signer)],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+) -> dict[str, object]:
+    settings = get_settings()
+    trusted_key = settings.merchant_ap2_agent_jwk_json
+    if not settings.merchant_ap2_required or trusted_key is None:
+        raise HTTPException(status_code=503, detail="AP2 completion is not configured")
+    if not idempotency_key or len(idempotency_key) > 255:
+        raise HTTPException(status_code=400, detail="Idempotency-Key is required")
+    current = checkout.get_with_revision(checkout_id)
+    if isinstance(current, Failure):
+        _raise_commerce_failure(current, request=request)
+    snapshot, revision = current
+    try:
+        approved_revision, reference = signer.verify_mandate(
+            payload.checkout_mandate,
+            checkout=snapshot,
+            trusted_agent_jwk_json=trusted_key.get_secret_value(),
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="Invalid AP2 checkout mandate") from error
+    if snapshot.get("status") == "completed" and approved_revision + 1 != revision:
+        raise HTTPException(
+            status_code=422, detail="AP2 mandate is not from the completed revision"
+        )
+    result = checkout.complete(
+        checkout_id,
+        {"payment_data": payload.payment_data},
+        idempotency_key,
+        expected_revision=approved_revision,
+    )
+    if isinstance(result, Failure):
+        _raise_commerce_failure(result, request=request)
+    order = result.get("order")
+    if not isinstance(order, dict) or not isinstance(order.get("id"), str):
+        raise HTTPException(status_code=502, detail="Merchant completion has no order")
+    request.state.observation_order_id = order["id"]
+    response.headers["Cache-Control"] = "no-store"
+    return {
+        "checkout": result,
+        "checkout_receipt_jwt": signer.receipt(reference=reference, order_id=order["id"]),
+    }
 
 
 @app.get("/orders/{order_id}", response_class=HTMLResponse, include_in_schema=False)

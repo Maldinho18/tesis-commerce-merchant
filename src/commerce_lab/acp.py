@@ -128,6 +128,10 @@ class ACPCheckoutAdapter:
         return self._response(result.data, offer)
 
     def get(self, checkout_id: str) -> dict[str, Any] | Failure:
+        result = self.get_with_revision(checkout_id)
+        return result if isinstance(result, Failure) else result[0]
+
+    def get_with_revision(self, checkout_id: str) -> tuple[dict[str, Any], int] | Failure:
         result = self._checkout.get({"checkout_id": checkout_id})
         if isinstance(result, Failure):
             return result
@@ -141,7 +145,7 @@ class ACPCheckoutAdapter:
                     }
                 }
             )
-        return self._response(result.data, offer)
+        return self._response(result.data, offer), result.data.revision
 
     def update(
         self, checkout_id: str, request: dict[str, Any], idempotency_key: str
@@ -286,7 +290,12 @@ class ACPCheckoutAdapter:
         return self._response(result.data, offer)
 
     def complete(
-        self, checkout_id: str, request: Any, idempotency_key: str
+        self,
+        checkout_id: str,
+        request: Any,
+        idempotency_key: str,
+        *,
+        expected_revision: int | None = None,
     ) -> dict[str, Any] | Failure:
         try:
             _COMPLETE_VALIDATOR.validate(request)
@@ -332,7 +341,9 @@ class ACPCheckoutAdapter:
                 }
             )
 
-        result = self._checkout.complete(checkout_id, payment_data, idempotency_key)
+        result = self._checkout.complete(
+            checkout_id, payment_data, idempotency_key, expected_revision=expected_revision
+        )
         if isinstance(result, Failure):
             return result
         return self._response(

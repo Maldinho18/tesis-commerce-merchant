@@ -21,6 +21,7 @@ class PaymentResult(BaseModel):
     checkout_session_id: str
     amount: int
     currency: str
+    payment_receipt_jwt: str | None = None
 
 
 def confirm_payment(
