@@ -54,6 +54,19 @@ export function ProductDetail({
     variants.find((variant) => variant.id === selectedId) ?? variants[0]
   if (!selected) return null
 
+  // El chip solo nombra lo que distingue a una variante de otra: la ficha técnica es del
+  // modelo y repetirla en cada botón convierte el selector en un muro de texto.
+  const varying = new Set(
+    [...new Set(variants.flatMap((item) => item.variant_options.map((o) => o.name)))].filter(
+      (name) =>
+        new Set(
+          variants.map(
+            (item) => item.variant_options.find((o) => o.name === name)?.value ?? ""
+          )
+        ).size > 1
+    )
+  )
+
   const brand = brandOf(product)
   const category = categoriesOf(product)[0] ?? ""
 
@@ -127,7 +140,7 @@ export function ProductDetail({
                     const active = variant.id === selected.id
                     const label =
                       variant.variant_options
-                        .filter((option) => option.name !== "Color")
+                        .filter((option) => varying.has(option.name))
                         .map((option) => option.value)
                         .join(" · ") || variant.title
                     return (
