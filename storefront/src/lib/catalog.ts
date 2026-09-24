@@ -50,7 +50,7 @@ export function formatMoney(amountMinor: number, currency: string): string {
     return new Intl.NumberFormat(LOCALE, {
       style: "currency",
       currency: currency.toUpperCase(),
-      currencyDisplay: "narrowSymbol",
+      currencyDisplay: "code",
       maximumFractionDigits: 0,
     }).format(amount)
   } catch {
