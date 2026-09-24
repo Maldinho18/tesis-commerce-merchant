@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints, model_validator
+from pydantic import Field, StringConstraints, field_validator, model_validator
 
 from commerce_lab.contracts.primitives import (
     IdempotencyKey,
@@ -99,6 +99,13 @@ class AddressInfo(StrictModel):
     country: Literal["CO"]
     postal_code: Literal["110111"]
     company: str | None = None
+
+    @field_validator("city", mode="before")
+    @classmethod
+    def normalize_supported_city(cls, value: object) -> object:
+        if isinstance(value, str) and value.strip().casefold() in {"bogota", "bogotá"}:
+            return "Bogota"
+        return value
 
 
 class FulfillmentDetailsInfo(StrictModel):

@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from commerce_lab.contracts import (
     MAX_SAFE_INTEGER,
+    AddressInfo,
     CatalogSearchInput,
     Checkout,
     CheckoutPrepareInput,
@@ -21,6 +22,20 @@ from commerce_lab.fixtures import (
     P0_OFFERS,
     fresh_p0_offers,
 )
+
+
+def test_bogota_address_accepts_the_display_spelling_without_expanding_delivery_area() -> None:
+    address = {
+        "name": "Demo Buyer",
+        "line_one": "Calle 100 # 10-20",
+        "city": "Bogotá",
+        "state": "DC",
+        "country": "CO",
+        "postal_code": "110111",
+    }
+    assert AddressInfo.model_validate(address).city == "Bogota"
+    with pytest.raises(ValidationError):
+        AddressInfo.model_validate({**address, "city": "Medellín"})
 
 
 def checkout_payload() -> dict[str, object]:
