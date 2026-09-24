@@ -39,7 +39,7 @@ def test_public_discovery_matches_frozen_acp_schema_and_only_real_capabilities()
         "transports": ["rest"],
         "capabilities": {
             "services": ["checkout"],
-            "supported_currencies": ["usd"],
+            "supported_currencies": ["cop"],
             "supported_locales": ["es-CO"],
         },
     }

@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Tokens tomados del kit de Figma "E-commerce Open Source UI Design".
+     Los nombres se conservan para no tocar los componentes ya escritos. */
+  --background: #ffffff;
+  --foreground: #181818;
+  --card: #ffffff;
+  --card-foreground: #181818;
+  --popover: #ffffff;
+  --popover-foreground: #181818;
+  --primary: #008ecc;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f4f5;
+  --secondary-foreground: #191c1f;
+  --muted: #f7f8f9;
+  --muted-foreground: #5f6c72;
+  --accent: #fa8232;
+  --accent-foreground: #ffffff;
+  --destructive: #e53935;
+  --border: #edeff1;
+  --input: #e4e7e9;
+  --ring: #008ecc;
+  --radius: 0.75rem;
+
+  /* Escala de grises del kit, para superficies que no encajan en los roles de arriba. */
+  --gray-900: #191c1f;
+  --gray-800: #303639;
+  --gray-600: #5f6c72;
+  --gray-500: #77878f;
+  --gray-400: #929fa5;
+  --gray-300: #adb7bc;
+  --gray-50: #f7f8f9;
+  --warning: #ebc80c;
+}
+
+@theme inline {
+  --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-gray-900: var(--gray-900);
+  --color-gray-800: var(--gray-800);
+  --color-gray-600: var(--gray-600);
+  --color-gray-500: var(--gray-500);
+  --color-gray-400: var(--gray-400);
+  --color-gray-300: var(--gray-300);
+  --color-gray-50: var(--gray-50);
+  --color-warning: var(--warning);
+  --radius-sm: calc(var(--radius) * 0.7);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.6);
+  --radius-xl: calc(var(--radius) * 2.2);
+  --radius-2xl: calc(var(--radius) * 3);
+  --radius-3xl: calc(var(--radius) * 4);
+  --radius-4xl: calc(var(--radius) * 5);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    background: white;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-width: 320px;
+    min-height: 100svh;
+    margin: 0;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
+@custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));

@@ -39,10 +39,10 @@ def _client(actor_id: str) -> tuple[TestClient, dict[str, str]]:
     }
 
 
-def _body(offer_id: str = "SON-01") -> dict[str, object]:
+def _body(offer_id: str = "Q100286751-256GB") -> dict[str, object]:
     return {
         "line_items": [{"id": offer_id}],
-        "currency": "usd",
+        "currency": "cop",
         "capabilities": {"payment": {"handlers": []}},
     }
 
@@ -107,7 +107,7 @@ def test_request_observability_covers_checkout_http_boundaries() -> None:
     out_of_stock = client.post(
         "/checkout_sessions",
         headers={**headers, "Idempotency-Key": "observe-stock"},
-        json=_body("SON-07"),
+        json=_body("Q108044294-512GB"),
     )
     missing_version = client.post(
         "/checkout_sessions",
@@ -248,7 +248,7 @@ def test_acp_create_and_get_round_trip_validates_against_frozen_schema() -> None
     ("offer_id", "http_status", "public_code"),
     [
         ("MISSING-01", 404, "invalid_item"),
-        ("SON-07", 409, "out_of_stock"),
+        ("Q108044294-512GB", 409, "out_of_stock"),
     ],
 )
 def test_acp_create_exposes_public_item_errors_without_creating_checkout(
@@ -302,9 +302,15 @@ def test_acp_create_replays_same_checkout_and_rejects_conflicting_content() -> N
     migrate()
     client, headers = _client("acp-idempotency")
     request_headers = {**headers, "Idempotency-Key": "same-acp-key"}
-    first = client.post("/checkout_sessions", headers=request_headers, json=_body("SON-01"))
-    replay = client.post("/checkout_sessions", headers=request_headers, json=_body("SON-01"))
-    conflict = client.post("/checkout_sessions", headers=request_headers, json=_body("SON-02"))
+    first = client.post(
+        "/checkout_sessions", headers=request_headers, json=_body("Q100286751-256GB")
+    )
+    replay = client.post(
+        "/checkout_sessions", headers=request_headers, json=_body("Q100286751-256GB")
+    )
+    conflict = client.post(
+        "/checkout_sessions", headers=request_headers, json=_body("Q100348826-256GB")
+    )
     assert first.status_code == replay.status_code == 201
     assert first.json()["id"] == replay.json()["id"]
     assert conflict.status_code == 422
@@ -330,7 +336,7 @@ def test_acp_fails_closed_on_protocol_headers_and_unsupported_fields() -> None:
     multiple = client.post(
         "/checkout_sessions",
         headers={**headers, "Idempotency-Key": "key-c"},
-        json={**_body(), "line_items": [{"id": "SON-01"}, {"id": "SON-02"}]},
+        json={**_body(), "line_items": [{"id": "Q100286751-256GB"}, {"id": "Q100348826-256GB"}]},
     )
     assert no_version.status_code == 400
     assert no_key.status_code == 400
@@ -613,7 +619,7 @@ def test_acp_update_rejects_unsupported_fields_and_invalid_address() -> None:
     unsupported_items = client.post(
         path,
         headers={**headers, "Idempotency-Key": "unsupported-li"},
-        json={"line_items": [{"id": "SON-02"}]},
+        json={"line_items": [{"id": "Q100348826-256GB"}]},
     )
     assert unsupported_items.status_code == 400
     assert unsupported_items.json()["detail"]["code"] == "INVALID_INPUT"

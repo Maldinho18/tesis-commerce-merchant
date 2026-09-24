@@ -121,7 +121,7 @@ def test_ready_fails_closed_when_database_is_unavailable(monkeypatch) -> None:
 
 
 def test_lab_catalog_requires_server_resolved_session() -> None:
-    response = TestClient(app).post("/lab/catalog/search", json={"category": "headphones"})
+    response = TestClient(app).post("/lab/catalog/search", json={"category": "smartphones"})
     assert response.status_code == 401
     assert "actor_id" not in response.text
 
@@ -138,7 +138,7 @@ def test_invalid_bearer_gets_server_request_id_without_changing_auth_body(monkey
         },
         json={
             "line_items": [{"id": "SON-01"}],
-            "currency": "usd",
+            "currency": "cop",
             "capabilities": {"payment": {"handlers": []}},
         },
     )
@@ -200,15 +200,15 @@ def test_lab_catalog_uses_trusted_context_and_rejects_identity_in_body() -> None
     app.dependency_overrides[persistent_catalog] = lambda: reader
     try:
         client = TestClient(app)
-        response = client.post("/lab/catalog/search", json={"category": "headphones"})
+        response = client.post("/lab/catalog/search", json={"category": "smartphones"})
         injected = client.post(
             "/lab/catalog/search",
-            json={"category": "headphones", "actor_id": "attacker"},
+            json={"category": "smartphones", "actor_id": "attacker"},
         )
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert len(response.json()["data"]["offers"]) == 10
+    assert len(response.json()["data"]["offers"]) == 20
     assert response.headers["X-Request-Id"] == context.request_id
     assert injected.status_code == 422
 
@@ -294,7 +294,7 @@ def test_raise_commerce_failure_keeps_request_id_and_adds_retry_after() -> None:
             "/checkout_sessions",
             {
                 "line_items": [{"id": "SON-01"}],
-                "currency": "usd",
+                "currency": "cop",
                 "capabilities": {"payment": {"handlers": []}},
             },
             201,
@@ -401,3 +401,29 @@ def test_every_acp_checkout_endpoint_has_machine_readable_version_errors(
     )
     assert observation.error_code == "missing_api_version"
     assert observation.run_id is observation.actor_id is None
+
+
+def test_storefront_catalog_is_public_read_only_and_never_cached(monkeypatch) -> None:
+    """La vitrina humana lee sin Bearer; el canal ACP sigue exigiéndolo."""
+    metadata = {"id": "feed_p0_tech", "target_country": "CO", "updated_at": "2026-09-10T14:00:00Z"}
+    products = [{"id": "prod-x", "title": "X", "variants": [{"id": "X-1", "title": "X 1"}]}]
+    monkeypatch.setattr("commerce_lab.api.current_feed", lambda **_: (metadata, products))
+
+    response = TestClient(app).get("/storefront/catalog")
+
+    assert response.status_code == 200
+    assert response.json() == {"metadata": metadata, "products": products}
+    # El inventario cambia con cada compra del agente: una respuesta cacheada mentiría.
+    assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_storefront_catalog_reports_unavailable_before_the_catalog_is_seeded(monkeypatch) -> None:
+    def unseeded(**_: object) -> tuple[dict[str, object], list[dict[str, object]]]:
+        raise ValueError("Seed a P0 merchant episode before serving the storefront")
+
+    monkeypatch.setattr("commerce_lab.api.current_feed", unseeded)
+
+    response = TestClient(app).get("/storefront/catalog")
+
+    assert response.status_code == 503
+    assert "seed" not in response.text.lower() or "Catalog" in response.text

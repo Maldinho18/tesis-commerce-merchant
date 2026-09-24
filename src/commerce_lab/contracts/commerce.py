@@ -20,7 +20,7 @@ class DeliveryContext(StrictModel):
 
 
 class Pricing(StrictModel):
-    currency: Literal["usd"]
+    currency: Literal["cop"]
     items_total_minor: MinorAmount
     shipping_total_minor: MinorAmount
     total_minor: MinorAmount
@@ -50,8 +50,16 @@ class Offer(StrictModel):
     merchant_id: Identifier
     revision: Revision
     category: Category
+    # `name` titula la variante concreta ("... 32GB RTX 5070 Ti"); es lo que viaja al checkout
+    # y a la orden. `product_title` y `product_description` son de nivel producto: todas las
+    # variantes de un product_id deben coincidir en ellos y el exportador lo verifica.
     name: Annotated[str, Field(min_length=1, max_length=200)]
+    product_title: Annotated[str, Field(min_length=1, max_length=200)] | None = None
+    product_description: Annotated[str, Field(min_length=1, max_length=2000)] | None = None
     brand: Brand
+    # Imagen del producto: ruta relativa servida por el propio comercio o URL absoluta de
+    # un catálogo externo. Cuando falta, el exportador la deriva del origen del comercio.
+    image_url: Annotated[str, Field(min_length=1, max_length=2048)] | None = None
     color: Color | None = None
     attributes: Annotated[dict[Identifier, AttributeValue], Field(max_length=32)] = Field(
         default_factory=dict
@@ -224,7 +232,7 @@ class OrderRecord(StrictModel):
     product_id: Identifier
     title: str
     quantity: Literal[1]
-    currency: Literal["usd"]
+    currency: Literal["cop"]
     unit_price: int
     subtotal: int
     shipping_total: int

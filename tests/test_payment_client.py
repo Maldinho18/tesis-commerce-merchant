@@ -30,7 +30,7 @@ def _confirm(monkeypatch: pytest.MonkeyPatch, handler: httpx.MockTransport) -> s
         token="vt_" + "a" * 64,
         checkout_id="cs_1",
         amount=62000,
-        currency="usd",
+        currency="cop",
         idempotency_key="complete-1",
     )
 
@@ -51,7 +51,7 @@ def test_merchant_confirms_authoritative_checkout_with_provider(
                 "merchant_id": "tesis_merchant",
                 "checkout_session_id": "cs_1",
                 "amount": 62000,
-                "currency": "usd",
+                "currency": "cop",
             },
         )
 
@@ -67,7 +67,7 @@ def test_merchant_rejects_mismatched_provider_result(monkeypatch: pytest.MonkeyP
             "merchant_id": "tesis_merchant",
             "checkout_session_id": "another-checkout",
             "amount": 62000,
-            "currency": "usd",
+            "currency": "cop",
         },
     )
     with pytest.raises(payment_client.PaymentProviderError) as captured:

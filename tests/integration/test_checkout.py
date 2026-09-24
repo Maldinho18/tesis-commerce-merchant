@@ -22,7 +22,7 @@ def _episode(actor_id: str) -> tuple[str, str]:
     return run_id, issue_lab_session(run_id, actor_id)
 
 
-def _payload(key: str, offer_id: str = "SON-01") -> dict[str, object]:
+def _payload(key: str, offer_id: str = "Q100286751-256GB") -> dict[str, object]:
     return {
         "offer_id": offer_id,
         "expected_offer_revision": 1,
@@ -79,7 +79,7 @@ def test_prepare_is_persistent_idempotent_and_server_authoritative() -> None:
     assert isinstance(first, Success)
     assert isinstance(replay, Success)
     assert replay.data == first.data
-    assert first.data.pricing.total_minor == 74_000
+    assert first.data.pricing.total_minor == 1_335_000_00
     assert first.data.status == "prepared"
 
     with psycopg.connect(database_url()) as connection:
@@ -96,7 +96,7 @@ def test_same_key_with_different_content_conflicts() -> None:
     _, token = _episode("checkout-conflict")
     service = CheckoutService(authenticate_lab_session(token))
     assert isinstance(service.prepare(_payload("reused-key")), Success)
-    conflict = service.prepare(_payload("reused-key", offer_id="SON-02"))
+    conflict = service.prepare(_payload("reused-key", offer_id="Q100348826-256GB"))
     assert isinstance(conflict, Failure)
     assert conflict.error.code == "IDEMPOTENCY_CONFLICT"
 
@@ -340,7 +340,7 @@ def test_ready_for_payment_lifecycle_is_persisted_and_event_idempotent() -> None
     migrate()
     run_id, token = _episode("checkout-ready-lifecycle")
     service = CheckoutService(authenticate_lab_session(token))
-    prepared = service.prepare(_payload("ready-create", offer_id="ALT-01"))
+    prepared = service.prepare(_payload("ready-create", offer_id="Q100348826-512GB"))
     assert isinstance(prepared, Success)
     checkout_id = prepared.data.id
 
@@ -392,7 +392,7 @@ def test_ready_for_payment_lifecycle_is_persisted_and_event_idempotent() -> None
     assert isinstance(canceled, Success)
     assert canceled.data.status == "canceled"
 
-    expiring = service.prepare(_payload("ready-expiring", offer_id="ALT-02"))
+    expiring = service.prepare(_payload("ready-expiring", offer_id="Q104772244-128GB"))
     assert isinstance(expiring, Success)
     expiring_id = expiring.data.id
     expiring_ready = service.update(_complete_update(expiring_id, "expiring-transition"))

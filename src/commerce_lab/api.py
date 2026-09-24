@@ -1,12 +1,15 @@
 import logging
 from html import escape
+from pathlib import Path
 from time import perf_counter
 from typing import Annotated, Any, Never
 from uuid import uuid4
 
 import psycopg
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
@@ -34,6 +37,7 @@ from commerce_lab.contracts import (
 )
 from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
+from commerce_lab.feed import current_feed
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
 from commerce_lab.request_observability import (
@@ -67,6 +71,49 @@ _PUBLIC_ERROR_CODES = {
     "OUT_OF_STOCK": "out_of_stock",
     "PAYMENT_DECLINED": "payment_declined",
 }
+
+
+# Fotos de producto descargadas una vez desde Wikimedia Commons (ver
+# scripts/fetch_product_images.py). Servirlas desde el comercio evita depender de un
+# tercero que limita las peticiones cuando la vitrina pide decenas a la vez.
+_ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+if _ASSETS_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=_ASSETS_DIR), name="assets")
+
+
+# El storefront es otro origen y solo lee. Sin credenciales y solo GET: nada del canal ACP,
+# que sigue exigiendo Bearer, queda expuesto por aquí.
+_storefront_origin = get_settings().storefront_origin
+if _storefront_origin:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[_storefront_origin],
+        allow_credentials=False,
+        allow_methods=["GET"],
+        allow_headers=[],
+    )
+
+
+@app.get("/storefront/catalog", include_in_schema=False)
+async def storefront_catalog() -> JSONResponse:
+    """Catálogo público de solo lectura para la vitrina humana.
+
+    Devuelve la misma proyección que consume el comprador por el feed ACP, leída en vivo,
+    de modo que el inventario que ve una persona ya refleja lo que compró el agente.
+    """
+    try:
+        metadata, products = await run_in_threadpool(
+            current_feed, base_url=get_settings().acp_api_base_url
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Catalog is not seeded yet.",
+        ) from None
+    return JSONResponse(
+        content={"metadata": metadata, "products": products},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.middleware("http")
@@ -490,6 +537,15 @@ def order_permalink(order_id: str) -> HTMLResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
     snapshot = row[0]
     line = snapshot.get("title", "")
+    currency = str(snapshot.get("currency", "cop")).upper()
+
+    def money(minor: object) -> str:
+        """Los montos se guardan en unidades menores; el permalink es para una persona."""
+        if not isinstance(minor, int):
+            return escape(str(minor))
+        units, cents = divmod(minor, 100)
+        return f"$ {units:,.0f}".replace(",", ".") + f",{cents:02d} {currency}"
+
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>Order {escape(snapshot["order_number"])}</title></head>
 <body>
@@ -497,10 +553,10 @@ def order_permalink(order_id: str) -> HTMLResponse:
 <p>Status: {escape(snapshot["status"])}</p>
 <p>Product: {escape(line)}</p>
 <p>Quantity: {snapshot["quantity"]}</p>
-<p>Unit price: {snapshot["unit_price"]}</p>
-<p>Subtotal: {snapshot["subtotal"]}</p>
-<p>Shipping: {snapshot["shipping_total"]}</p>
-<p>Total: {snapshot["total"]}</p>
+<p>Unit price: {money(snapshot["unit_price"])}</p>
+<p>Subtotal: {money(snapshot["subtotal"])}</p>
+<p>Shipping: {money(snapshot["shipping_total"])}</p>
+<p>Total: {money(snapshot["total"])}</p>
 <p>Fulfillment: shipping / pending</p>
 </body></html>"""
     return HTMLResponse(content=html)

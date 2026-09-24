@@ -30,7 +30,7 @@ def _create(client: TestClient, headers: dict[str, str], variant_id: str, key: s
         "/checkout_sessions",
         headers={**headers, "Idempotency-Key": key},
         json={
-            "currency": "usd",
+            "currency": "cop",
             "line_items": [{"id": variant_id}],
             "capabilities": {"payment": {"handlers": []}},
         },
@@ -45,9 +45,11 @@ def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path)
         for line in (tmp_path / "products.jsonl").read_text(encoding="utf-8").splitlines()
     ]
     published = next(
-        product["variants"][0] for product in products if product["variants"][0]["id"] == "SON-01"
+        product["variants"][0]
+        for product in products
+        if product["variants"][0]["id"] == "Q100286751-256GB"
     )
-    assert published["price"] == {"amount": 72_000, "currency": "USD"}
+    assert published["price"] == {"amount": 1_310_000_00, "currency": "COP"}
 
     with psycopg.connect(database_url()) as connection, connection.transaction():
         row = connection.execute(
@@ -59,8 +61,8 @@ def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path)
         changed["revision"] = 2
         changed["pricing"] = {
             **changed["pricing"],
-            "items_total_minor": 73_000,
-            "total_minor": 75_000,
+            "items_total_minor": 1_299_000_00,
+            "total_minor": 1_324_000_00,
         }
         Offer.model_validate(changed)
         connection.execute(
@@ -73,10 +75,13 @@ def test_feed_variant_checkout_reprices_from_current_merchant_snapshot(tmp_path)
     created = _create(client, headers, published["id"], "p0-repriced")
     assert created.status_code == 201
     body = created.json()
-    assert body["currency"] == "usd"
+    assert body["currency"] == "cop"
     assert body["line_items"][0]["item"]["id"] == published["id"]
-    assert body["line_items"][0]["item"]["unit_amount"] == 73_000
-    assert next(total for total in body["totals"] if total["type"] == "total")["amount"] == 75_000
+    assert body["line_items"][0]["item"]["unit_amount"] == 1_299_000_00
+    assert (
+        next(total for total in body["totals"] if total["type"] == "total")["amount"]
+        == 1_324_000_00
+    )
     assert "order" not in body
     assert body["capabilities"]["payment"]["handlers"][0]["id"] == "tesis_sandbox"
 
@@ -114,11 +119,11 @@ def test_low_stock_allows_checkout_without_decrement_and_zero_stock_rejects(tmp_
         )
         for variant in product["variants"]
     }
-    assert variants["SON-03"]["availability"]["status"] == "limited_stock"
-    assert variants["SON-07"]["availability"]["status"] == "out_of_stock"
+    assert variants["Q106629718-128GB"]["availability"]["status"] == "limited_stock"
+    assert variants["Q108044294-512GB"]["availability"]["status"] == "out_of_stock"
     client = TestClient(app)
-    low_stock = _create(client, headers, "SON-03", "p0-last-unit")
-    out = _create(client, headers, "SON-07", "p0-empty")
+    low_stock = _create(client, headers, "Q106629718-128GB", "p0-last-unit")
+    out = _create(client, headers, "Q108044294-512GB", "p0-empty")
     missing = _create(client, headers, "MISSING-01", "p0-missing")
     assert low_stock.status_code == 201
     assert out.status_code == 409 and out.json()["detail"]["code"] == "out_of_stock"
@@ -127,6 +132,6 @@ def test_low_stock_allows_checkout_without_decrement_and_zero_stock_rejects(tmp_
         stored = connection.execute(
             "SELECT snapshot ->> 'available_quantity' FROM catalog_offers "
             "WHERE run_id = %s AND offer_id = %s",
-            (run_id, "SON-03"),
+            (run_id, "Q106629718-128GB"),
         ).fetchone()
     assert stored == ("1",)

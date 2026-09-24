@@ -61,7 +61,7 @@ def test_acp_create_and_get_examples_validate_against_frozen_bundle() -> None:
 
 def test_acp_create_accepts_empty_capabilities_and_strict_legacy_payment() -> None:
     minimum = {
-        "currency": "usd",
+        "currency": "cop",
         "line_items": [{"id": "SON-01"}],
         "capabilities": {},
     }

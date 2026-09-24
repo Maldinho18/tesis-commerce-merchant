@@ -3,6 +3,10 @@
 Es idempotente: reiniciar el contenedor no duplica el catálogo ni las sesiones. El Bearer del
 comprador llega por `MERCHANT_AGENT_BEARER_TOKEN` y, igual que en `issue-session`, solo se guarda
 su sha256; el valor en claro nunca se persiste ni se imprime.
+
+La sesión se re-vincula al episodio P0 vigente en cada arranque. Sin eso, al subir
+`FIXTURE_VERSION` el Bearer seguiría apuntando al episodio anterior y el comercio respondería
+`invalid_item` para todo SKU nuevo.
 """
 
 from __future__ import annotations
@@ -82,7 +86,11 @@ def main() -> None:
             INSERT INTO lab_sessions (session_sha256, run_id, actor_id, expires_at)
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (session_sha256)
-            DO UPDATE SET expires_at = EXCLUDED.expires_at, revoked_at = NULL
+            DO UPDATE SET
+                run_id = EXCLUDED.run_id,
+                actor_id = EXCLUDED.actor_id,
+                expires_at = EXCLUDED.expires_at,
+                revoked_at = NULL
             """,
             (hashlib.sha256(token.encode("utf-8")).hexdigest(), run_id, actor_id, expires_at),
         )

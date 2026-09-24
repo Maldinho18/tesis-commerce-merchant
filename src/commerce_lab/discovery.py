@@ -34,7 +34,7 @@ def discovery_document() -> dict[str, object]:
         "transports": ["rest"],
         "capabilities": {
             "services": ["checkout"],
-            "supported_currencies": ["usd"],
+            "supported_currencies": ["cop"],
             "supported_locales": ["es-CO"],
         },
     }
