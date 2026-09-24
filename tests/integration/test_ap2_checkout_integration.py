@@ -10,6 +10,7 @@ from commerce_lab.ap2_checkout import SHOPPING_AGENT_AUDIENCE, MerchantCheckoutS
 from commerce_lab.api import ap2_signer, app
 from commerce_lab.context import issue_lab_session
 from commerce_lab.db import migrate, seed
+from commerce_lab.fixtures import fresh_p0_offers
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_DB_INTEGRATION") != "1",
@@ -19,6 +20,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_merchant_signs_the_authoritative_ready_checkout_only_for_its_episode() -> None:
     migrate()
+    offer = next(offer for offer in fresh_p0_offers() if offer.available_quantity > 0)
     episode = seed(actor_id="ap2-checkout-owner", variant="B0")
     owner_token = issue_lab_session(str(episode["run_id"]), "ap2-checkout-owner")
     headers = {"Authorization": f"Bearer {owner_token}", "API-Version": "2026-04-17"}
@@ -36,8 +38,8 @@ def test_merchant_signs_the_authoritative_ready_checkout_only_for_its_episode() 
             "/checkout_sessions",
             headers={**headers, "Idempotency-Key": "ap2-create"},
             json={
-                "line_items": [{"id": "SON-01"}],
-                "currency": "usd",
+                "line_items": [{"id": offer.id}],
+                "currency": offer.pricing.currency,
                 "capabilities": {"payment": {"handlers": []}},
             },
         )
