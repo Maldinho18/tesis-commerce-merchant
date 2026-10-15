@@ -35,6 +35,7 @@ from commerce_lab.contracts import (
     OfferGetInput,
     Success,
 )
+from commerce_lab.creation_lookup_api import creation_lookup_router
 from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
 from commerce_lab.feed import current_feed
@@ -302,6 +303,9 @@ def require_acp_version(
                 "supported_versions": [ACP_VERSION],
             },
         )
+
+
+app.include_router(creation_lookup_router(trusted_context, require_acp_version))
 
 
 def acp_checkout(
