@@ -7,6 +7,7 @@ import psycopg
 from jsonschema import ValidationError as SchemaValidationError
 from psycopg.types.json import Jsonb
 
+from commerce_lab.checkout_creation import lock_creation
 from commerce_lab.contracts import (
     Checkout,
     CheckoutCancelInput,
@@ -109,92 +110,99 @@ class CheckoutService:
 
     def prepare(self, raw: object) -> Success[Checkout] | Failure:
         payload = CheckoutPrepareInput.model_validate(raw)
+        with psycopg.connect(database_url()) as connection, connection.transaction():
+            return self.prepare_in_transaction(payload, connection=connection)
+
+    def prepare_in_transaction(
+        self, raw: object, *, connection: psycopg.Connection[Any]
+    ) -> Success[Checkout] | Failure:
+        """Caller owns commit/rollback; ACP can persist its response in this same TX."""
+        payload = CheckoutPrepareInput.model_validate(raw)
         fingerprint = _sha256(
             _canonical(payload.model_dump(mode="json", exclude={"idempotency_key"}))
         )
         key_hash = _sha256(payload.idempotency_key)
+        lock_creation(connection, self._run_id, self._context.actor_id, key_hash)
+        run = self._load_run(connection)
+        if run is None:
+            return _failure("FORBIDDEN", "Execution context does not own the episode.")
+        scenario_at = _as_timestamp(run[0])
 
-        with psycopg.connect(database_url()) as connection, connection.transaction():
-            run = self._load_run(connection)
-            if run is None:
-                return _failure("FORBIDDEN", "Execution context does not own the episode.")
-            scenario_at = _as_timestamp(run[0])
+        existing = self._existing(connection, key_hash, fingerprint, scenario_at)
+        if existing is not None:
+            return existing
 
-            existing = self._existing(connection, key_hash, fingerprint, scenario_at)
-            if existing is not None:
-                return existing
+        offer_row = connection.execute(
+            """
+            SELECT revision, snapshot
+            FROM catalog_offers
+            WHERE run_id = %s AND offer_id = %s
+            FOR SHARE
+            """,
+            (self._run_id, payload.offer_id),
+        ).fetchone()
+        if offer_row is None:
+            return _failure("OFFER_NOT_FOUND", "The offer does not exist in this episode.")
+        offer = Offer.model_validate(offer_row[1])
+        validation = self._validate_offer(offer, payload, scenario_at)
+        if validation is not None:
+            return validation
 
-            offer_row = connection.execute(
-                """
-                SELECT revision, snapshot
-                FROM catalog_offers
-                WHERE run_id = %s AND offer_id = %s
-                FOR SHARE
-                """,
-                (self._run_id, payload.offer_id),
-            ).fetchone()
-            if offer_row is None:
-                return _failure("OFFER_NOT_FOUND", "The offer does not exist in this episode.")
-            offer = Offer.model_validate(offer_row[1])
-            validation = self._validate_offer(offer, payload, scenario_at)
-            if validation is not None:
-                return validation
-
-            checkout = Checkout(
-                id=f"chk_{uuid4().hex}",
-                revision=1,
-                status="prepared",
-                offer_id=offer.id,
-                offer_revision=offer.revision,
-                quantity=1,
-                pricing=offer.pricing.model_copy(deep=True),
-                delivery_context=offer.delivery_context.model_copy(deep=True),
-                delivery_days=offer.delivery_days,
-                buyer=None,
-                fulfillment_details=None,
-                selected_fulfillment_option=None,
-                created_at=scenario_at,
-                updated_at=scenario_at,
-                expires_at=offer.expires_at,
-            )
-            inserted = connection.execute(
-                """
-                INSERT INTO checkout_sessions
-                  (run_id, checkout_id, actor_id, revision, offer_id, offer_revision,
-                   quantity, idempotency_sha256, request_fingerprint, status,
-                   snapshot, create_snapshot,
-                   created_at, updated_at, expires_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (run_id, actor_id, idempotency_sha256) DO NOTHING
-                RETURNING checkout_id
-                """,
-                (
-                    self._run_id,
-                    checkout.id,
-                    self._context.actor_id,
-                    checkout.revision,
-                    checkout.offer_id,
-                    checkout.offer_revision,
-                    checkout.quantity,
-                    key_hash,
-                    fingerprint,
-                    checkout.status,
-                    Jsonb(checkout.model_dump(mode="json")),
-                    Jsonb(checkout.model_dump(mode="json")),
-                    checkout.created_at,
-                    checkout.updated_at,
-                    checkout.expires_at,
-                ),
-            ).fetchone()
-            if inserted is None:
-                replay = self._existing(connection, key_hash, fingerprint, scenario_at)
-                if replay is None:
-                    return _failure(
-                        "IDEMPOTENCY_IN_FLIGHT", "The checkout request is still being resolved."
-                    )
-                return replay
-            self._record(connection, "checkout.prepared", scenario_at, checkout.id)
-            return Success[Checkout](data=checkout)
+        checkout = Checkout(
+            id=f"chk_{uuid4().hex}",
+            revision=1,
+            status="prepared",
+            offer_id=offer.id,
+            offer_revision=offer.revision,
+            quantity=1,
+            pricing=offer.pricing.model_copy(deep=True),
+            delivery_context=offer.delivery_context.model_copy(deep=True),
+            delivery_days=offer.delivery_days,
+            buyer=None,
+            fulfillment_details=None,
+            selected_fulfillment_option=None,
+            created_at=scenario_at,
+            updated_at=scenario_at,
+            expires_at=offer.expires_at,
+        )
+        inserted = connection.execute(
+            """
+            INSERT INTO checkout_sessions
+              (run_id, checkout_id, actor_id, revision, offer_id, offer_revision,
+               quantity, idempotency_sha256, request_fingerprint, status,
+               snapshot, create_snapshot,
+               created_at, updated_at, expires_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (run_id, actor_id, idempotency_sha256) DO NOTHING
+            RETURNING checkout_id
+            """,
+            (
+                self._run_id,
+                checkout.id,
+                self._context.actor_id,
+                checkout.revision,
+                checkout.offer_id,
+                checkout.offer_revision,
+                checkout.quantity,
+                key_hash,
+                fingerprint,
+                checkout.status,
+                Jsonb(checkout.model_dump(mode="json")),
+                Jsonb(checkout.model_dump(mode="json")),
+                checkout.created_at,
+                checkout.updated_at,
+                checkout.expires_at,
+            ),
+        ).fetchone()
+        if inserted is None:
+            replay = self._existing(connection, key_hash, fingerprint, scenario_at)
+            if replay is None:
+                return _failure(
+                    "IDEMPOTENCY_IN_FLIGHT", "The checkout request is still being resolved."
+                )
+            return replay
+        self._record(connection, "checkout.prepared", scenario_at, checkout.id)
+        return Success[Checkout](data=checkout)
 
     def get(self, raw: object) -> Success[Checkout] | Failure:
         payload = CheckoutGetInput.model_validate(raw)

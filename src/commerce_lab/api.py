@@ -69,6 +69,7 @@ _PUBLIC_ERROR_CODES = {
     "IDEMPOTENCY_IN_FLIGHT": "idempotency_in_flight",
     "OFFER_NOT_FOUND": "invalid_item",
     "OUT_OF_STOCK": "out_of_stock",
+    "CHECKOUT_CREATION_UNRECOVERABLE": "creation_unrecoverable",
     "PAYMENT_DECLINED": "payment_declined",
 }
 

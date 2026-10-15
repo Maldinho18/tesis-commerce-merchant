@@ -1,3 +1,4 @@
+import hashlib
 import json
 from datetime import timedelta
 from pathlib import Path
@@ -7,11 +8,13 @@ from uuid import UUID
 import psycopg
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema import ValidationError as SchemaValidationError
+from psycopg.types.json import Jsonb
 from pydantic import Field
 from pydantic import ValidationError as ModelValidationError
 from referencing import Registry, Resource
 
 from commerce_lab.checkout import CheckoutService, evaluate_readiness
+from commerce_lab.checkout_creation import lock_creation
 from commerce_lab.contracts import (
     ACP_VERSION,
     BuyerInfo,
@@ -89,6 +92,25 @@ class ACPSelectedFulfillmentOption(StrictModel):
     item_ids: Annotated[list[Identifier], Field(min_length=1, max_length=1)]
 
 
+def creation_fingerprint(content: dict[str, Any]) -> str:
+    envelope = {"api_version": ACP_VERSION, "profile": "merchant-p0-create/1", "request": content}
+    canonical = json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(b"merchant-acp-create/v1\0" + canonical.encode()).hexdigest()
+
+
+def _creation_unrecoverable() -> Failure:
+    return Failure.model_validate(
+        {
+            "error": {
+                "code": "CHECKOUT_CREATION_UNRECOVERABLE",
+                "message": (
+                    "Original ACP creation response unavailable; reconciliation is required."
+                ),
+            }
+        }
+    )
+
+
 class ACPCheckoutAdapter:
     """Narrow ACP 2026-04-17 bridge over the internal checkout contract."""
 
@@ -104,28 +126,113 @@ class ACPCheckoutAdapter:
     def create(
         self, request: ACPCheckoutCreateRequest, idempotency_key: str
     ) -> dict[str, Any] | Failure:
-        offer = self._offer(request.line_items[0].id)
-        if offer is None:
+        # Preserve field presence as well as values. JSON object order/whitespace
+        # are immaterial; omitted defaults and explicit fields are different content.
+        content = request.model_dump(mode="json", exclude_unset=True)
+        request = ACPCheckoutCreateRequest.model_validate(content)
+        if not 1 <= len(idempotency_key) <= 255:
+            raise ValueError("Invalid creation key length")
+        fingerprint = creation_fingerprint(content)
+        key_hash = hashlib.sha256(idempotency_key.encode()).hexdigest()
+        with psycopg.connect(database_url()) as connection, connection.transaction():
+            owned = connection.execute(
+                "SELECT 1 FROM experiment_runs WHERE run_id=%s AND actor_id=%s FOR KEY SHARE",
+                (self._run_id, self._context.actor_id),
+            ).fetchone()
+            if owned is None:
+                return Failure.model_validate(
+                    {
+                        "error": {
+                            "code": "FORBIDDEN",
+                            "message": "Execution context does not own the episode.",
+                        }
+                    }
+                )
+            lock_creation(connection, self._run_id, self._context.actor_id, key_hash)
+            existing = self._existing_creation(connection, key_hash, fingerprint)
+            if existing is not None:
+                return existing
+            offer = self._offer(request.line_items[0].id, connection=connection)
+            if offer is None:
+                return Failure.model_validate(
+                    {
+                        "error": {
+                            "code": "OFFER_NOT_FOUND",
+                            "message": "The offer does not exist in this episode.",
+                        }
+                    }
+                )
+            result = self._checkout.prepare_in_transaction(
+                {
+                    "offer_id": offer.id,
+                    "expected_offer_revision": offer.revision,
+                    "quantity": 1,
+                    "delivery_context": offer.delivery_context.model_dump(mode="json"),
+                    "idempotency_key": idempotency_key,
+                },
+                connection=connection,
+            )
+            if isinstance(result, Failure):
+                return result
+            response = self._response(result.data, offer)
+            return self._save_creation(connection, key_hash, fingerprint, result.data.id, response)
+
+    def _existing_creation(
+        self, connection: psycopg.Connection[Any], key_hash: str, fingerprint: str
+    ) -> dict[str, Any] | Failure | None:
+        row = connection.execute(
+            """SELECT checkout_id, acp_create_fingerprint, acp_create_response
+               FROM checkout_sessions
+               WHERE run_id=%s AND actor_id=%s AND idempotency_sha256=%s FOR UPDATE""",
+            (self._run_id, self._context.actor_id, key_hash),
+        ).fetchone()
+        if row is None:
+            return None
+        if row[1] is None or row[2] is None:
+            return _creation_unrecoverable()
+        if row[1] != fingerprint:
             return Failure.model_validate(
                 {
                     "error": {
-                        "code": "OFFER_NOT_FOUND",
-                        "message": "The offer does not exist in this episode.",
+                        "code": "IDEMPOTENCY_CONFLICT",
+                        "message": "The creation key was used with different ACP request content.",
                     }
                 }
             )
-        result = self._checkout.prepare(
-            {
-                "offer_id": offer.id,
-                "expected_offer_revision": offer.revision,
-                "quantity": 1,
-                "delivery_context": offer.delivery_context.model_dump(mode="json"),
-                "idempotency_key": idempotency_key,
-            }
-        )
-        if isinstance(result, Failure):
-            return result
-        return self._response(result.data, offer)
+        try:
+            _CHECKOUT_VALIDATOR.validate(row[2])
+        except SchemaValidationError:
+            return _creation_unrecoverable()
+        if not isinstance(row[2], dict) or row[2].get("id") != row[0]:
+            return _creation_unrecoverable()
+        return row[2]
+
+    def _save_creation(
+        self,
+        connection: psycopg.Connection[Any],
+        key_hash: str,
+        fingerprint: str,
+        checkout_id: str,
+        response: dict[str, Any],
+    ) -> dict[str, Any]:
+        row = connection.execute(
+            """UPDATE checkout_sessions SET acp_create_fingerprint=%s, acp_create_response=%s
+               WHERE run_id=%s AND actor_id=%s AND idempotency_sha256=%s AND checkout_id=%s
+                 AND acp_create_fingerprint IS NULL AND acp_create_response IS NULL
+               RETURNING acp_create_response""",
+            (
+                fingerprint,
+                Jsonb(response),
+                self._run_id,
+                self._context.actor_id,
+                key_hash,
+                checkout_id,
+            ),
+        ).fetchone()
+        if row is None:
+            raise RuntimeError("Creation response could not be persisted atomically")
+        # First delivery and replay both use PostgreSQL's stored representation.
+        return row[0]
 
     def get(self, checkout_id: str) -> dict[str, Any] | Failure:
         result = self.get_with_revision(checkout_id)
@@ -353,17 +460,22 @@ class ACPCheckoutAdapter:
             validator=_ORDER_RESPONSE_VALIDATOR,
         )
 
-    def _offer(self, offer_id: str) -> Offer | None:
-        with psycopg.connect(database_url()) as connection, connection.transaction():
-            row = connection.execute(
-                """
+    def _offer(
+        self, offer_id: str, *, connection: psycopg.Connection[Any] | None = None
+    ) -> Offer | None:
+        if connection is None:
+            with psycopg.connect(database_url()) as owned, owned.transaction():
+                return self._offer(offer_id, connection=owned)
+        row = connection.execute(
+            """
                 SELECT offer.snapshot
                 FROM catalog_offers AS offer
                 JOIN experiment_runs AS run ON run.run_id = offer.run_id
                 WHERE offer.run_id = %s AND run.actor_id = %s AND offer.offer_id = %s
+                FOR SHARE OF offer
                 """,
-                (self._run_id, self._context.actor_id, offer_id),
-            ).fetchone()
+            (self._run_id, self._context.actor_id, offer_id),
+        ).fetchone()
         return None if row is None else Offer.model_validate(row[0])
 
     def _response(
