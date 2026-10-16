@@ -40,6 +40,7 @@ from commerce_lab.db import DatabaseNotReady, check_database_ready, database_url
 from commerce_lab.discovery import discovery_document
 from commerce_lab.feed import current_feed
 from commerce_lab.guarded_creation_api import guarded_creation_router
+from commerce_lab.guarded_lookup_api import guarded_lookup_router
 from commerce_lab.payment_sandbox import config_schema, handler_spec, instrument_schema
 from commerce_lab.persistent_catalog import PersistentCatalogReader
 from commerce_lab.request_observability import (
@@ -308,6 +309,7 @@ def require_acp_version(
 
 app.include_router(creation_lookup_router(trusted_context, require_acp_version))
 app.include_router(guarded_creation_router(trusted_context, require_acp_version))
+app.include_router(guarded_lookup_router(trusted_context, require_acp_version))
 
 
 def acp_checkout(

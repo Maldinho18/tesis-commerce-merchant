@@ -28,7 +28,8 @@ def main():
         }:
             os.environ.pop(key)
     os.environ.update(PYTHONDONTWRITEBYTECODE="1", PYTEST_DISABLE_PLUGIN_AUTOLOAD="1")
-    root = ROOT / ".local" / ("mer07-" + secrets.token_hex(6))
+    prefix = "mer07a2-" if "--guard-lookup" in sys.argv else "mer07-"
+    root = ROOT / ".local" / (prefix + secrets.token_hex(6))
     root.mkdir(parents=True, exist_ok=False)
     data = root / "pgdata"
     with socket.socket() as probe:
@@ -39,7 +40,7 @@ def main():
         DATABASE_URL=f"postgresql://mer07_app:{secrets.token_hex(20)}@127.0.0.1:{port}/tesis_lab",
         RECOVERY_TEST_CLUSTER=str(data),
         RUN_DB_INTEGRATION="1",
-        PGCONNECT_TIMEOUT="2",
+        PGCONNECT_TIMEOUT="10" if "--guard-lookup" in sys.argv else "2",
     )
 
     def command(name, *args):
@@ -84,6 +85,7 @@ def main():
         "pg_port": port,
         "postgres": command("postgres.exe", "--version"),
         "python": sys.version.split()[0],
+        "pg_connect_timeout_s": int(os.environ["PGCONNECT_TIMEOUT"]),
     }
     started = False
     try:
@@ -262,7 +264,21 @@ def main():
             ),
             ("full", []),
         ]
-        if "--key-audit" in sys.argv:
+        if "--guard-lookup" in sys.argv:
+            if "--full-only" in sys.argv:
+                plan = [plan[0], plan[-1]]
+            else:
+                plan.insert(
+                    1,
+                    (
+                        "guard_lookup_new",
+                        [
+                            "tests/test_guarded_lookup_contract.py",
+                            "tests/integration/test_guarded_lookup.py",
+                        ],
+                    ),
+                )
+        elif "--key-audit" in sys.argv:
             plan = [
                 plan[0],
                 (
