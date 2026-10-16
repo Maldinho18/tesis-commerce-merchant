@@ -1,5 +1,6 @@
 import hashlib
 import json
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -132,50 +133,81 @@ class ACPCheckoutAdapter:
         request = ACPCheckoutCreateRequest.model_validate(content)
         if not 1 <= len(idempotency_key) <= 255:
             raise ValueError("Invalid creation key length")
+        with psycopg.connect(database_url()) as connection, connection.transaction():
+            return self.create_in_transaction(request, idempotency_key, connection=connection)
+
+    def create_in_transaction(
+        self,
+        request: ACPCheckoutCreateRequest,
+        idempotency_key: str,
+        *,
+        connection: psycopg.Connection[Any],
+        check_offer: Callable[[Offer], None] | None = None,
+    ) -> dict[str, Any] | Failure:
+        """Shared creation algorithm; caller owns transaction and optional admission guard."""
+        content = request.model_dump(mode="json", exclude_unset=True)
+        request = ACPCheckoutCreateRequest.model_validate(content)
+        if not 1 <= len(idempotency_key) <= 255:
+            raise ValueError("Invalid creation key length")
         fingerprint = creation_fingerprint(content)
         key_hash = hashlib.sha256(idempotency_key.encode()).hexdigest()
-        with psycopg.connect(database_url()) as connection, connection.transaction():
-            owned = connection.execute(
-                "SELECT 1 FROM experiment_runs WHERE run_id=%s AND actor_id=%s FOR KEY SHARE",
-                (self._run_id, self._context.actor_id),
-            ).fetchone()
-            if owned is None:
-                return Failure.model_validate(
-                    {
-                        "error": {
-                            "code": "FORBIDDEN",
-                            "message": "Execution context does not own the episode.",
-                        }
-                    }
-                )
-            lock_creation(connection, self._run_id, self._context.actor_id, key_hash)
-            existing = self._existing_creation(connection, key_hash, fingerprint)
-            if existing is not None:
-                return existing
-            offer = self._offer(request.line_items[0].id, connection=connection)
-            if offer is None:
-                return Failure.model_validate(
-                    {
-                        "error": {
-                            "code": "OFFER_NOT_FOUND",
-                            "message": "The offer does not exist in this episode.",
-                        }
-                    }
-                )
-            result = self._checkout.prepare_in_transaction(
+        owned = connection.execute(
+            "SELECT 1 FROM experiment_runs WHERE run_id=%s AND actor_id=%s FOR KEY SHARE",
+            (self._run_id, self._context.actor_id),
+        ).fetchone()
+        if owned is None:
+            return Failure.model_validate(
                 {
-                    "offer_id": offer.id,
-                    "expected_offer_revision": offer.revision,
-                    "quantity": 1,
-                    "delivery_context": offer.delivery_context.model_dump(mode="json"),
-                    "idempotency_key": idempotency_key,
-                },
-                connection=connection,
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Execution context does not own the episode.",
+                    }
+                }
             )
-            if isinstance(result, Failure):
-                return result
-            response = self._response(result.data, offer)
-            return self._save_creation(connection, key_hash, fingerprint, result.data.id, response)
+        lock_creation(connection, self._run_id, self._context.actor_id, key_hash)
+        existing = self._existing_creation(connection, key_hash, fingerprint)
+        if existing is not None:
+            return existing
+        rejected = connection.execute(
+            "SELECT 1 FROM rejected_guarded_checkout_attempts WHERE run_id=%s AND actor_id=%s "
+            "AND idempotency_sha256=%s",
+            (self._run_id, self._context.actor_id, key_hash),
+        ).fetchone()
+        if rejected is not None:
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "IDEMPOTENCY_CONFLICT",
+                        "message": "The key identifies a rejected conditional attempt.",
+                    }
+                }
+            )
+        offer = self._offer(request.line_items[0].id, connection=connection)
+        if offer is None:
+            return Failure.model_validate(
+                {
+                    "error": {
+                        "code": "OFFER_NOT_FOUND",
+                        "message": "The offer does not exist in this episode.",
+                    }
+                }
+            )
+        if check_offer is not None:
+            check_offer(offer)
+        result = self._checkout.prepare_in_transaction(
+            {
+                "offer_id": offer.id,
+                "expected_offer_revision": offer.revision,
+                "quantity": 1,
+                "delivery_context": offer.delivery_context.model_dump(mode="json"),
+                "idempotency_key": idempotency_key,
+            },
+            connection=connection,
+        )
+        if isinstance(result, Failure):
+            return result
+        response = self._response(result.data, offer)
+        return self._save_creation(connection, key_hash, fingerprint, result.data.id, response)
 
     def _existing_creation(
         self, connection: psycopg.Connection[Any], key_hash: str, fingerprint: str

@@ -131,6 +131,15 @@ class CheckoutService:
         existing = self._existing(connection, key_hash, fingerprint, scenario_at)
         if existing is not None:
             return existing
+        rejected = connection.execute(
+            "SELECT 1 FROM rejected_guarded_checkout_attempts WHERE run_id=%s AND actor_id=%s "
+            "AND idempotency_sha256=%s",
+            (self._run_id, self._context.actor_id, key_hash),
+        ).fetchone()
+        if rejected is not None:
+            return _failure(
+                "IDEMPOTENCY_CONFLICT", "The key identifies a rejected conditional attempt."
+            )
 
         offer_row = connection.execute(
             """
@@ -1026,6 +1035,8 @@ class CheckoutService:
     def _validate_offer(
         self, offer: Offer, payload: CheckoutPrepareInput, scenario_at: str
     ) -> Failure | None:
+        if offer.product_status != "active":
+            return _failure("INVALID_INPUT", "Inactive products cannot start a checkout.")
         if offer.revision != payload.expected_offer_revision:
             return _failure("OFFER_REVISION_MISMATCH", "Refresh the offer before checkout.")
         if offer.availability != "in_stock" or offer.available_quantity < payload.quantity:

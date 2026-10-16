@@ -24,7 +24,7 @@ from commerce_lab.acp import ACPCheckoutAdapter, ACPCheckoutCreateRequest
 from commerce_lab.api import app
 from commerce_lab.checkout import CheckoutService
 from commerce_lab.context import authenticate_lab_session, issue_lab_session
-from commerce_lab.contracts import Failure, Offer, Success
+from commerce_lab.contracts import Checkout, Failure, Offer, Success
 from commerce_lab.db import database_url, migrate, seed
 from commerce_lab.db.core import MIGRATIONS
 from commerce_lab.fixtures import FIXTURE_DELIVERY_CONTEXT
@@ -456,8 +456,9 @@ def test_existing_legacy_rows_survive_additive_migration(isolated_cluster, monke
         connection.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
     try:
         monkeypatch.setenv("PGOPTIONS", f"-c search_path={schema}")
+        upgrade_start = MIGRATIONS.index("013_acp_creation_recovery.sql")
         with psycopg.connect(database_url()) as connection:
-            for migration in MIGRATIONS[:-1]:
+            for migration in MIGRATIONS[:upgrade_start]:
                 connection.execute(
                     sql.SQL(
                         cast(
@@ -468,27 +469,63 @@ def test_existing_legacy_rows_survive_additive_migration(isolated_cluster, monke
                 )
         run = str(seed(actor_id="upgrade-owner", variant="B2")["run_id"])
         token = issue_lab_session(run, "upgrade-owner")
-        context = authenticate_lab_session(token)
-        legacy = CheckoutService(context).prepare(
-            {
-                "offer_id": BODY["line_items"][0]["id"],
-                "expected_offer_revision": 1,
-                "quantity": 1,
-                "delivery_context": FIXTURE_DELIVERY_CONTEXT.model_dump(),
-                "idempotency_key": KEY,
-            }
-        )
-        assert isinstance(legacy, Success)
+        # Build a pre-013 row using its SQL contract, not current application
+        # code, which correctly requires every registered migration.
         with psycopg.connect(database_url()) as connection:
-            before = one(connection.execute("SELECT create_snapshot FROM checkout_sessions"))[0]
+            offer = Offer.model_validate(
+                one(
+                    connection.execute(
+                        "SELECT snapshot FROM catalog_offers WHERE run_id=%s AND offer_id=%s",
+                        (run, BODY["line_items"][0]["id"]),
+                    )
+                )[0]
+            )
+            legacy = Checkout(
+                id="legacy-upgrade-checkout",
+                revision=1,
+                status="prepared",
+                offer_id=offer.id,
+                offer_revision=offer.revision,
+                quantity=1,
+                pricing=offer.pricing,
+                delivery_context=offer.delivery_context,
+                delivery_days=offer.delivery_days,
+                created_at=offer.observed_at,
+                updated_at=offer.observed_at,
+                expires_at=offer.expires_at,
+            )
+            snapshot = legacy.model_dump(mode="json")
             connection.execute(
-                sql.SQL(
-                    cast(
-                        LiteralString,
-                        (ROOT / "migrations" / MIGRATIONS[-1]).read_text(encoding="utf-8"),
+                "INSERT INTO checkout_sessions "
+                "(run_id,checkout_id,actor_id,revision,offer_id,offer_revision,quantity,"
+                "idempotency_sha256,request_fingerprint,status,snapshot,create_snapshot,"
+                "created_at,updated_at,expires_at) "
+                "VALUES (%s,%s,%s,1,%s,%s,1,%s,%s,'prepared',%s,%s,%s,%s,%s)",
+                (
+                    run,
+                    legacy.id,
+                    "upgrade-owner",
+                    offer.id,
+                    offer.revision,
+                    hashlib.sha256(KEY.encode()).hexdigest(),
+                    "0" * 64,
+                    Jsonb(snapshot),
+                    Jsonb(snapshot),
+                    legacy.created_at,
+                    legacy.updated_at,
+                    legacy.expires_at,
+                ),
+            )
+            before = one(connection.execute("SELECT create_snapshot FROM checkout_sessions"))[0]
+            for migration in MIGRATIONS[upgrade_start:]:
+                connection.execute(
+                    sql.SQL(
+                        cast(
+                            LiteralString,
+                            (ROOT / "migrations" / migration).read_text(encoding="utf-8"),
+                        )
                     )
                 )
-            )
             row = one(
                 connection.execute(
                     "SELECT create_snapshot,acp_create_response FROM checkout_sessions"
